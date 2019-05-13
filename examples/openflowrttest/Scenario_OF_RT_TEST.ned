@@ -1,11 +1,11 @@
 
 
-package openflow.tsn.openflowrttest;
+package sdn4core.examples.openflowrttest;
 
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
-import openflow.tsn.nodes.OpenflowRealtimeDomain;
-import openflow.tsn.controller.OpenflowRealtimeController;
+import sdn4core.nodes.OpenflowRealtimeDomain;
+import sdn4core.controller.OpenflowRealtimeController;
 import openflow.utility.OpenFlowGraphAnalyzer;
 import openflow.utility.StaticSpanningTree;
 import inet.node.ethernet.EtherSwitch;

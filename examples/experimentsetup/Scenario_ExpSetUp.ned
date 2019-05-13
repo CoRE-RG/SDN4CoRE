@@ -1,6 +1,6 @@
 
 
-package openflow.tsn.experimentsetup;
+package sdn4core.examples.experimentsetup;
 
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;

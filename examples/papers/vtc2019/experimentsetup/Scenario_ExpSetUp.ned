@@ -1,6 +1,6 @@
 
 
-package openflow.custom.experimentsetup;
+package sdn4core.examples.papers.vtc2019.experimentsetup;
 
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;

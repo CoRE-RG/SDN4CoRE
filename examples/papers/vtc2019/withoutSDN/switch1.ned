@@ -1,4 +1,4 @@
-package openflow.custom.withoutSDN;
+package sdn4core.examples.papers.vtc2019.withoutSDN;
 
 import core4inet.nodes.ethernet.avb_AS6802.TTEAVBEtherSwitch;
 import core4inet.incoming.AS6802.TTIncoming;

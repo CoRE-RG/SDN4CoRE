@@ -1,4 +1,4 @@
-package openflow.custom.withoutSDN;
+package sdn4core.examples.papers.vtc2019.withoutSDN;
 
 import core4inet.nodes.ethernet.avb_AS6802.TTEAVBEtherHost;
 import inet.node.ethernet.EtherLink;
