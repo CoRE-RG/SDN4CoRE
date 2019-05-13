@@ -24,7 +24,7 @@ import openflow.controllerApps.AbstractControllerApp;
 simple RTEthernetControllerApp like AbstractControllerApp
 {
     parameters:
-        @class(ofp::RTEthernetControllerApp);
+        @class(SDN4CoRE::RTEthernetControllerApp);
         @display("i=block/app");
 		//hard timeout for flow entries
         int flowModHardTimeOut = default(0);

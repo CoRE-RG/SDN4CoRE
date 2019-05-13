@@ -13,7 +13,7 @@
 #include "core4inet/services/avb/SRP/SRPTable.h"
 #include "inet/common/InitStages.h"
 
-namespace ofp{
+namespace SDN4CoRE{
 
 /**
  * The RTOFSwitch is the switching engine of a real time capable SDN forwarding device.
@@ -47,11 +47,11 @@ protected:
     simsignal_t waitingTime;
 
     std::list<cMessage *> msgList;
-    std::vector<ofp_port> portVector;
+    std::vector<ofp::ofp_port> portVector;
 
 
-    Buffer buffer;
-    std::vector<OF_FlowTable*> _flowTables;
+    ofp::Buffer buffer;
+    std::vector<ofp::OF_FlowTable*> _flowTables;
     CoRE4INET::SRPTable* _srpTable;
     inet::TCPSocket socket;
 
@@ -62,10 +62,10 @@ protected:
     void connect(const char *connectToAddress);
 
     void processQueuedMsg(cMessage *data_msg);
-    void handleFeaturesRequestMessage(OFP_Message *of_msg);
-    void handleFlowModMessage(OFP_Message *of_msg);
-    void handlePacketOutMessage(OFP_Message *of_msg);
-    void executePacketOutAction(ofp_action_output *action, inet::EthernetIIFrame *frame, uint32_t inport);
+    void handleFeaturesRequestMessage(ofp::OFP_Message *of_msg);
+    void handleFlowModMessage(ofp::OFP_Message *of_msg);
+    void handlePacketOutMessage(ofp::OFP_Message *of_msg);
+    void executePacketOutAction(ofp::ofp_action_output *action, inet::EthernetIIFrame *frame, uint32_t inport);
     void processFrame(inet::EthernetIIFrame *frame);
     void handleMissMatchedPacket(inet::EthernetIIFrame *frame);
     void forwardSRPtoController(cPacket* msg);
@@ -78,6 +78,6 @@ private:
     bool isSRPMessage(cMessage* msg);
 };
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/
 
 #endif /* OPENFLOW_REALTIME_RTOFSwitch_H_ */

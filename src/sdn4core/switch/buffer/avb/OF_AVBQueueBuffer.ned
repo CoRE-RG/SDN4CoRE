@@ -30,7 +30,7 @@ import core4inet.buffer.avb.AVBBuffer;
 simple OF_AVBQueueBuffer extends AVBBuffer
 {
     parameters:
-        @class(ofp::OF_AVBQueueBuffer);
+        @class(SDN4CoRE::OF_AVBQueueBuffer);
         @display("q=frames");
         //Signal emitted when queuelength changes, contains new length
         @signal[length](type=unsigned long; unit=packets);

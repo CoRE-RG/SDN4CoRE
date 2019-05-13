@@ -29,7 +29,7 @@
 using namespace CoRE4INET;
 
 
-namespace ofp{
+namespace SDN4CoRE{
 
 Define_Module(RTSDNConnectionGateway);
 
@@ -162,4 +162,4 @@ void RTSDNConnectionGateway::handleOutMessage(cMessage* msg) {
     }
 }
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/

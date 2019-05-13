@@ -16,16 +16,15 @@
 #include <sdn4core/controllerApps/SRPTableManagement.h>
 
 #include "core4inet/base/avb/AVBDefs.h"
-#include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 #include "inet/linklayer/common/MACAddress.h"
-#include <algorithm>
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
-
+using namespace ofp;
 using namespace CoRE4INET;
 
-namespace ofp{
+namespace SDN4CoRE{
 
 bool SRPTableManagement::registerTalker(TalkerAdvertise* talkerAdvertise,
         Switch_Info* swinfo, int arrivalPort) {
@@ -140,5 +139,5 @@ bool SRPTableManagement::importFromXML(cXMLElement* xml, Switch_Info* swinfo) {
     return checkOrCreateTable(swinfo)->importFromXML(xml, swinfo);
 }
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/
 

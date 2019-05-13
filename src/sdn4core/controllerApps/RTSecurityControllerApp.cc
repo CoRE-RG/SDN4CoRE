@@ -16,11 +16,12 @@
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
 #include "inet/transportlayer/contract/ITransportPacket.h"
 
-namespace ofp {
+namespace SDN4CoRE {
 
 using namespace inet;
 using namespace std;
 using namespace CoRE4INET;
+using namespace ofp;
 
 Define_Module(RTSecurityControllerApp);
 
@@ -421,4 +422,4 @@ bool RTSecurityControllerApp::isWhitelisted(OFP_Packet_In* packetIn) {
     return whitelisted;
 }
 
-} /* namespace ofp */
+} /* namespace SDN4CoRE */

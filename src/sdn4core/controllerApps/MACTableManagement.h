@@ -22,7 +22,8 @@
 #include "openflow/openflow/controller/Switch_Info.h"
 #include "openflow/controllerApps/AbstractControllerApp.h"
 
-namespace ofp{
+
+namespace SDN4CoRE{
 
 #define MAC_MANAGER_OUTPORT_FLOOD -1
 
@@ -42,21 +43,21 @@ public:
      * Updates the MAC table according to the Header Fields provided.
      * @param headerFields  The header fields of the incoming packet.
      */
-    void updateMacTable(CommonHeaderFields& headerFields);
+    void updateMacTable(ofp::CommonHeaderFields& headerFields);
 
     /**
      * Get the output port for header fields.
      * @param headerFields  The header fields of the incoming packet.
      * @return              return the port to output the packet to.
      */
-    int getOutPort(CommonHeaderFields& headerFields);
+    int getOutPort(ofp::CommonHeaderFields& headerFields);
 
-    std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> >& getLookupTable() {
+    std::unordered_map<ofp::Switch_Info*, std::map<inet::MACAddress, uint32_t> >& getLookupTable() {
         return lookupTable;
     }
 
     void setLookupTable(
-            std::unordered_map<Switch_Info*,
+            std::unordered_map<ofp::Switch_Info*,
                     std::map<inet::MACAddress, uint32_t> >& lookupTable) {
         this->lookupTable = lookupTable;
     }
@@ -65,9 +66,9 @@ private:
     /**
      * The MAC table associated with each SDN switch in the network.
      */
-    std::unordered_map<Switch_Info *,std::map<inet::MACAddress,uint32_t> > lookupTable;
+    std::unordered_map<ofp::Switch_Info *,std::map<inet::MACAddress,uint32_t> > lookupTable;
 };
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/
 
 #endif /* OPENFLOW_REALTIME_CONTROLLERAPPS_MACTABLEMANAGEMENT_H_ */

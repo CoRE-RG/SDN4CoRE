@@ -33,9 +33,10 @@
 
 using namespace std;
 using namespace inet;
+using namespace ofp;
 
 
-namespace ofp{
+namespace SDN4CoRE{
 
 Define_Module(RTOFSwitch);
 
@@ -664,4 +665,4 @@ void RTOFSwitch::finish(){
     cout << oss.str();
 }
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/

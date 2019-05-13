@@ -12,7 +12,7 @@ namespace omnetpp {
 class cModule;
 }
 
-namespace ofp {
+namespace SDN4CoRE {
 /**
  * The Node Display Editor can be used to manipulate the a modules display string
  * during runtime with abstracted methods.
@@ -63,6 +63,6 @@ private:
     omnetpp::cModule* _target;
 };
 
-} /* namespace ofp */
+} /* namespace SDN4CoRE */
 
 #endif /* OPENFLOW_UTILITY_NODEDISPLAYEDITOR_H_ */

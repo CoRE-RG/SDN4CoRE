@@ -9,7 +9,7 @@
 #include <sdn4core/utility/NodeDisplayEditor.h>
 using namespace omnetpp;
 
-namespace ofp {
+namespace SDN4CoRE {
 
 NodeDisplayEditor::NodeDisplayEditor(cModule* targetModule) :
         _target(targetModule) {
@@ -40,5 +40,5 @@ NodeDisplayEditor::NodeDisplayEditor() :
         _target(nullptr) {
 }
 
-} /* namespace ofp */
+} /* namespace SDN4CoRE */
 

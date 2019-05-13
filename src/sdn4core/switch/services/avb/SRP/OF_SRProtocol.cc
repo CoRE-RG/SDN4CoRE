@@ -27,7 +27,7 @@
 
 using namespace CoRE4INET;
 
-namespace ofp {
+namespace SDN4CoRE {
 
 Define_Module(OF_SRProtocol);
 
@@ -263,4 +263,4 @@ void OF_SRProtocol::receiveSignal(cComponent *src, simsignal_t id, cObject *obj,
     }
 }
 
-} /* namespace ofp */
+} /* namespace SDN4CoRE */

@@ -13,7 +13,7 @@
 #include <sdn4core/utility/NodeDisplayEditor.h>
 #include <sdn4core/utility/ColorChangingNode.h>
 
-namespace ofp {
+namespace SDN4CoRE {
 
 #define NADS_PORT_NONE -1 //needs to be -1 as it is compared >= for valid ports
 
@@ -53,21 +53,21 @@ protected:
     virtual void initialize() override;
     virtual void refreshDisplay() const override;
 
-    virtual oxm_basic_match createMatchFromPacketIn(OFP_Packet_In* packetIn) override;
-    virtual void sendFlowModMessage(ofp_flow_mod_command mod_com, const oxm_basic_match &match, int outport, inet::TCPSocket * socket, int idleTimeOut, int hardTimeOut) override;
-    virtual void sendSRPFlowModMessage(ofp_flow_mod_command mod_com, const oxm_basic_match &match, std::vector<int> outports, inet::TCPSocket * socket, int idleTimeOut , int hardTimeOut) override;
-    virtual OFP_Packet_Out * createPacketOutFromPacketIn(OFP_Packet_In *packet_in_msg, uint32_t outport) override;
+    virtual ofp::oxm_basic_match createMatchFromPacketIn(ofp::OFP_Packet_In* packetIn) override;
+    virtual void sendFlowModMessage(ofp::ofp_flow_mod_command mod_com, const ofp::oxm_basic_match &match, int outport, inet::TCPSocket * socket, int idleTimeOut, int hardTimeOut) override;
+    virtual void sendSRPFlowModMessage(ofp::ofp_flow_mod_command mod_com, const ofp::oxm_basic_match &match, std::vector<int> outports, inet::TCPSocket * socket, int idleTimeOut , int hardTimeOut) override;
+    virtual ofp::OFP_Packet_Out * createPacketOutFromPacketIn(ofp::OFP_Packet_In *packet_in_msg, uint32_t outport) override;
 
     /**
      * implements the mirroring rule in a new switch and allows to insert flows on connection.
      * @param msg Incoming switch features reply
      */
-    virtual void handleNewSwitch(OFP_Message* msg);
+    virtual void handleNewSwitch(ofp::OFP_Message* msg);
     /**
      * Handle the message from a Connected NADS. And apply security counter measures.
      * @param msg
      */
-    virtual void handleNADSMessage(OFP_Packet_In* msg);
+    virtual void handleNADSMessage(ofp::OFP_Packet_In* msg);
 
     /**
      * @brief Indicates a parameter has changed.
@@ -86,7 +86,7 @@ private:
     /**
      * Checks if the Frame encapsulated in the packetIn is white listed with a flow.
      */
-    bool isWhitelisted(OFP_Packet_In* packetIn);
+    bool isWhitelisted(ofp::OFP_Packet_In* packetIn);
     void scheduleSelfMessage();
 
     /**
@@ -131,6 +131,6 @@ private:
     bool _anomalyScheduled = false;
 };
 
-} /* namespace ofp */
+} /* namespace SDN4CoRE */
 
 #endif /* OPENFLOW_TSN_CONTROLLERAPPS_RTSECURITYCONTROLLERAPP_H_ */

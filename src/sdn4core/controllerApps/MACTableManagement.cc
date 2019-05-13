@@ -16,8 +16,9 @@
 #include <sdn4core/controllerApps/MACTableManagement.h>
 
 using namespace inet;
+using namespace ofp;
 
-namespace ofp{
+namespace SDN4CoRE{
 
 void MACTableManagement::updateMacTable(CommonHeaderFields& headerFields) {
     //search map for source mac address and enter
@@ -44,4 +45,4 @@ int MACTableManagement::getOutPort(CommonHeaderFields& headerFields) {
     return outport;
 }
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/

@@ -26,12 +26,10 @@
 #include "core4inet/base/avb/AVBDefs.h"
 #include "inet/linklayer/common/MACAddress.h"
 
-namespace ofp {
-    class Switch_Info;
-}
+#include "openflow/openflow/controller/Switch_Info.h"
 
 
-namespace ofp{
+namespace SDN4CoRE{
 
 /**
  * @brief This module handles the mapping between ports and MAC addresses.
@@ -53,7 +51,7 @@ class OF_CTRL_SRPTable
                 uint64_t streamId;          // Stream ID
                 CoRE4INET::SR_CLASS srClass;           // Stream Reservation Class
                 inet::MACAddress address;   // The talkers address
-                Switch_Info* swinfo;        // Switch Info from Openflow Controller
+                ofp::Switch_Info* swinfo;        // Switch Info from Openflow Controller
                 int port;                   // Port at Switch
                 size_t framesize;           // Frame size in byte
                 uint16_t intervalFrames;    // interval frames
@@ -62,7 +60,7 @@ class OF_CTRL_SRPTable
 
                 OF_CTRL_TalkerEntry();
                 OF_CTRL_TalkerEntry(uint64_t new_streamId, CoRE4INET::SR_CLASS new_srClass, inet::MACAddress new_address,
-                        Switch_Info *new_swinfo, int new_port, size_t new_framesize, unsigned short new_intervalFrames,
+                        ofp::Switch_Info *new_swinfo, int new_port, size_t new_framesize, unsigned short new_intervalFrames,
                         unsigned short new_vlan_id, simtime_t new_insertionTime);
                 virtual ~OF_CTRL_TalkerEntry();
 
@@ -75,13 +73,13 @@ class OF_CTRL_SRPTable
         {
             public:
                 uint64_t streamId;          // Stream ID
-                Switch_Info* swinfo;        // Switch Info from Openflow Controller
+                ofp::Switch_Info* swinfo;        // Switch Info from Openflow Controller
                 int port;                   // Port at Switch
                 uint16_t vlan_id;           // VLAN identifier
                 simtime_t insertionTime;    // Arrival time of SRP entry
 
                 OF_CTRL_ListenerEntry();
-                OF_CTRL_ListenerEntry(uint64_t new_streamId, Switch_Info *new_swinfo, int new_port, unsigned short new_vlan_id, simtime_t new_insertionTime);
+                OF_CTRL_ListenerEntry(uint64_t new_streamId, ofp::Switch_Info *new_swinfo, int new_port, unsigned short new_vlan_id, simtime_t new_insertionTime);
                 virtual ~OF_CTRL_ListenerEntry();
 
         };
@@ -194,7 +192,7 @@ class OF_CTRL_SRPTable
          * @brief Register a new streamId at talkerTable.
          * @return True if refreshed. False if it is new.
          */
-        virtual bool updateTalkerWithStreamId(uint64_t streamId, Switch_Info* swinfo, int port, const inet::MACAddress address,
+        virtual bool updateTalkerWithStreamId(uint64_t streamId, ofp::Switch_Info* swinfo, int port, const inet::MACAddress address,
                 CoRE4INET::SR_CLASS srClass = CoRE4INET::SR_CLASS::A, size_t framesize = 0, uint16_t intervalFrames = 0, uint16_t vid =
                         CoRE4INET::VLAN_ID_DEFAULT, simtime_t simtime=0);
 
@@ -202,20 +200,20 @@ class OF_CTRL_SRPTable
          * @brief Unregister a streamId at talkerTable.
          * @return True if removed. False if not registered.
          */
-        virtual bool removeTalkerWithStreamId(uint64_t streamId, Switch_Info* swinfo, int port, const inet::MACAddress address,
+        virtual bool removeTalkerWithStreamId(uint64_t streamId, ofp::Switch_Info* swinfo, int port, const inet::MACAddress address,
                 uint16_t vid = CoRE4INET::VLAN_ID_DEFAULT);
 
         /**
          * @brief Register a new streamId at listenerTable.
          * @return True if refreshed. False if it is new.
          */
-        virtual bool updateListenerWithStreamId(uint64_t streamId, Switch_Info* swinfo, int port, uint16_t vid = CoRE4INET::VLAN_ID_DEFAULT, simtime_t simtime=0);
+        virtual bool updateListenerWithStreamId(uint64_t streamId, ofp::Switch_Info* swinfo, int port, uint16_t vid = CoRE4INET::VLAN_ID_DEFAULT, simtime_t simtime=0);
 
         /**
          * @brief Unregister a streamId at listenerTable.
          * @return True if removed. False if not registered.
          */
-        virtual bool removeListenerWithStreamId(uint64_t streamId, Switch_Info* swinfo, int port, uint16_t vid = CoRE4INET::VLAN_ID_DEFAULT);
+        virtual bool removeListenerWithStreamId(uint64_t streamId, ofp::Switch_Info* swinfo, int port, uint16_t vid = CoRE4INET::VLAN_ID_DEFAULT);
 
         /**
          *  @brief Prints cached data
@@ -242,7 +240,7 @@ class OF_CTRL_SRPTable
          * @brief Imports entries from an XMLdocument.
          * The root element needs to be <srpTable>
          */
-        bool importFromXML(cXMLElement* xml, Switch_Info* swinfo);
+        bool importFromXML(cXMLElement* xml, ofp::Switch_Info* swinfo);
 
 
     protected:
@@ -265,6 +263,6 @@ class OF_CTRL_SRPTable
         size_t getNumListenerEntries();
 };
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/
 
 #endif

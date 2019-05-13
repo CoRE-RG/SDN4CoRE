@@ -30,7 +30,7 @@ simple OF_AVBIncoming extends Incoming
 {
     parameters:
         //AVBIncoming is implemented by the AVBIncoming C++ Class
-        @class(ofp::OF_AVBIncoming);
+        @class(SDN4CoRE::OF_AVBIncoming);
         @display("i=block/arrival,blue");
         
 		//SRP Table module, default name is srpTable

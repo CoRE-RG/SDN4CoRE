@@ -27,10 +27,10 @@
 #include "core4inet/utilities/HelperFunctions.h"
 
 using namespace std;
-
+using namespace ofp;
 using namespace CoRE4INET;
 
-namespace ofp{
+namespace SDN4CoRE{
 
 OF_CTRL_SRPTable::OF_CTRL_TalkerEntry::OF_CTRL_TalkerEntry() :
         streamId(0), srClass(SR_CLASS::A), swinfo(nullptr), port(-1), framesize(0), intervalFrames(0), vlan_id(VLAN_ID_DEFAULT){
@@ -609,4 +609,4 @@ bool OF_CTRL_SRPTable::importFromXML(cXMLElement* xml, Switch_Info* swinfo) {
     return updated;
 }
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/

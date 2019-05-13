@@ -35,7 +35,7 @@ using namespace CoRE4INET;
 //INET
 #include "inet/common/ModuleAccess.h"
 
-namespace ofp {
+namespace SDN4CoRE {
 
 Define_Module(OF_AVBIncoming);
 
@@ -110,4 +110,4 @@ void OF_AVBIncoming::handleMessage(cMessage* msg) {
     }
 }
 
-} /* namespace ofp */
+} /* namespace SDN4CoRE */

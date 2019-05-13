@@ -25,7 +25,7 @@ import core4inet.applications.AS6802.CTApplicationBase;
 simple RTSDNConnectionGateway extends CTApplicationBase
 {
     parameters:
-        @class(ofp::RTSDNConnectionGateway);
+        @class(SDN4CoRE::RTSDNConnectionGateway);
         @display("i=block/join");
 
     gates:

@@ -11,7 +11,7 @@ package sdn4core.switch;
 simple RTOFSwitch
 {
     parameters:
-        @class(ofp::RTOFSwitch);
+        @class(SDN4CoRE::RTOFSwitch);
         @signal[cpPingPacketHash](type="unsigned long");
         @statistic[cpPingPacketHash](title="CpPingPacketHash"; record=vector?,stats; interpolationmode=none);
         @signal[dpPingPacketHash](type="unsigned long");

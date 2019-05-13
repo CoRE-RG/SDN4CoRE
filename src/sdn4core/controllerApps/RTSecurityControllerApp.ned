@@ -23,7 +23,7 @@ package sdn4core.controllerApps;
 simple RTSecurityControllerApp extends RTEthernetControllerApp
 {
     parameters:
-        @class(ofp::RTSecurityControllerApp);
+        @class(SDN4CoRE::RTSecurityControllerApp);
         int NADSPort = default(-1); // NADSPort == -1 deactivates NADS connection.
 		//The MAC address of the controller specified in NADS messages. Does not need to be the actuall mac address of the controller.
         string controllerMAC = default("auto");

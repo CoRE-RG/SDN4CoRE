@@ -21,17 +21,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include "inet/linklayer/common/MACAddress.h"
-#include "openflow/openflow/controller/Switch_Info.h"
 #include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
 
-namespace CoRE4INET {
-    class ListenerReady;
-    class TalkerAdvertise;
-    class SRPFrame;
-} /* namespace CoRE4INET */
+#include "inet/linklayer/common/MACAddress.h"
+#include "openflow/openflow/controller/Switch_Info.h"
+#include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 
-namespace ofp{
+namespace SDN4CoRE{
 
 /**
  * Information how to forward AVB messages.
@@ -64,7 +60,7 @@ public:
      * @param arrivalPort       The ingress port at the receiving switch.
      * @return                  true if the talker table has been updated.
      */
-    virtual bool registerTalker(CoRE4INET::TalkerAdvertise* talkerAdvertise, Switch_Info* swinfo, int arrivalPort);
+    virtual bool registerTalker(CoRE4INET::TalkerAdvertise* talkerAdvertise, ofp::Switch_Info* swinfo, int arrivalPort);
 
     /**
      * Register a listener for a switch and inport.
@@ -73,7 +69,7 @@ public:
      * @param arrivalPort       The ingress port at the receiving switch.
      * @return                  true if the listener table has been updated.
      */
-    virtual bool registerListener(CoRE4INET::ListenerReady* listenerReady, Switch_Info* swinfo, int arrivalPort);
+    virtual bool registerListener(CoRE4INET::ListenerReady* listenerReady, ofp::Switch_Info* swinfo, int arrivalPort);
 
     /**
      * Provides a forwarding information for AVBFrames according to the SRPTable of a switch and a stream.
@@ -82,7 +78,7 @@ public:
      * @param vlan_id       The VLAN ID of the frame
      * @return              SRPForwardingInfo_t containing all information to create a match.
      */
-    virtual SRPForwardingInfo_t* getForwardingInfoForStreamID(Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id);
+    virtual SRPForwardingInfo_t* getForwardingInfoForStreamID(ofp::Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id);
 
 
     /**
@@ -95,27 +91,27 @@ public:
      * @brief Imports entries from an XMLdocument.
      * The root element needs to be <srpTable>
      */
-    bool importFromXML(cXMLElement* xml,Switch_Info* swinfo);
+    bool importFromXML(cXMLElement* xml,ofp::Switch_Info* swinfo);
 
     /**
      * @brief Module representing the srpTable
      */
-    std::unordered_map<Switch_Info*,OF_CTRL_SRPTable*> _srpTable;
+    std::unordered_map<ofp::Switch_Info*,OF_CTRL_SRPTable*> _srpTable;
 private:
     /**
      * Checks if a table exists for the switch or creates a new one.
      * @param swinfo    The switch to create a table for.
      * @return          The table of the switch for convenience.
      */
-    OF_CTRL_SRPTable* checkOrCreateTable(Switch_Info* swinfo);
+    OF_CTRL_SRPTable* checkOrCreateTable(ofp::Switch_Info* swinfo);
     /**
      * checks if a table for the switch exists.
      * @param swinfo    The switch to check the table for.
      * @return          true if a table already exists.
      */
-    bool tableExistsForSwitch(Switch_Info* swinfo);
+    bool tableExistsForSwitch(ofp::Switch_Info* swinfo);
 };
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/
 
 #endif /* OPENFLOW_REALTIME_CONTROLLERAPPS_SRPTABLEMANAGEMENT_H_ */

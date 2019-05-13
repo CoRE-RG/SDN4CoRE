@@ -20,7 +20,7 @@
 #include "core4inet/buffer/avb/AVBBuffer.h"
 #include "core4inet/buffer/base/QueueBuffer.h"
 
-namespace ofp {
+namespace SDN4CoRE {
 
 /**
  * Extends the AVBBuffer and the Queue Buffer to enable openflow specific AVB manipulation.
@@ -40,5 +40,5 @@ class OF_AVBQueueBuffer : public virtual CoRE4INET::AVBBuffer, public virtual Co
         virtual void handleMessage(cMessage *msg) override;
 };
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/
 #endif /* CORE4INET_OF_AVBQueueBuffer_H_ */

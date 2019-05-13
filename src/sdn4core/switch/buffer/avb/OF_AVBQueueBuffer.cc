@@ -17,7 +17,7 @@
 
 using namespace ::CoRE4INET;
 
-namespace ofp{
+namespace SDN4CoRE{
 
 Define_Module(OF_AVBQueueBuffer);
 
@@ -132,4 +132,4 @@ void OF_AVBQueueBuffer::handleMessage(cMessage *msg)
     }
 }
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/

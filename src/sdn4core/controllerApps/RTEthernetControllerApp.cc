@@ -36,8 +36,9 @@ using namespace inet;
 using namespace CoRE4INET;
 using namespace std;
 using namespace omnetpp;
+using namespace ofp;
 
-namespace ofp{
+namespace SDN4CoRE{
 
 Define_Module(RTEthernetControllerApp);
 
@@ -343,4 +344,4 @@ std::string RTEthernetControllerApp::stateToXML() {
     return oss.str();
 }
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/

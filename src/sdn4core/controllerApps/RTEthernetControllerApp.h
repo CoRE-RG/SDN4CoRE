@@ -19,28 +19,23 @@
 #include <bits/stdint-uintn.h>
 #include <omnetpp/clistener.h>
 #include <openflow/openflow/protocol/OpenFlow.h>
+#include "openflow/openflow/controller/Switch_Info.h"
 #include <vector>
 #include <string>
-
-namespace ofp{
-    class MACTableManagement;
-    class OFP_Flow_Mod;
-    class SRPTableManagement;
-}
-
-using namespace omnetpp;
 
 #include "openflow/controllerApps/AbstractControllerApp.h"
 #include "sdn4core/controllerApps/SRPTableManagement.h"
 #include "sdn4core/controllerApps/MACTableManagement.h"
 
-namespace ofp{
+using namespace omnetpp;
+
+namespace SDN4CoRE{
 
 /**
  * RTEthernetControllerApp is an SDN controller application that handles
  * real time traffic as well as best effort MAC switching.
  */
-class RTEthernetControllerApp : public AbstractControllerApp
+class RTEthernetControllerApp : public ofp::AbstractControllerApp
 {
 public:
     int getHardTimeout() const {
@@ -71,13 +66,13 @@ public:
      * Implements the main switching engine for best effort packets.
      * @param packet_in_msg Packet in the be switched.
      */
-    virtual void doSwitching(OFP_Packet_In *packet_in_msg);
+    virtual void doSwitching(ofp::OFP_Packet_In *packet_in_msg);
 
     /**
      * Implements how to process SRP packets.
      * @param packet_in_msg Packet with the SRP message
      */
-    void doSRP(OFP_Packet_In *packet_in_msg);
+    void doSRP(ofp::OFP_Packet_In *packet_in_msg);
 
     /**
      * Creates and sends an SRPFlowModification Message implementing a flow rule in the switch to forward AVB streams.
@@ -88,13 +83,13 @@ public:
      * @param idleTimeOut   The Idle TimeOut, default will be no timeout.
      * @param hardTimeOut   The Hard TimeOut, default will be no timeout.
      */
-    virtual void sendSRPFlowModMessage(ofp_flow_mod_command mod_com, const oxm_basic_match &match, std::vector<int> outports, inet::TCPSocket * socket, int idleTimeOut , int hardTimeOut);
+    virtual void sendSRPFlowModMessage(ofp::ofp_flow_mod_command mod_com, const ofp::oxm_basic_match &match, std::vector<int> outports, inet::TCPSocket * socket, int idleTimeOut , int hardTimeOut);
 
     /**
      * Forwards an SRP Packet to the switch to be processed.
      * @param packet_in_msg the packet in from the switch
      */
-    virtual void forwardSRPPacket(OFP_Packet_In *packet_in_msg);
+    virtual void forwardSRPPacket(ofp::OFP_Packet_In *packet_in_msg);
 
     void setHardTimeout(int hardTimeout) {
         this->_hardTimeout = hardTimeout;
@@ -110,7 +105,7 @@ public:
      * @param info  The switch to load the offline config for.
      * @return      true if a config was loaded.
      */
-    bool loadOfflineConfigFromXML(Switch_Info* info);
+    bool loadOfflineConfigFromXML(ofp::Switch_Info* info);
 
     /**
      * Exports the current state of the MAC and SRP table and creates an XML formatted string.
@@ -123,7 +118,7 @@ public:
      * @param packetIn  The packet in message to create a match for.
      * @return          The match created.
      */
-    virtual oxm_basic_match createMatchFromPacketIn(OFP_Packet_In* packetIn);
+    virtual ofp::oxm_basic_match createMatchFromPacketIn(ofp::OFP_Packet_In* packetIn);
 
     /**
      * A management module handling all SRP operations.
@@ -146,6 +141,6 @@ public:
     int _hardTimeout;
 };
 
-} /*end namespace ofp*/
+} /*end namespace SDN4CoRE*/
 
 #endif

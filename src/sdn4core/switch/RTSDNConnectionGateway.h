@@ -23,7 +23,7 @@
 
 using namespace omnetpp;
 
-namespace ofp{
+namespace SDN4CoRE{
 
 /**
  * Gateway between Ports and Switching Application.
@@ -81,6 +81,6 @@ class RTSDNConnectionGateway : public virtual CoRE4INET::CTApplicationBase
     void handleSRPMessage(omnetpp::cMessage* msg);
 };
 
-} /** end namespace ofp **/
+} /** end namespace SDN4CoRE **/
 
 #endif

@@ -20,7 +20,7 @@
 #include "core4inet/incoming/base/Incoming.h"
 #include "core4inet/services/avb/SRP/SRPTable.h"
 
-namespace ofp {
+namespace SDN4CoRE {
 
 //This disables the padding warning for this class! please recheck when adding new members!
 #pragma GCC diagnostic ignored "-Wpadded"
@@ -61,5 +61,5 @@ class OF_AVBIncoming : public CoRE4INET::Incoming
         OF_AVBIncoming();
 };
 
-} /* namespace ofp */
+} /* namespace SDN4CoRE */
 #endif /* CORE4INET_OF_AVBIncoming_H_ */

@@ -22,7 +22,7 @@
 #include "core4inet/base/CoRE4INET_Defs.h"
 #include "inet/common/InitStages.h"
 
-namespace ofp {
+namespace SDN4CoRE {
 
 /**
  * @brief This module handles the Stream Reservation Protocol
@@ -70,5 +70,5 @@ class OF_SRProtocol : public virtual cSimpleModule, public cListener
         virtual void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details) override;
 };
 
-} /* namespace ofp */
+} /* namespace SDN4CoRE */
 #endif
