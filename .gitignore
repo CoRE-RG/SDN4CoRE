@@ -1,0 +1,50 @@
+# ignore generated files
+.settings/
+*_m.h
+*_m.cc
+/src/Makefile
+/src/Makefile.vc
+/doc/doxy
+/doc/neddoc
+/doc/index.html
+/FeatureBuildTest
+
+# settings
+*.qtenvrc
+*.tkenvrc
+*.tkenvlog
+*.cmdenv-log
+
+#results
+/examples/*/results/
+/examples/*/*/results/
+/examples/*/*/*/results/
+*.vci
+*.vec
+*.sca
+*.anf
+
+#tests
+/tests/*/work/
+
+# ignore binary files
+/out
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+*.o
+*.obj
+
+# local files not to be committed
+.oppfeaturestate
+.nedexclusions
+src/*/features.h
+
+# ignore backup and temp files
+*.tmp*
+
+#ignore Apple files
+.DS_Store
