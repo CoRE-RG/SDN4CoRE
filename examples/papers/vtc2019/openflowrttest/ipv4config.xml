@@ -1,0 +1,11 @@
+<config>
+  <interface hosts='**.domain*.client*' names='phy0' address='192.168.x.x' netmask='255.255.x.x'/> <!-- data plane -->
+   
+  <interface hosts='**.open_flow_controller1' names='eth0' address='10.0.0.8' netmask='255.255.255.0'/> <!-- control plane -->
+  <interface hosts='**.domain[0].open_flow_switch' names='eth0' address='10.0.0.101' netmask='255.255.255.0'/> <!-- control plane -->
+  <interface hosts='**.domain[1].open_flow_switch' names='eth0' address='10.0.0.102' netmask='255.255.255.0'/> <!-- control plane -->
+  
+  <route hosts='**.domain*.client*' interface='phy0' destination='*'/>
+  <route hosts='**.domain*.open_flow_switch' interface='eth0' destination='*'/>
+  <route hosts='**.open_flow_controller1' interface='eth0' destination='*'/>
+</config>

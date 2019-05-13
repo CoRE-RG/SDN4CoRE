@@ -1,0 +1,5 @@
+<config>
+  <interface hosts='**.client*' names='eth0' address='192.168.x.x' netmask='255.255.x.x'/> <!-- data plane -->
+  <interface hosts='**' names='eth0' address='10.x.x.x' netmask='255.x.x.x'/> <!-- control plane -->
+  <route hosts='**' interface='eth0' destination='*'/>
+</config>
