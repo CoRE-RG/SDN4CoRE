@@ -17,8 +17,8 @@
 #include <openflow/messages/openflowprotocol/OFP_Flow_Mod.h>
 #include <openflow/messages/openflowprotocol/OFP_Packet_In.h>
 #include <openflow/openflow/controller/OF_Controller.h>
-#include <openflow/tsn/controllerApps/RTEthernetControllerApp.h>
-#include <openflow/tsn/controller/core4inet/services/avb/SRP/OF_CTRL_SRPTable.h>
+#include <sdn4core/controllerApps/RTEthernetControllerApp.h>
+#include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
 #include "openflow/openflow/util/OFMessageFactory.h"
 #include <iostream>
 

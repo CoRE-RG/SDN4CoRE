@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <openflow/tsn/controllerApps/SRPTableManagement.h>
+#include <sdn4core/controllerApps/SRPTableManagement.h>
 
 #include "core4inet/base/avb/AVBDefs.h"
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"

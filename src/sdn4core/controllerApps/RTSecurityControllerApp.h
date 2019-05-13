@@ -9,9 +9,9 @@
 #define OPENFLOW_TSN_CONTROLLERAPPS_RTSECURITYCONTROLLERAPP_H_
 
 #include <openflow/openflow/protocol/OpenFlow.h>
-#include <openflow/tsn/controllerApps/RTEthernetControllerApp.h>
-#include <openflow/utility/NodeDisplayEditor.h>
-#include <openflow/utility/ColorChangingNode.h>
+#include <sdn4core/controllerApps/RTEthernetControllerApp.h>
+#include <sdn4core/utility/NodeDisplayEditor.h>
+#include <sdn4core/utility/ColorChangingNode.h>
 
 namespace ofp {
 

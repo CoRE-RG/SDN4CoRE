@@ -17,7 +17,7 @@
 #include <omnetpp/clog.h>
 #include <omnetpp/simtime.h>
 #include <omnetpp/simtime_t.h>
-#include <openflow/tsn/controller/core4inet/services/avb/SRP/OF_CTRL_SRPTable.h>
+#include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
 #include <list>
 #include <sstream>
 #include <stdexcept>

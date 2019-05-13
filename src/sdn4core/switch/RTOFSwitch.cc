@@ -1,4 +1,4 @@
-#include "openflow/tsn/switch/RTOFSwitch.h"
+#include "sdn4core/switch/RTOFSwitch.h"
 
 #include <openflow/openflow/protocol/OpenFlow.h>
 #include "openflow/openflow/util/OFMessageFactory.h"

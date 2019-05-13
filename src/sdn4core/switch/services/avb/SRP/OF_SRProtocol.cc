@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <openflow/tsn/switch/core4inet/services/avb/SRP/OF_SRProtocol.h>
+#include <sdn4core/switch/services/avb/SRP/OF_SRProtocol.h>
 #include <algorithm>
 //CoRE4INET
 #include "core4inet/base/avb/AVBDefs.h"

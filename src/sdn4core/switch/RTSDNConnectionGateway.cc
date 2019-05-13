@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <openflow/tsn/switch/RTSDNConnectionGateway.h>
+#include <sdn4core/switch/RTSDNConnectionGateway.h>
 #include <iostream>
 #include <list>
 

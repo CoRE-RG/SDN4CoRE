@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <openflow/tsn/controllerApps/MACTableManagement.h>
+#include <sdn4core/controllerApps/MACTableManagement.h>
 
 using namespace inet;
 

@@ -23,7 +23,7 @@
 
 #include "inet/linklayer/common/MACAddress.h"
 #include "openflow/openflow/controller/Switch_Info.h"
-#include <openflow/tsn/controller/core4inet/services/avb/SRP/OF_CTRL_SRPTable.h>
+#include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
 
 namespace CoRE4INET {
     class ListenerReady;

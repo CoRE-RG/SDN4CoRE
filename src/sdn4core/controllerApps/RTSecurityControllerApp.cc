@@ -5,7 +5,7 @@
  *      Author: timo
  */
 
-#include <openflow/tsn/controllerApps/RTSecurityControllerApp.h>
+#include <sdn4core/controllerApps/RTSecurityControllerApp.h>
 #include <openflow/openflow/util/OFMessageFactory.h>
 #include <inet/common/ModuleAccess.h>
 #include "core4inet/base/avb/AVBDefs.h"

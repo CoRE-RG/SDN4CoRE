@@ -31,8 +31,8 @@ namespace ofp{
 using namespace omnetpp;
 
 #include "openflow/controllerApps/AbstractControllerApp.h"
-#include "openflow/tsn/controllerApps/SRPTableManagement.h"
-#include "openflow/tsn/controllerApps/MACTableManagement.h"
+#include "sdn4core/controllerApps/SRPTableManagement.h"
+#include "sdn4core/controllerApps/MACTableManagement.h"
 
 namespace ofp{
 

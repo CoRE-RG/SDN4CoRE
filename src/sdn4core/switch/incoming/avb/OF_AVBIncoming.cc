@@ -20,7 +20,7 @@
 #include <omnetpp/cnamedobject.h>
 #include <omnetpp/cobjectfactory.h>
 #include <omnetpp/regmacros.h>
-#include <openflow/tsn/switch/core4inet/incoming/avb/OF_AVBIncoming.h>
+#include <sdn4core/switch/incoming/avb/OF_AVBIncoming.h>
 #include <cstring>
 #include <list>
 #include <string>

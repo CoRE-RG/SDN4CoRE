@@ -6,7 +6,7 @@
  */
 
 #include <omnetpp.h>
-#include <openflow/utility/NodeDisplayEditor.h>
+#include <sdn4core/utility/NodeDisplayEditor.h>
 using namespace omnetpp;
 
 namespace ofp {
