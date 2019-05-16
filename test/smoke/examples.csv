@@ -1,0 +1,5 @@
+# workingdir,                        args,                                          simtimelimit,    fingerprint
+/examples/of_test,                   -f of_test.ini -c General -r 0
+/examples/of_rt_test,                -f of_rt_test.ini -c General -r 0
+/examples/papers/vtc2019/withoutSDN, -f omnetpp.ini -c General -r 0
+/examples/papers/vtc2019/withSDN,    -f vtc2019_with_sdn.ini -c General -r 0
