@@ -1,6 +1,6 @@
 
 
-package sdn4core.examples.openflowrttest;
+package sdn4core.examples.papers.vtc2019.withSDN;
 
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
@@ -11,7 +11,7 @@ import openflow.utility.StaticSpanningTree;
 import inet.node.ethernet.EtherSwitch;
 
 
-network Scenario_OF_RT_TEST
+network vtc2019_with_sdn
 {
 	parameters:
 	    @display("bgb=842,642;");

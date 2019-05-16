@@ -5,7 +5,7 @@ import inet.node.ethernet.EtherLink;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 import inet.common.misc.ThruputMeteringChannel;
 
-network vtc2019
+network vtc2019_without_sdn
 {
     parameters:
         @display("bgb=,,white");

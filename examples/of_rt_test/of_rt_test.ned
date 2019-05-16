@@ -1,40 +1,47 @@
 
 
-package sdn4core.examples.experimentsetup;
+package sdn4core.examples.of_rt_test;
 
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
-import openflow.nodes.Open_Flow_Domain;
-import openflow.openflow.controller.Open_Flow_Controller;
+import sdn4core.nodes.OpenflowRealtimeDomain;
+import sdn4core.controller.OpenflowRealtimeController;
 import openflow.utility.OpenFlowGraphAnalyzer;
 import openflow.utility.StaticSpanningTree;
 import inet.node.ethernet.EtherSwitch;
 
 
-network Scenario_ExpSetUp
+network of_rt_test
 {
 	parameters:
 	    @display("bgb=842,642;");
 	    int numOFDomains = default(1);
 
-    types:
+        types:
         channel backboneline extends ThruputMeteringChannel
         {
             delay = 1us;
             datarate = 1Gbps;
             thruputDisplayFormat = "u";
         }
+        channel ethernetline extends ThruputMeteringChannel
+        {
+            delay = 1us;
+            datarate = 100Mbps;
+            thruputDisplayFormat = "u";
+        }
+
     submodules:
 
         configurator: IPv4NetworkConfigurator {
             parameters:
                 @display("p=198,190");
         }
-        open_flow_controller1: Open_Flow_Controller {
+        open_flow_controller1: OpenflowRealtimeController {
             @display("p=322,190");
         }
 
-        domain[numOFDomains]: Open_Flow_Domain {
+        domain[numOFDomains]: OpenflowRealtimeDomain {
         }
 
 		controllerNetwork: EtherSwitch {
@@ -44,7 +51,7 @@ network Scenario_ExpSetUp
     connections allowunconnected:
         //interconnect the domains
         if numOFDomains >= 2 {
-            domain[0].gateDPlane++ <--> backboneline <--> domain[1].gateDPlane++;
+            domain[0].gateDPlane++ <--> ethernetline <--> domain[1].gateDPlane++;
         }
         
         //connect all domains to the controller network
