@@ -6,7 +6,7 @@
  */
 
 #include <sdn4core/controllerApps/RTSecurityControllerApp.h>
-#include <openflow/openflow/util/OFMessageFactory.h>
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 #include <inet/common/ModuleAccess.h>
 #include "core4inet/base/avb/AVBDefs.h"
 #include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
@@ -170,13 +170,11 @@ oxm_basic_match RTSecurityControllerApp::createMatchFromPacketIn(
                 match.dl_vlan = avbFrame->getVID();
                 match.dl_vlan_pcp = avbFrame->getPcp();
                 match.dl_type = AVB_ETHERTYPE;
-                match.AVB_STREAM_ID = avbFrame->getStreamID();
             } else {
                 match.dl_type = frame->getEtherType();
 #if OFP_VERSION_IN_USE == OFP_100
                 match.wildcards |= OFPFW_DL_VLAN;
                 match.wildcards |= OFPFW_DL_VLAN_PCP;
-                match.wildcards |= OFPFW_DL_AVBSID;
 #endif
             }
 
@@ -318,7 +316,6 @@ void RTSecurityControllerApp::handleNewSwitch(OFP_Message* msg) {
     match.wildcards |= OFPFW_NW_DST_ALL;
     match.wildcards |= OFPFW_TP_SRC;
     match.wildcards |= OFPFW_TP_DST;
-    match.wildcards |= OFPFW_DL_AVBSID;
 #endif
     // find TCP socket.
     TCPSocket * socket = controller->findSocketFor(msg);
@@ -373,7 +370,6 @@ void RTSecurityControllerApp::handleNADSMessage(OFP_Packet_In* msg) {
     match.wildcards |= OFPFW_IN_PORT;
     match.wildcards |= OFPFW_DL_VLAN;
     match.wildcards |=  OFPFW_DL_VLAN_PCP;
-    match.wildcards |= OFPFW_DL_AVBSID;
 
     //create message and deliver
     OFP_Flow_Mod* flow_mod_msg = OFMessageFactory::instance()->createFlowModMessage(OFPFC_DELETE, match, 0, NULL, 0, 0, 0);

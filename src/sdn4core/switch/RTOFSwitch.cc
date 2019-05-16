@@ -1,7 +1,7 @@
 #include "sdn4core/switch/RTOFSwitch.h"
 
 #include <openflow/openflow/protocol/OpenFlow.h>
-#include "openflow/openflow/util/OFMessageFactory.h"
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 #include "openflow/messages/openflowprotocol/OFP_Message.h"
 #include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
 #include "openflow/messages/openflowprotocol/OFP_Hello.h"
@@ -48,7 +48,10 @@ RTOFSwitch::RTOFSwitch(){
 }
 
 RTOFSwitch::~RTOFSwitch(){
-
+    for(auto&& entry : msgList) {
+      delete entry;
+    }
+    msgList.clear();
 }
 
 void RTOFSwitch::forwardSRPtoController(cPacket* msg) {
@@ -429,7 +432,6 @@ void RTOFSwitch::processFrame(EthernetIIFrame *frame) {
         match.dl_type = AVB_ETHERTYPE;
         match.dl_vlan = avbFrame->getVID();
         match.dl_vlan_pcp = avbFrame->getPcp();
-        match.AVB_STREAM_ID = avbFrame->getStreamID();
         //}
     } else //if(frame->getEtherType()==IPv4Datagram) {
     if (IPv4Datagram * ipv4Datagram =

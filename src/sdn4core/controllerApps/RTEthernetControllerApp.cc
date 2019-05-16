@@ -19,7 +19,7 @@
 #include <openflow/openflow/controller/OF_Controller.h>
 #include <sdn4core/controllerApps/RTEthernetControllerApp.h>
 #include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
-#include "openflow/openflow/util/OFMessageFactory.h"
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 #include <iostream>
 
 #include "core4inet/base/avb/AVBDefs.h"
@@ -121,7 +121,6 @@ oxm_basic_match RTEthernetControllerApp::createMatchFromPacketIn(
     match.wildcards |= OFPFW_NW_DST_ALL;
     match.wildcards |= OFPFW_TP_SRC;
     match.wildcards |= OFPFW_TP_DST;
-    match.wildcards |= OFPFW_DL_AVBSID;
 #endif
     return match;
 }
@@ -175,7 +174,6 @@ void RTEthernetControllerApp::doSRP(OFP_Packet_In* packet_in_msg) {
                 match.dl_vlan = fwd->vlanID;
                 match.dl_vlan_pcp = fwd->srClass;
                 match.dl_type = AVB_ETHERTYPE;
-                match.AVB_STREAM_ID = fwd->streamID;
                 //TODO fix wildcards for OFP151!
                 match.wildcards = 0;
 #if OFP_VERSION_IN_USE == OFP_100
