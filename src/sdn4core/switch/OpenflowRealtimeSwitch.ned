@@ -23,7 +23,7 @@ import inet.networklayer.contract.IRoutingTable;
 import inet.transportlayer.contract.ITCP;
 
 import core4inet.services.avb.SRP.SRPTable;
-import sdn4core.switch.services.avb.SRP.OF_SRProtocol;
+import sdn4core.switch.avb_AS6802.services.avb.SRP.OF_SRProtocol;
 
 import sdn4core.switch.RTOFSwitch;
 import openflow.openflow.switch.OF_FlowTable;

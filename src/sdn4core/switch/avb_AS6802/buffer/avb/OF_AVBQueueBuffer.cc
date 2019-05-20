@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <sdn4core/switch/buffer/avb/OF_AVBQueueBuffer.h>
+#include <sdn4core/switch/avb_AS6802/buffer/avb/OF_AVBQueueBuffer.h>
 
 using namespace ::CoRE4INET;
 

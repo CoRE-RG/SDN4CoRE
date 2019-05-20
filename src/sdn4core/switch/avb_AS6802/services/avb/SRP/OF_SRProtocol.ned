@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.switch.services.avb.SRP;
+package sdn4core.switch.avb_AS6802.services.avb.SRP;
 
 //
 // This module handles the Stream Reservation Protocol

@@ -20,7 +20,7 @@ import inet.networklayer.common.InterfaceTable;
 
 //core4inet modules
 import core4inet.linklayer.port.TTEAVBPHYPort;
-import sdn4core.switch.incoming.avb.OF_AVBIncoming;
+import sdn4core.switch.avb_AS6802.incoming.avb.OF_AVBIncoming;
 import core4inet.buffer.avb.AVBQueueBuffer;
 import core4inet.linklayer.ethernet.avb.SRPEtherEncap;
 import core4inet.synchronisation.base.ISync;
@@ -32,8 +32,8 @@ import core4inet.incoming.AS6802.RCIncoming;
 import core4inet.buffer.AS6802.RCQueueBuffer;
 
 //
-// The RealTimeEthernetPort abstracts the complexity of an realtime capable port and provides the same interface as a standard ethernet port.
-// TODO is there an actual interface to inherit?
+// The RealTimeEthernetPort abstracts the complexity of an 
+// realtime capable port and provides the same interface as a standard ethernet port.
 //
 module RealTimeEthernetPort
 {
@@ -153,3 +153,4 @@ module RealTimeEthernetPort
         rtsdnGatewayApp.encapSrpOut --> encap.srpIn;
         rtsdnGatewayApp.encapSrpIn <-- encap.srpOut;
 }
+
