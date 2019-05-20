@@ -6,7 +6,7 @@ import inet.common.misc.ThruputMeteringChannel;
 import inet.node.ethernet.EtherSwitch;
 import inet.node.inet.StandardHost;
 import core4inet.nodes.inet.RTIPHost;
-import sdn4core.switch.OpenflowRealtimeSwitch;
+import sdn4core.switch.avb_AS6802.OpenflowRealtimeSwitch;
 
 
 //

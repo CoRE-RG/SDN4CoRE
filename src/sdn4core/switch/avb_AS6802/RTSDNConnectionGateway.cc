@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <sdn4core/switch/RTSDNConnectionGateway.h>
+#include <sdn4core/switch/avb_AS6802/RTSDNConnectionGateway.h>
 #include <iostream>
 #include <list>
 

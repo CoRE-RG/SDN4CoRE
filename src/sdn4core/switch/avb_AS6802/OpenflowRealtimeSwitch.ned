@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.switch;
+package sdn4core.switch.avb_AS6802;
 
 
 import inet.linklayer.ethernet.EthernetInterface;
@@ -25,10 +25,10 @@ import inet.transportlayer.contract.ITCP;
 import core4inet.services.avb.SRP.SRPTable;
 import sdn4core.switch.avb_AS6802.services.avb.SRP.OF_SRProtocol;
 
-import sdn4core.switch.RTOFSwitch;
+import sdn4core.switch.avb_AS6802.RTOFSwitch;
 import openflow.openflow.switch.OF_FlowTable;
 
-import sdn4core.switch.RealTimeEthernetPort;
+import sdn4core.switch.avb_AS6802.RealTimeEthernetPort;
 
 // 
 // The OpenflowRealtimeSwitch is a network node. 

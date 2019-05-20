@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.switch;
+package sdn4core.switch.avb_AS6802;
 
 import core4inet.applications.AS6802.CTApplicationBase;
 

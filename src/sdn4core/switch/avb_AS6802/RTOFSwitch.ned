@@ -1,6 +1,6 @@
 
 
-package sdn4core.switch;
+package sdn4core.switch.avb_AS6802;
 
 //
 // The Switch Application module is a TCP application and therefore directly connected
