@@ -20,10 +20,12 @@
 #define OPENFLOW_REALTIME_CONTROLLERAPPS_MACTABLEMANAGEMENT_H_
 
 
-#include "inet/linklayer/common/MACAddress.h"
+//STD
 #include <unordered_map>
+//INET
+#include "inet/linklayer/common/MACAddress.h"
+//openflow
 #include "openflow/openflow/controller/Switch_Info.h"
-#include "openflow/controllerApps/AbstractControllerApp.h"
 
 
 namespace SDN4CoRE{

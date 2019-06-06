@@ -1,34 +1,32 @@
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
+// GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public License
+// You should have received a copy of the GNU General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
+// c Timo Haeckel, for HAW Hamburg
+//
 
-#include <omnetpp/cexception.h>
-#include <omnetpp/clog.h>
-#include <omnetpp/simtime.h>
-#include <omnetpp/simtime_t.h>
 #include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
-#include <list>
+//STD
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <utility>
-
+//CoRE4INET
 #include "core4inet/utilities/HelperFunctions.h"
 
 using namespace std;
 using namespace ofp;
 using namespace CoRE4INET;
+using namespace omnetpp;
 
 namespace SDN4CoRE{
 

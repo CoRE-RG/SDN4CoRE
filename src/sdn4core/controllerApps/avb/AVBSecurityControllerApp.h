@@ -21,9 +21,9 @@
 
 #include <sdn4core/controllerApps/avb/AVBLearningControllerApp.h>
 
-#include <openflow/openflow/protocol/OpenFlow.h>
-#include <sdn4core/utility/NodeDisplayEditor.h>
 #include <sdn4core/utility/ColorChangingNode.h>
+//openflow
+#include <openflow/openflow/protocol/OpenFlow.h>
 
 namespace SDN4CoRE {
 
@@ -67,9 +67,43 @@ protected:
     virtual void initialize() override;
     virtual void refreshDisplay() const override;
 
+    /**
+     * Creates a OpenFlow match using the data of the given OpenFlow packet in message.
+     * @param packetIn  the OpenFlow packet in message to extract the data from
+     * @return  the OpenFlow match
+     */
     virtual ofp::oxm_basic_match createMatchFromPacketIn(ofp::OFP_Packet_In* packetIn) override;
+
+    /**
+     *
+     * Sends a Flow Modification message with a single outport to the switch connected to the TCP socket using the parameter information.
+     * @param mod_com       the OpenFlow flow modification command one of @see ofp_flow_mod_command
+     * @param match         the OpenFlow match
+     * @param outport       the output port
+     * @param socket        the socket of the switch to send the message to
+     * @param idleTimeOut   the idle timeout of the flow rule
+     * @param hardTimeOut   the hard timeout of the flow rule
+     */
     virtual void sendFlowModMessage(ofp::ofp_flow_mod_command mod_com, const ofp::oxm_basic_match &match, int outport, inet::TCPSocket * socket, int idleTimeOut, int hardTimeOut) override;
+
+    /**
+     * Sends a Flow Modification message with multiple outports to the switch connected to the TCP socket using the parameter information.
+     * @param mod_com       the OpenFlow flow modification command one of @see ofp_flow_mod_command
+     * @param match         the OpenFlow match
+     * @param outports      the output ports
+     * @param socket        the socket of the switch to send the message to
+     * @param idleTimeOut   the idle timeout of the flow rule
+     * @param hardTimeOut   the hard timeout of the flow rule
+     */
     virtual void sendSRPFlowModMessage(ofp::ofp_flow_mod_command mod_com, const ofp::oxm_basic_match &match, std::vector<int> outports, inet::TCPSocket * socket, int idleTimeOut , int hardTimeOut) override;
+
+    /**
+     * Creates a OpenFlow packet out message using the data of the given OpenFlow packet in message.
+     * It will be send out of the given outport of the switch.
+     * @param packet_in_msg     the OpenFlow packet in message to extract the data from
+     * @param outport           the outport at the switch
+     * @return  the OpenFlow Packet out message.
+     */
     virtual ofp::OFP_Packet_Out * createPacketOutFromPacketIn(ofp::OFP_Packet_In *packet_in_msg, uint32_t outport) override;
 
     /**

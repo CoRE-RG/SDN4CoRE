@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
+// c Timo Haeckel, for HAW Hamburg
+// 
 
 package sdn4core.utility;
 
@@ -19,6 +21,8 @@ package sdn4core.utility;
 // The Color changing Node provides functions to set the Color and Opacity during runtime. 
 // It either can be used as a simple Node to Display Colors in the Network or extended to 
 // inherit color changing functionality.
+//
+// @author Timo Haeckel, for HAW Hamburg
 //
 simple ColorChangingNode
 {

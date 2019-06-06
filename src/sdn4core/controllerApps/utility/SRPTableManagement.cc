@@ -17,10 +17,13 @@
 
 #include <sdn4core/controllerApps/utility/SRPTableManagement.h>
 
-#include "core4inet/base/avb/AVBDefs.h"
-#include "inet/linklayer/common/MACAddress.h"
+//STD
 #include <sstream>
 #include <algorithm>
+//inet
+#include "inet/linklayer/common/MACAddress.h"
+//CoRE4INET
+#include "core4inet/base/avb/AVBDefs.h"
 
 using namespace std;
 using namespace ofp;

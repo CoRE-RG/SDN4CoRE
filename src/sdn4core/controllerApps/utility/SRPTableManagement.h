@@ -18,16 +18,19 @@
 #ifndef OPENFLOW_REALTIME_CONTROLLERAPPS_SRPTABLEMANAGEMENT_H_
 #define OPENFLOW_REALTIME_CONTROLLERAPPS_SRPTABLEMANAGEMENT_H_
 
-#include <bits/stdint-uintn.h>
-#include <omnetpp/cmodule.h>
-#include <unordered_map>
-#include <vector>
 
 #include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
 
+//STD
+#include <unordered_map>
+#include <vector>
+//inet
 #include "inet/linklayer/common/MACAddress.h"
-#include "openflow/openflow/controller/Switch_Info.h"
+//CoRE4INET
+//AUTO_GENERATED MESSAGES
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
+//openflow
+#include "openflow/openflow/controller/Switch_Info.h"
 
 namespace SDN4CoRE {
 

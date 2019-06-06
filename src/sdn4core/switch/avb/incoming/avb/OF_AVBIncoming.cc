@@ -11,29 +11,24 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
+//
+// c Timo Haeckel, for HAW Hamburg
 // 
 
-#include <omnetpp/cexception.h>
-#include <omnetpp/cgate.h>
-#include <omnetpp/cmessage.h>
-#include <omnetpp/cmodule.h>
-#include <omnetpp/cnamedobject.h>
-#include <omnetpp/cobjectfactory.h>
-#include <omnetpp/regmacros.h>
 #include <sdn4core/switch/avb/incoming/avb/OF_AVBIncoming.h>
-#include <cstring>
+
+//STD
 #include <list>
 #include <string>
-
+//CoRE4INET
 #include "core4inet/base/avb/AVBDefs.h"
+//CoRE4INET auto-generated
+#include "core4inet/linklayer/ethernet/avb/AVBFrame_m.h"
+//INET
+#include "inet/common/ModuleAccess.h"
 
 using namespace std;
 using namespace CoRE4INET;
-//CoRE4INET auto-generated
-#include "core4inet/linklayer/ethernet/avb/AVBFrame_m.h"
-
-//INET
-#include "inet/common/ModuleAccess.h"
 
 namespace SDN4CoRE {
 

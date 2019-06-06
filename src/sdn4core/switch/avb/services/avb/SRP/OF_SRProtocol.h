@@ -11,16 +11,18 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
+//
+// c Timo Haeckel, for HAW Hamburg
 // 
 
 #ifndef CORE4INET_OF_SRProtocol_H_
 #define CORE4INET_OF_SRProtocol_H_
 
+//inet
+#include "inet/common/InitStages.h"
 //CoRE4INET
 #include <core4inet/services/avb/SRP/SRPTable.h>
-
 #include "core4inet/base/CoRE4INET_Defs.h"
-#include "inet/common/InitStages.h"
 
 namespace SDN4CoRE {
 
@@ -30,7 +32,7 @@ namespace SDN4CoRE {
  *
  * See the NED definition for details.
  *
- * @author Till Steinbach, Timo Häckel
+ * @author Timo Häckel
  */
 class OF_SRProtocol : public virtual cSimpleModule, public cListener
 {

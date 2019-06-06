@@ -18,15 +18,20 @@
 
 #include <sdn4core/controllerApps/avb/AVBSecurityControllerApp.h>
 
-#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
+//inet
 #include <inet/common/ModuleAccess.h>
-#include "core4inet/base/avb/AVBDefs.h"
+#include "inet/networklayer/ipv4/IPv4Datagram.h"
+#include "inet/transportlayer/contract/ITransportPacket.h"
+//AUTO_GENERATED MESSAGES
 #include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
+//CoRE4INET
+#include "core4inet/base/avb/AVBDefs.h"
+//AUTO_GENERATED MESSAGES
 #include "core4inet/linklayer/ethernet/avb/AVBFrame_m.h"
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 #include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
-#include "inet/networklayer/ipv4/IPv4Datagram.h"
-#include "inet/transportlayer/contract/ITransportPacket.h"
+//openflow
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 
 namespace SDN4CoRE {
 

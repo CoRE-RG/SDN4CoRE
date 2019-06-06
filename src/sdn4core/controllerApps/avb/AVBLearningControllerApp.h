@@ -15,22 +15,18 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-
 #ifndef __OPENFLOW_RTETHERNETCONTROLLERAPP_H_
 #define __OPENFLOW_RTETHERNETCONTROLLERAPP_H_
 
-#include <bits/stdint-uintn.h>
-#include <omnetpp/clistener.h>
-#include <openflow/openflow/protocol/OpenFlow.h>
-#include "openflow/openflow/controller/Switch_Info.h"
-#include <vector>
-#include <string>
-
-#include "openflow/controllerApps/AbstractControllerApp.h"
 #include "sdn4core/controllerApps/utility/SRPTableManagement.h"
 #include "sdn4core/controllerApps/utility/MACTableManagement.h"
-
-using namespace omnetpp;
+//STD
+#include <vector>
+#include <string>
+//openflow
+#include <openflow/openflow/protocol/OpenFlow.h>
+#include "openflow/openflow/controller/Switch_Info.h"
+#include "openflow/controllerApps/AbstractControllerApp.h"
 
 namespace SDN4CoRE{
 
@@ -58,7 +54,7 @@ public:
 
 
   protected:
-    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details) override;
+    void receiveSignal(omnetpp::cComponent *src, omnetpp::simsignal_t id, omnetpp::cObject *obj, omnetpp::cObject *details) override;
     virtual void initialize();
 
     /**

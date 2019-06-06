@@ -11,11 +11,13 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
+//
+// c Timo Haeckel, for HAW Hamburg
 // 
 
 #include <sdn4core/switch/avb/buffer/avb/OF_AVBQueueBuffer.h>
 
-using namespace ::CoRE4INET;
+using namespace CoRE4INET;
 
 namespace SDN4CoRE{
 

@@ -22,8 +22,6 @@
 
 #include <sdn4core/switch/base/engine/OF_RelayUnit.h>
 
-using namespace omnetpp;
-
 namespace SDN4CoRE{
 
 
@@ -44,18 +42,37 @@ public:
     virtual void finish();
 
 protected:
+    //omnetpp module funcitons
     virtual void initialize(int stage) override;
     virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(omnetpp::cMessage *msg);
 
-    virtual void processQueuedMsg(cMessage *data_msg);
-    virtual ofp::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame);
-    virtual void handleSRP(cMessage* srp);
-    virtual void forwardSRPtoController(cPacket* msg);
+    virtual void processQueuedMsg(omnetpp::cMessage *data_msg) override;
+    virtual ofp::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame) override;
 
-    virtual bool isSRPMessage(cMessage* msg);
+    /**
+     * Handles an SRP message and forwards it to the right modules.
+     * @param srp the message to handle
+     */
+    virtual void handleSRP(omnetpp::cMessage* srp);
+
+    /**
+     * Forwards an SRP message to the OpenFlow controller.
+     * @param msg srp the message to forward
+     */
+    virtual void forwardSRPtoController(omnetpp::cPacket* msg);
+
+    /**
+     * Checks whether the given message is an SRP message.
+     * @param msg the messag to check
+     * @return  true if the message is an SRP message.
+     */
+    virtual bool isSRPMessage(omnetpp::cMessage* msg);
 
 protected:
+    /**
+     * Reference to the SRP Table module.
+     */
     CoRE4INET::SRPTable* _srpTable;
 };
 

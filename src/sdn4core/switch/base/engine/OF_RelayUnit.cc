@@ -1,17 +1,9 @@
 #include <sdn4core/switch/base/engine/OF_RelayUnit.h>
 
-#include <openflow/openflow/protocol/OpenFlow.h>
-#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
-#include "openflow/messages/openflowprotocol/OFP_Message.h"
-#include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
-#include "openflow/messages/openflowprotocol/OFP_Hello.h"
-#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
-#include "openflow/messages/openflowprotocol/OFP_Packet_Out.h"
-#include "openflow/messages/openflowprotocol/OFP_Flow_Mod.h"
 //STD
 #include <sstream>
 #include <string>
-//INET
+//inet
 #include "inet/linklayer/ethernet/EtherMAC.h"
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
@@ -20,9 +12,17 @@
 #include "inet/networklayer/common/InterfaceTable.h"
 #include "inet/networklayer/ipv4/ICMPMessage.h"
 //Auto-generated Messages
-//INET
 #include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
 #include "inet/applications/pingapp/PingPayload_m.h"
+//openflow
+#include <openflow/openflow/protocol/OpenFlow.h>
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
+#include "openflow/messages/openflowprotocol/OFP_Message.h"
+#include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
+#include "openflow/messages/openflowprotocol/OFP_Hello.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_Out.h"
+#include "openflow/messages/openflowprotocol/OFP_Flow_Mod.h"
 
 
 using namespace std;

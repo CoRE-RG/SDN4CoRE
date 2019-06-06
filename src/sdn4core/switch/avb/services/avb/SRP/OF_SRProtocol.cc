@@ -14,6 +14,8 @@
 // 
 
 #include <sdn4core/switch/avb/services/avb/SRP/OF_SRProtocol.h>
+
+//STD
 #include <algorithm>
 //CoRE4INET
 #include "core4inet/base/avb/AVBDefs.h"
@@ -21,7 +23,6 @@
 #include "core4inet/base/NotifierConsts.h"
 //Auto-generated Messages
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
-
 //INET
 #include "inet/common/ModuleAccess.h"
 

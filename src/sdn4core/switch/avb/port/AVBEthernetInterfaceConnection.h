@@ -1,50 +1,52 @@
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 // 
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
+// GNU General Public License for more details.
 // 
-// You should have received a copy of the GNU Lesser General Public License
+// You should have received a copy of the GNU General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
+//
+// c Timo Haeckel, for HAW Hamburg
 // 
 
 #ifndef __OPENFLOW_AVBETHERNETINTERFACECONNECTIONGATEWAY_H_
 #define __OPENFLOW_AVBETHERNETINTERFACECONNECTIONGATEWAY_H_
 
 
-//CoRE4INET
-#include "core4inet/applications/AS6802/CTApplicationBase.h"
 #include <omnetpp.h>
 
-using namespace omnetpp;
+//CoRE4INET
+#include "core4inet/applications/AS6802/CTApplicationBase.h"
 
 namespace SDN4CoRE{
 
 /**
  * Gateway between Ports and Switching Application.
- * @author Timo Häckel
+ *
+ * @author Timo Haeckel, for HAW Hamburg
  */
 class AVBEthernetInterfaceConnection : public virtual CoRE4INET::CTApplicationBase
 {
   protected:
     virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(omnetpp::cMessage *msg);
 
 
   private:
     /**
      * Buffer for outgoing AVB traffic.
      */
-    cModule *_avbOutCTC = nullptr;
+    omnetpp::cModule *_avbOutCTC = nullptr;
     /**
      * Buffer for outgoing BE traffic
      */
-    cModule *_beBuffer = nullptr;
+    omnetpp::cModule *_beBuffer = nullptr;
 
     /**
      * The index of this port.

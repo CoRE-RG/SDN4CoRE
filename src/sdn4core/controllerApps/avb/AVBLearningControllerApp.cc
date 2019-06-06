@@ -15,26 +15,28 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-
-#include <omnetpp.h>
-#include <openflow/messages/openflowprotocol/OFP_Flow_Mod.h>
-#include <openflow/messages/openflowprotocol/OFP_Packet_In.h>
-#include <openflow/openflow/controller/OF_Controller.h>
 #include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
+
 #include <sdn4core/controllerApps/avb/AVBLearningControllerApp.h>
-
-#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
-#include <iostream>
-
+//STD
+#include <sstream>
+//inet
+#include "inet/common/ModuleAccess.h"
+#include "inet/linklayer/common/MACAddress.h"
+#include "inet/transportlayer/contract/tcp/TCPSocket.h"
+//AUTO_GENERATED MESSAGES
+#include "inet/transportlayer/contract/tcp/TCPCommand_m.h"
+//CoRE4INET
 #include "core4inet/base/avb/AVBDefs.h"
+//AUTO_GENERATED MESSAGES
 #include "core4inet/linklayer/ethernet/avb/AVBFrame_m.h"
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 #include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
-#include "inet/common/ModuleAccess.h"
-#include "inet/linklayer/common/MACAddress.h"
-#include "inet/transportlayer/contract/tcp/TCPCommand_m.h"
-#include "inet/transportlayer/contract/tcp/TCPSocket.h"
-#include <sstream>
+//openflow
+#include <openflow/messages/openflowprotocol/OFP_Flow_Mod.h>
+#include <openflow/messages/openflowprotocol/OFP_Packet_In.h>
+#include <openflow/openflow/controller/OF_Controller.h>
+#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 
 using namespace inet;
 using namespace CoRE4INET;

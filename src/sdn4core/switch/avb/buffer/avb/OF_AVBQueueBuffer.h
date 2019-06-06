@@ -11,6 +11,8 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
+//
+// c Timo Haeckel, for HAW Hamburg
 // 
 
 #ifndef CORE4INET_OF_AVBQueueBuffer_H_
@@ -24,6 +26,8 @@ namespace SDN4CoRE {
 
 /**
  * Extends the AVBBuffer and the Queue Buffer to enable openflow specific AVB manipulation.
+ *
+ * @author Timo Haeckel, for HAW Hamburg
  */
 class OF_AVBQueueBuffer : public virtual CoRE4INET::AVBBuffer, public virtual CoRE4INET::QueueBuffer
 {

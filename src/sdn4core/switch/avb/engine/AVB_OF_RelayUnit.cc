@@ -17,23 +17,24 @@
 
 #include <sdn4core/switch/avb/engine/AVB_OF_RelayUnit.h>
 
-//openflow
-#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
-#include "openflow/messages/openflowprotocol/OFP_Packet_Out.h"
-//CoRE4INET
-#include "core4inet/base/avb/AVBDefs.h"
-#include "core4inet/linklayer/ethernet/avb/AVBFrame_m.h"
-#include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
-#include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
+#include <sdn4core/switch/avb/services/avb/SRP/OF_SRProtocol.h>
 //STD
 #include <sstream>
 #include <string>
-
-#include <sdn4core/switch/avb/services/avb/SRP/OF_SRProtocol.h>
+//CoRE4INET
+#include "core4inet/base/avb/AVBDefs.h"
+//AUTO_GENERATED MESSAGES
+#include "core4inet/linklayer/ethernet/avb/AVBFrame_m.h"
+#include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
+#include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
+//openflow
+#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_Out.h"
 
 using namespace std;
 using namespace inet;
 using namespace ofp;
+using namespace omnetpp;
 
 
 namespace SDN4CoRE{
