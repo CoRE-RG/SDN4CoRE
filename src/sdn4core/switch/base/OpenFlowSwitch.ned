@@ -1,0 +1,153 @@
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see http://www.gnu.org/licenses/.
+// 
+// c Timo Haeckel, for HAW Hamburg
+// 
+
+package sdn4core.switch.base;
+//INET
+import inet.networklayer.common.InterfaceTable;
+import inet.linklayer.contract.IWiredNic;
+import inet.networklayer.contract.INetworkLayer;
+import inet.networklayer.contract.IRoutingTable;
+import inet.transportlayer.contract.ITCP;
+//OPENFLOW
+import openflow.openflow.switch.flowtable.IOpenFlowFlowTable;
+import openflow.openflow.switch.engine.IOpenFlowRelayUnit;
+
+//
+// Model of an OpenFlow Ethernet switch.
+//
+// The duplexChannel attributes of the MACs must be set according to the
+// medium connected to the port; if collisions are possible (it's a bus or hub)
+// it must be set to false, otherwise it can be set to true.
+//
+// @author Timo Haeckel, for HAW Hamburg
+//
+module OpenFlowSwitch
+{
+    parameters:
+        @networkNode();
+        @OF_Switch();
+        @labels(node,ethernet-node);
+        @display("i=device/switch;i2=OpenFlow-Logo-small");
+        
+        // Should Packet ins contain the full packet.
+        bool sendCompletePacket = default(false);
+        // service time of the relay unit
+        double serviceTime @unit("s") = default(0s);
+        // number of flow tables in this switch
+        int numFlowTables = default(1);        
+
+		// Interface Submodule types to be exchangeable in inheriting modules
+        string routingTableType = default("IPv4RoutingTable");
+        string ethControlPlaneType = default("EthernetInterface");
+        string networkLayerType = default("IPv4NetworkLayer");
+        string tcpType = default("TCP");
+        string relayUnitType = default("OF_RelayUnit");
+        string ethDataPlaneType = default("EthernetInterface");
+        string ofFlowTableType = default("OF_FlowTable");
+        
+        // submodule settings
+        bool csmacdSupport = default(true);  // by default use CSMA/CD
+        string macType = default(csmacdSupport ? "EtherMAC" : "EtherMACFullDuplex"); // ~EtherMAC or ~EtherMACFullDuplex
+        bool routingforwarding = default(false);
+        bool multicastForwarding = default(false);
+        routingTable.forwarding = routingforwarding;
+        routingTable.multicastForwarding = multicastForwarding;   // for IPv4, IPv6, Generic
+        etherMAC[*].encapType = "EtherEncapDummy";
+        etherMAC[*].csmacdSupport = csmacdSupport;
+        etherMAC[*].macType = macType;
+        networkLayer.proxyARP = false; 
+
+        // Setting paths in all submodules in need of those modules
+        *.routingTableModule = default(absPath(".routingTable"));
+        *.interfaceTableModule = default(absPath(".interfaceTable"));
+
+    gates:
+        inout gateControlPlane @labels(ControlPlane);
+        inout gateDataPlane[] @labels(DataPlane);
+
+    submodules:
+
+        // Interface Table module for all Ethernet interfaces
+        interfaceTable: InterfaceTable {
+            @display("p=70,47");
+        }
+
+        // Routing module for the controlplane network, every inet host contains one
+        routingTable: <routingTableType> like IRoutingTable if routingTableType != "" {
+            parameters:
+                @display("p=176,47");
+        }
+
+        // Ethernet Interface module for the control plane port
+        eth[sizeof(gateControlPlane)]: <ethControlPlaneType> like IWiredNic {
+            @display("p=50,143");
+        }
+
+        // NetworkLayer module for the control plane port
+        networkLayer: <networkLayerType> like INetworkLayer {
+            @display("p=137,143");
+            gates:
+                ifIn[1];
+                ifOut[1];
+        }
+
+        // TCP module for the control plane port
+        tcp: <tcpType> like ITCP {
+            @display("p=226,143");
+        }
+
+        // OpenFlow Switching engine module
+        relayUnit: <relayUnitType> like IOpenFlowRelayUnit {
+            @display("p=371,143");
+            gates:
+                dataPlaneOut[sizeof(gateDataPlane)];
+                dataPlaneIn[sizeof(gateDataPlane)];
+        }
+
+        // Ethernet Interface modules for the data plane ports
+        etherMAC[sizeof(gateDataPlane)]: <ethDataPlaneType> like IWiredNic {
+            parameters:
+                mac.promiscuous = true;
+                @display("p=551,143,c,50");
+        }
+
+		// Flow Table module contains match entries and resulting actions
+        flowTables[numFlowTables]: <ofFlowTableType> like IOpenFlowFlowTable {
+            @display("p=442,47");
+        }
+
+    connections allowunconnected:
+
+        // control plane connections
+        for i=0..sizeof(gateControlPlane)-1 {
+            eth[i].phys <--> gateControlPlane;
+            eth[i].upperLayerIn <-- networkLayer.ifOut++;
+            eth[i].upperLayerOut --> networkLayer.ifIn++;
+        }
+        tcp.ipOut --> networkLayer.transportIn++;
+        tcp.ipIn <-- networkLayer.transportOut++;
+        tcp.appOut++ --> relayUnit.controlPlaneIn;
+        tcp.appIn++ <-- relayUnit.controlPlaneOut;
+
+        // data plane connections
+        for i=0..sizeof(gateDataPlane)-1 {
+            etherMAC[i].phys <--> gateDataPlane[i];
+            etherMAC[i].upperLayerOut --> relayUnit.dataPlaneIn[i];
+            etherMAC[i].upperLayerIn <-- relayUnit.dataPlaneOut[i];
+        }
+
+}

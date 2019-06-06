@@ -4,12 +4,12 @@ package sdn4core.examples.of_test;
 
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
-import openflow.nodes.Open_Flow_Domain;
+import inet.node.ethernet.EtherSwitch;
 import openflow.openflow.controller.Open_Flow_Controller;
 import openflow.utility.OpenFlowGraphAnalyzer;
 import openflow.utility.StaticSpanningTree;
-import inet.node.ethernet.EtherSwitch;
 
+import sdn4core.nodes.base.OpenFlowDomain;
 
 network of_test
 {
@@ -34,7 +34,7 @@ network of_test
             @display("p=322,190");
         }
 
-        domain[numOFDomains]: Open_Flow_Domain {
+        domain[numOFDomains]: OpenFlowDomain {
         }
 
 		controllerNetwork: EtherSwitch {

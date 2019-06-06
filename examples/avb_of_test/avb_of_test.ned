@@ -1,6 +1,6 @@
 
 
-package sdn4core.examples.papers.vtc2019.withSDN;
+package sdn4core.examples.avb_of_test;
 
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
@@ -11,7 +11,7 @@ import openflow.utility.StaticSpanningTree;
 import inet.node.ethernet.EtherSwitch;
 
 
-network vtc2019_with_sdn
+network avb_of_test
 {
 	parameters:
 	    @display("bgb=842,642;");
