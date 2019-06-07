@@ -81,10 +81,10 @@ module OpenFlowSwitch
         inout gateDataPlane[] @labels(DataPlane);
 
     submodules:
-        
+
         // Keeps track of the status of network node (up, down, etc.)
         status: NodeStatus {
-            @display("p=51,38;is=n");
+            @display("p=633,27;is=n");
         }
 
         // Interface Table module for all Ethernet interfaces

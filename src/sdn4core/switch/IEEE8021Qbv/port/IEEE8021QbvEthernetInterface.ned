@@ -35,9 +35,10 @@ import core4inet.linklayer.shaper.IEEE8021Qbv_Shaper;
 module IEEE8021QbvEthernetInterface like IWiredNic
 {
     parameters:
-        @display("i=device/port");
-        @networkNode;
+        @display("i=block/ifcard");
         
+        // if true, all packets are received, otherwise only the ones with matching destination MAC address
+        bool promiscuous = default(true);
         //Static propagation delay for the port
         double static_tx_delay @unit(s) = default(0ns);
         //Module holds Interfacenames
@@ -79,7 +80,7 @@ module IEEE8021QbvEthernetInterface like IWiredNic
         //MAC Interface
         mac: <default("EtherMACFullDuplex")> like IEtherMAC{
             parameters:
-                promiscuous = true;
+                promiscuous = promiscuous;
                 queueModule = "^.shaper.transmissionSelection";
                 @display("p=87,139");
         }

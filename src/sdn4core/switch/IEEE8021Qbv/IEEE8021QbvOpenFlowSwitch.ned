@@ -34,11 +34,12 @@ import core4inet.services.avb.SRP.SRPTable;
 module IEEE8021QbvOpenFlowSwitch extends OpenFlowSwitch
 {
     parameters:
+        @display("i=device/switch;i2=OpenFlow-Logo-small");
         ethDataPlaneType = default("IEEE8021QbvEthernetInterface");
-        
+
         // Forwardingdelay of the device hardware
         double hardware_delay @unit(s) = default(8us);
-        
+
         *.srpTable = default(absPath(".srpTable"));
         *.srpProtocolModule = default(absPath(".srpProtocol"));
 
@@ -47,15 +48,15 @@ module IEEE8021QbvOpenFlowSwitch extends OpenFlowSwitch
         // Sync module for synchronisation of the scheduler
         sync: <default("DummySync")> like ISync {
             parameters:
-                @display("p=569,24");
+                @display("p=576,27");
         }
 
         // Scheduler for the device
         scheduler: <default("Scheduler")> like ITTEScheduler {
             parameters:
-                @display("p=634,24");
+                @display("p=519,27");
         }
-        
+
 	    // Stream Reservation Protocol table
         srpTable: SRPTable {
             @display("p=442,241");
