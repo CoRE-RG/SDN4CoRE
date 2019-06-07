@@ -37,8 +37,8 @@ module AVBOpenFlowSwitch extends OpenFlowSwitch
         relayUnitType = default("AVB_OF_RelayUnit");
         ethDataPlaneType = default("AVBEthernetInterface");
 
-        *.srpTable = "^.srpTable";
-        *.srpProtocolModule = "^.srpProtocol";
+        *.srpTable = default(absPath(".srpTable"));
+        *.srpProtocolModule = default(absPath(".srpProtocol"));
 
         @display("bgb=642,289");
     submodules:

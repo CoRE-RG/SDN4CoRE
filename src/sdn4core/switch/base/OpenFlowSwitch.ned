@@ -22,6 +22,7 @@ import inet.linklayer.contract.IWiredNic;
 import inet.networklayer.contract.INetworkLayer;
 import inet.networklayer.contract.IRoutingTable;
 import inet.transportlayer.contract.ITCP;
+import inet.common.lifecycle.NodeStatus;
 //OPENFLOW
 import openflow.openflow.switch.flowtable.IOpenFlowFlowTable;
 import openflow.openflow.switch.engine.IOpenFlowRelayUnit;
@@ -42,13 +43,13 @@ module OpenFlowSwitch
         @OF_Switch();
         @labels(node,ethernet-node);
         @display("i=device/switch;i2=OpenFlow-Logo-small");
-        
+
         // Should Packet ins contain the full packet.
         bool sendCompletePacket = default(false);
         // service time of the relay unit
         double serviceTime @unit("s") = default(0s);
         // number of flow tables in this switch
-        int numFlowTables = default(1);        
+        int numFlowTables = default(1);
 
 		// Interface Submodule types to be exchangeable in inheriting modules
         string routingTableType = default("IPv4RoutingTable");
@@ -58,7 +59,7 @@ module OpenFlowSwitch
         string relayUnitType = default("OF_RelayUnit");
         string ethDataPlaneType = default("EthernetInterface");
         string ofFlowTableType = default("OF_FlowTable");
-        
+
         // submodule settings
         bool csmacdSupport = default(true);  // by default use CSMA/CD
         string macType = default(csmacdSupport ? "EtherMAC" : "EtherMACFullDuplex"); // ~EtherMAC or ~EtherMACFullDuplex
@@ -69,7 +70,7 @@ module OpenFlowSwitch
         etherMAC[*].encapType = "EtherEncapDummy";
         etherMAC[*].csmacdSupport = csmacdSupport;
         etherMAC[*].macType = macType;
-        networkLayer.proxyARP = false; 
+        networkLayer.proxyARP = false;
 
         // Setting paths in all submodules in need of those modules
         *.routingTableModule = default(absPath(".routingTable"));
@@ -80,16 +81,21 @@ module OpenFlowSwitch
         inout gateDataPlane[] @labels(DataPlane);
 
     submodules:
+        
+        // Keeps track of the status of network node (up, down, etc.)
+        status: NodeStatus {
+            @display("p=51,38;is=n");
+        }
 
         // Interface Table module for all Ethernet interfaces
         interfaceTable: InterfaceTable {
-            @display("p=70,47");
+            @display("p=63,38");
         }
 
         // Routing module for the controlplane network, every inet host contains one
         routingTable: <routingTableType> like IRoutingTable if routingTableType != "" {
             parameters:
-                @display("p=176,47");
+                @display("p=158,38");
         }
 
         // Ethernet Interface module for the control plane port
@@ -127,7 +133,7 @@ module OpenFlowSwitch
 
 		// Flow Table module contains match entries and resulting actions
         flowTables[numFlowTables]: <ofFlowTableType> like IOpenFlowFlowTable {
-            @display("p=442,47");
+            @display("p=371,38");
         }
 
     connections allowunconnected:
