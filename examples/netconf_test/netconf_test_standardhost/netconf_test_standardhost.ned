@@ -15,31 +15,24 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.nodes;
+package sdn4core.examples.netconf_test.netconf_test_standardhost;
 
-import sdn4core.netconf.client.INetConfClient;
-//INET
-import inet.node.inet.StandardHost;
+import sdn4core.netconf.nodes.NetConfManagedUnit;
+import sdn4core.netconf.nodes.NetConfManagementUnit;
 
 //
-// An example Host for the Management Unit using a standard inet ipv4 host.
+// This is a test network for the basic netconf functionality. It contains a Management 
+// Unit (@see ~NetConfManagementUnit) and a Managed Unit (@see ~NetConfManagedUnit). 
 //
-// @author Timo Haeckel, for HAW Hamburg
-//
-module ManagementUnit extends StandardHost
+network netconf_test_standardhost
 {
-    parameters:
-    	numTcpApps = default(1);
-    	string netConfClientType = default("");
-    
-    gates:
-        // no additional gates needed
-    
     submodules:
-        // Netconf Client module
-        netConfClient: <netConfClientType> like INetConfClient {
-            
+        managedUnit: NetConfManagedUnit{
         }
         
-    connections:    
+        managementUnit: NetConfManagementUnit{
+        }
+        
+    connections:
+        managementUnit.ethg++ <--> managedUnit.ethg++;
 }

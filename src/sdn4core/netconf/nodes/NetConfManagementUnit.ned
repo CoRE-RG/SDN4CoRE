@@ -17,47 +17,29 @@
 
 package sdn4core.netconf.nodes;
 
-import sdn4core.netconf.server.INetConfServer;
-import sdn4core.netconf.server.INetConfConfigDataStore;
-import sdn4core.netconf.server.INetConfStateDataStore;
+import sdn4core.netconf.client.INetConfClient;
 //INET
 import inet.node.inet.StandardHost;
 
 //
-// An example Host for the Managed Unit using a standard inet ipv4 host.
+// An example Host for the Management Unit using a standard inet ipv4 host.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-module ManagedUnit extends StandardHost
+module NetConfManagementUnit extends StandardHost
 {
     parameters:
     	numTcpApps = default(1);
-    	string netConfServerType = default("");
-    	// the number of config stores to create
-    	int numConfigStores = default(1);
-    	    
+    	string netConfClientType = default("");
+    
     gates:
         // no additional gates needed
     
     submodules:
         // Netconf Client module
-        netConfServer: <netConfServerType> like INetConfServer {
-            numConfigStores = numConfigStores;
-            pathToConfigDataStores = abspath(configStores);
-            pathToStateDataStore = abspath(stateStore);
-        }
-        
-        // Netconf config store modules
-        configStores [numConfigStores]: <> like INetConfConfigDataStore {
-            
-        }
-        
-        // Netconf state store modules
-        stateStore: <> like INetConfStateDataStore {
+        netConfClient: <netConfClientType> like INetConfClient {
             
         }
         
     connections:    
-        
-        
 }
