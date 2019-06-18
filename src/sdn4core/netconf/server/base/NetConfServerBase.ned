@@ -18,6 +18,7 @@
 package sdn4core.netconf.server.base;
 
 import sdn4core.netconf.server.INetConfServer;
+import sdn4core.utility.processing.ProcessingTimeSimulation;
 
 //
 // Base implementation for a NetConfServerBase that is transport protocol independent. 
@@ -30,7 +31,7 @@ import sdn4core.netconf.server.INetConfServer;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple NetConfServerBase like INetConfServer
+simple NetConfServerBase extends ProcessingTimeSimulation like INetConfServer
 {
     parameters:
         @class(SDN4CoRE::NetConfServerBase);
@@ -43,9 +44,6 @@ simple NetConfServerBase like INetConfServer
         string pathToConfigDataStores = default("^.configStores");
         // the path to the NetConfStateDataStore module
         string pathToStateDataStore = default("^.stateStore");
-        // modelling realistic environment:
-        // request processing time
-       	double processingTime @unit("s") = default(0s);
         
     gates:
         input responseIn @directIn;

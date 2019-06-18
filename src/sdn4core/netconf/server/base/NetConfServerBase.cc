@@ -18,6 +18,9 @@
 #include <sdn4core/netconf/server/base/NetConfServerBase.h>
 #include "sdn4core/netconf/server/base/NetConfConfigDataStoreBase.h"
 #include "sdn4core/netconf/server/base/NetConfStateDataStoreBase.h"
+//AUTO-GENERATED MESSAGES
+#include "sdn4core/netconf/messages/NetConfMessage_m.h"
+#include "sdn4core/netconf/messages/NetConfOperation_m.h"
 //INET
 #include "inet/common/ModuleAccess.h"
 
@@ -34,6 +37,8 @@ const char NetConfServerBase::TRANSPORT_IN_GATE_NAME[] = "transportIn";
 const char NetConfServerBase::TRANSPORT_OUT_GATE_NAME[] = "transportOut";
 
 void NetConfServerBase::initialize() {
+    ProcessingTimeSimulation::initialize();
+
     //find netconf data stores
     _stateDataStore = inet::getModuleFromPar<NetConfStateDataStoreBase>(
             par("pathToStateDataStore"), this, true);
@@ -58,22 +63,55 @@ void NetConfServerBase::initialize() {
     }
 }
 
-void NetConfServerBase::handleMessage(cMessage *msg) {
+void NetConfServerBase::handleMessage(cMessage* msg) {
+
+    if (msg->arrivedOn(RESPONSE_IN_GATE_NAME)) {
+        // this should be a message from a data store --> check if it is NetConf_RPCReplyElement
+        NetConf_RPCReplyElement* element = dynamic_cast<NetConf_RPCReplyElement*>(msg);
+        if(element){
+            // if it is a reply detach NetConfCtrlInfo
+            NetConfCtrlInfo* ctrl = dynamic_cast<NetConfCtrlInfo*>(element->removeControlInfo());
+
+
+            // create NetConf reply message
+            NetConfMessage_RPCReply* reply = new NetConfMessage_RPCReply();
+            reply->setMessage_id(ctrl->getMessage_id());
+            reply->encapsulate(element);
+
+            // forward it to the correct client
+            forwardToTransport(reply, ctrl->getTransportInfo());
+        }
+
+    } else {
+        //introduce processing delay
+        ProcessingTimeSimulation::handleMessage(msg);
+    }
+}
+
+void NetConfServerBase::processScheduledMessage(cMessage* msg) {
     if (msg->arrivedOn(TRANSPORT_IN_GATE_NAME)) {
         // this should be a message from a client --> check if it is NetConf
+        NetConfMessage* netconf = dynamic_cast<NetConfMessage*>(msg);
+        if (netconf) {
+            NetConfMessage_RPC* rpc = dynamic_cast<NetConfMessage_RPC*>(netconf);
+            if ((netconf->getMessageType()
+                    == NetConfMessageType::NETCONFMESSAGETYPE_RPC) && rpc) {
+                // decapsulate the operation
 
-        // if it is a request attach NetConfCtrlInfo
+                // find the correct store
 
-        // forward it to the correct store
+                // if it is a request attach NetConfCtrlInfo
+                NetConfCtrlInfo* ctrl = new NetConfCtrlInfo();
+                ctrl->setMessageType(rpc->getMessageType());
+                ctrl->setMessage_id(rpc->getMessage_id());
 
-    } else if (msg->arrivedOn(RESPONSE_IN_GATE_NAME)) {
-        //this should be a message from a data store --> check if it is NetConf
+                // forward it to the correct store
 
-        // if it is a reply detach NetConfCtrlInfo
-
-        // forward it to the correct client
-
+            }
+        }
     }
+
+    delete msg;
 }
 
 }  // namespace SDN4CoRE

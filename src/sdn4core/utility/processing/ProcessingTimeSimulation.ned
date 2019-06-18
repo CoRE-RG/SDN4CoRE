@@ -15,33 +15,21 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-cplusplus {{
-#include "NetConfMessage_m.h"
-}}
-
-namespace SDN4CoRE;
-
-enum NetConfMessageType;
-
+package sdn4core.utility.processing;
 
 //
-// Base class for transport protocol specific control info.
+// Base module to simulate processing time.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-class NetConfCtrl_TransportInfo {
-    
-}
-
-//
-// Control info which is attached to a request by the NetConfServer, 
-// when forwarded to a data store, or the other way around. 
-// It is used to map a response to the request.
-//
-// @author Timo Haeckel, for HAW Hamburg
-//
-class NetConfCtrlInfo {
-    int messageType@enum(NetConfMessageType);
-    string message_id;
-    NetConfCtrl_TransportInfo transportInfo;
+simple ProcessingTimeSimulation
+{
+    parameters:
+        @signal[queueSize](type="unsigned long");
+        @statistic[queueSize](title="QueueSize"; record=vector?,stats; interpolationmode=none);
+        @signal[waitingTime](type="simtime_t");
+        @statistic[waitingTime](title="WaitingTime"; record=vector?,stats?; interpolationmode=none);
+        // modelling realistic environment:
+        // request processing time
+       	double processingTime @unit("s") = default(0s);
 }

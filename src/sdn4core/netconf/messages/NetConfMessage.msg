@@ -61,7 +61,7 @@ packet NetConfMessage_RPC extends NetConfMessage {
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-class NetConf_RPCReplyElement {
+packet NetConf_RPCReplyElement {
     
 }
 
@@ -80,16 +80,14 @@ class NetConf_RPCReplyElement {
 packet NetConfMessage_RPCReply extends NetConfMessage {
     messageType = NetConfMessageType::NETCONFMESSAGETYPE_RPCREPLY;
     string message_id;
-    
-    NetConf_RPCReplyElement elements[];
 }
 
 //
-// Baseclass for any userdata
+// Baseclass for any userdata to be incapsulated in a NetConfMessage_RPCReply.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-class NetConf_RPCReplyElement_Data extends NetConf_RPCReplyElement {
+packet NetConf_RPCReplyElement_Data extends NetConf_RPCReplyElement {
 }
 
 //
@@ -147,7 +145,7 @@ enum NetConf_RPCReplyElement_Error_Severity {
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-class NetConf_RPCReplyElement_Error extends NetConf_RPCReplyElement {
+packet NetConf_RPCReplyElement_Error extends NetConf_RPCReplyElement {
     int error_type @enum(NetConf_RPCReplyElement_Error_Type);
     string error_tag;
     int error_severity @enum(NetConf_RPCReplyElement_Error_Severity);
@@ -161,7 +159,7 @@ class NetConf_RPCReplyElement_Error extends NetConf_RPCReplyElement {
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-class NetConf_RPCReplyElement_Ok extends NetConf_RPCReplyElement {
+packet NetConf_RPCReplyElement_Ok extends NetConf_RPCReplyElement {
 }
 
 

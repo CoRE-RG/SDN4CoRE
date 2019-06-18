@@ -21,15 +21,14 @@
 #include <omnetpp.h>
 #include <unordered_map>
 #include <string>
+#include <list>
 
-//forward declerations
-//namespace SDN4CoRE {
-//    class NetConfConfigDataStoreBase;
-//    class NetConfStateDataStoreBase;
-//}  // namespace SDN4CoRE
+#include "sdn4core/utility/processing/ProcessingTimeSimulation.h"
 
 #include "sdn4core/netconf/server/base/NetConfConfigDataStoreBase.h"
 #include "sdn4core/netconf/server/base/NetConfStateDataStoreBase.h"
+//AUTO-GENERATED MESSAGES
+#include "sdn4core/netconf/messages/NetConfCtrlInfo_m.h"
 
 using namespace omnetpp;
 
@@ -40,12 +39,22 @@ namespace SDN4CoRE {
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class NetConfServerBase : public cSimpleModule
+class NetConfServerBase : public ProcessingTimeSimulation
 {
 
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+
+    /**
+     * @see ~ProcessingTimeSimulation::processScheduledMessage(cMessage *msg)
+     */
+    virtual void processScheduledMessage(cMessage *msg);
+
+    /**
+     *
+     */
+    virtual void forwardToTransport(cMessage* msg, NetConfCtrl_TransportInfo& transportInfo);
 
     /**
      * Active configuration data store
