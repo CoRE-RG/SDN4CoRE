@@ -34,7 +34,6 @@ import sdn4core.utility.processing.ProcessingTimeSimulation;
 simple NetConfServerBase extends ProcessingTimeSimulation like INetConfServer
 {
     parameters:
-        @class(SDN4CoRE::NetConfServerBase);
         @display("i=block/server");
         // name of the configuration to be launched on startup
         string launchConfigName = default("");

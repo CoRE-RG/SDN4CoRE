@@ -32,6 +32,12 @@ enum NetConfMessageType {
 // The Messages layer provides a simple, transport-independent
 // framing mechanism for encoding RPCs and notifications.
 //
+// RPC Model
+//
+// The NETCONF protocol uses an RPC-based communication model.  NETCONF
+// peers use <rpc> and <rpc-reply> elements to provide transport-
+// protocol-independent framing of NETCONF requests and responses.
+//
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConfMessage {

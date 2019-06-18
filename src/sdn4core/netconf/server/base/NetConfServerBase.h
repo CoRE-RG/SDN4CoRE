@@ -27,8 +27,8 @@
 
 #include "sdn4core/netconf/server/base/NetConfConfigDataStoreBase.h"
 #include "sdn4core/netconf/server/base/NetConfStateDataStoreBase.h"
-//AUTO-GENERATED MESSAGES
-#include "sdn4core/netconf/messages/NetConfCtrlInfo_m.h"
+// AUTO-GENERATED MESSAGES
+#include "sdn4core/netconf/messages/NetConfMessage_m.h"
 
 using namespace omnetpp;
 
@@ -52,9 +52,19 @@ protected:
     virtual void processScheduledMessage(cMessage *msg);
 
     /**
-     *
+     * Forwards the message to the protocol specific transport layer.
+     * The NetConfCtrlInfo_Transport should be attached to the message.
+     * @param msg   the message to forward
      */
-    virtual void forwardToTransport(cMessage* msg, NetConfCtrl_TransportInfo& transportInfo);
+    virtual void forwardToTransport(cMessage* msg) = 0;
+
+    /**
+     * Extract the NetConfMessage from the message and attach protocol specific
+     * transport layer information as NetConfCtrlInfo_Transport to the message.
+     * @param msg   the message to forward
+     * @return      the extracte NetConfMessage
+     */
+    virtual NetConfMessage* getNetConfFromTransport(cMessage* msg) = 0;
 
     /**
      * Active configuration data store
@@ -71,7 +81,6 @@ protected:
      */
     NetConfStateDataStoreBase* _stateDataStore;
 
-private:
     /**
      * Gate name (@directIn) for request inputs in data stores
      */

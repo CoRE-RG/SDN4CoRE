@@ -19,6 +19,7 @@
 #include "sdn4core/netconf/server/base/NetConfConfigDataStoreBase.h"
 #include "sdn4core/netconf/server/base/NetConfStateDataStoreBase.h"
 //AUTO-GENERATED MESSAGES
+#include "sdn4core/netconf/messages/NetConfCtrlInfo_m.h"
 #include "sdn4core/netconf/messages/NetConfMessage_m.h"
 #include "sdn4core/netconf/messages/NetConfOperation_m.h"
 //INET
@@ -27,8 +28,6 @@
 using namespace std;
 
 namespace SDN4CoRE {
-
-Define_Module(NetConfServerBase);
 
 const char NetConfServerBase::REQUEST_FWD_GATE_NAME[] = "requestIn";
 const char NetConfServerBase::RESPONSE_IN_GATE_NAME[] = "responseIn";
@@ -72,14 +71,15 @@ void NetConfServerBase::handleMessage(cMessage* msg) {
             // if it is a reply detach NetConfCtrlInfo
             NetConfCtrlInfo* ctrl = dynamic_cast<NetConfCtrlInfo*>(element->removeControlInfo());
 
-
             // create NetConf reply message
             NetConfMessage_RPCReply* reply = new NetConfMessage_RPCReply();
             reply->setMessage_id(ctrl->getMessage_id());
             reply->encapsulate(element);
 
+            // re-attach transport control info
+            reply->setControlInfo(&ctrl->getTransportInfo());
             // forward it to the correct client
-            forwardToTransport(reply, ctrl->getTransportInfo());
+            forwardToTransport(reply);
         }
 
     } else {
@@ -90,9 +90,12 @@ void NetConfServerBase::handleMessage(cMessage* msg) {
 
 void NetConfServerBase::processScheduledMessage(cMessage* msg) {
     if (msg->arrivedOn(TRANSPORT_IN_GATE_NAME)) {
+        // TODO what happens with netconf hello
+
         // this should be a message from a client --> check if it is NetConf
-        NetConfMessage* netconf = dynamic_cast<NetConfMessage*>(msg);
+        NetConfMessage* netconf = getNetConfFromTransport(msg);
         if (netconf) {
+            NetConfCtrlInfo_Transport* transportInfo = dynamic_cast<NetConfCtrlInfo_Transport*>(netconf->removeControlInfo());
             NetConfMessage_RPC* rpc = dynamic_cast<NetConfMessage_RPC*>(netconf);
             if ((netconf->getMessageType()
                     == NetConfMessageType::NETCONFMESSAGETYPE_RPC) && rpc) {
@@ -104,6 +107,7 @@ void NetConfServerBase::processScheduledMessage(cMessage* msg) {
                 NetConfCtrlInfo* ctrl = new NetConfCtrlInfo();
                 ctrl->setMessageType(rpc->getMessageType());
                 ctrl->setMessage_id(rpc->getMessage_id());
+                ctrl->setTransportInfo(*transportInfo);
 
                 // forward it to the correct store
 
