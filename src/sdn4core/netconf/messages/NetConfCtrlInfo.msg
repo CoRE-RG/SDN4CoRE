@@ -15,33 +15,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.nodes;
+cplusplus {{
+#include "NetConfMessage_m.h"
+}}
 
-import sdn4core.netconf.client.INetConfClient;
-//INET
-import inet.node.inet.StandardHost;
+namespace SDN4CoRE;
+
+enum NetConfMessageType;
 
 //
-// An example Host for the Management Unit using a standard inet ipv4 host.
+// Control info which is attached to a request by the NetConfServer, 
+// when forwarded to a data store, or the other way around. 
+// It is used to map a response to the request.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-module NetConfManagementUnit extends StandardHost
-{
-    parameters:
-    	numTcpApps = default(1);
-    	string netConfClientType = default("");
-    
-    gates:
-        // no additional gates needed
-    
-    submodules:
-        // Netconf Client module
-        netConfClient: <netConfClientType> like INetConfClient {
-            
-        }
-        
-    connections: 
-        netConfClient.transportIn <-- tcp.appOut++;
-        netConfClient.transportOut --> tcp.appIn++;   
+class NetConfCtrlInfo {
+    int messageType@enum(NetConfMessageType);
+    string message_id;
 }

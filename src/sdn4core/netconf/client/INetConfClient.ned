@@ -24,7 +24,7 @@ package sdn4core.netconf.client;
 // Integrity, and Confidentiality" as specified in Network Configuration 
 // Protocol (NETCONF) RFC6241.
 //
-// All responses will be forwarded to the applicaitonOut gate withe the 
+// All responses will be forwarded to the applicaitonOut gate with the 
 // same index as the arriving applicationIn gate   
 //
 // @author Timo Haeckel, for HAW Hamburg

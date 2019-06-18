@@ -15,27 +15,24 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.server;
+package sdn4core.netconf.server.base;
+
+import sdn4core.netconf.server.INetConfConfigDataStore;
 
 //
-// Contains the common interface of a netconf config data store.
-// A config store has a name and contains the full configuration information of the device.
-// Its status indicates if it is currently active or not. 
-// There can only be one active configuration.
+// TODO auto-generated module
 //
-// Modules of types cListener can subscribe to this module to be notified on updates.
-//
-// @author Timo Haeckel, for HAW Hamburg
-//
-moduleinterface  INetConfConfigDataStore extends INetConfDataStore
+simple NetConfConfigDataStoreBase like INetConfConfigDataStore
 {
     parameters:
-        @display("i=block/buffer2");
         // the name of this configuration
         // one store must be named running other meaningful names are candidate or startup
-        string name;
+        string name = default("");
         
         // if true the running config will be marked green, candidate configs yellow and inactive red.
-        bool displayStatus;
+        bool displayStatus = default(true);
         
+    gates:
+        // input for netconf requests
+        input requestIn @directIn;
 }

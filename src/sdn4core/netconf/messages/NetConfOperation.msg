@@ -13,35 +13,15 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//  
 
-package sdn4core.netconf.nodes;
-
-import sdn4core.netconf.client.INetConfClient;
-//INET
-import inet.node.inet.StandardHost;
+namespace SDN4CoRE;
 
 //
-// An example Host for the Management Unit using a standard inet ipv4 host.
+// Base class for all NetConf operations.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-module NetConfManagementUnit extends StandardHost
-{
-    parameters:
-    	numTcpApps = default(1);
-    	string netConfClientType = default("");
+packet NetConfOperation {
     
-    gates:
-        // no additional gates needed
-    
-    submodules:
-        // Netconf Client module
-        netConfClient: <netConfClientType> like INetConfClient {
-            
-        }
-        
-    connections: 
-        netConfClient.transportIn <-- tcp.appOut++;
-        netConfClient.transportOut --> tcp.appIn++;   
 }

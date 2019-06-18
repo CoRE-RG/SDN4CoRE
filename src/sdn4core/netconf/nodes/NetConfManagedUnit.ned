@@ -31,33 +31,32 @@ import inet.node.inet.StandardHost;
 module NetConfManagedUnit extends StandardHost
 {
     parameters:
-    	numTcpApps = default(1);
-    	string netConfServerType = default("");
-    	// the number of config stores to create
-    	int numConfigStores = default(1);
-    	    
+        hasTcp = true;
+        string netConfServerType = default("");
+        // the number of config stores to create
+        int numConfigStores = default(1);
+
     gates:
         // no additional gates needed
-    
+
     submodules:
         // Netconf Client module
         netConfServer: <netConfServerType> like INetConfServer {
             numConfigStores = numConfigStores;
-            pathToConfigDataStores = abspath(configStores);
-            pathToStateDataStore = abspath(stateStore);
+            @display("p=147,219");
         }
-        
+
         // Netconf config store modules
-        configStores [numConfigStores]: <> like INetConfConfigDataStore {
-            
+        configStores[numConfigStores]: <> like INetConfConfigDataStore {
+
+            @display("p=147,292");
         }
-        
+
         // Netconf state store modules
-        stateStore: <> like INetConfStateDataStore {
-            
-        }
-        
-    connections:    
-        
-        
+        stateStore: <> like INetConfStateDataStore;
+
+    connections:
+        netConfServer.transportIn <-- tcp.appOut++;
+        netConfServer.transportOut --> tcp.appIn++;
+
 }

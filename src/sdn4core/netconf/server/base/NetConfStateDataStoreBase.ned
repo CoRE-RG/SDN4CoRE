@@ -15,33 +15,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.nodes;
+package sdn4core.netconf.server.base;
 
-import sdn4core.netconf.client.INetConfClient;
-//INET
-import inet.node.inet.StandardHost;
-
+import sdn4core.netconf.server.INetConfStateDataStore;
 //
-// An example Host for the Management Unit using a standard inet ipv4 host.
+// TODO auto-generated module
 //
-// @author Timo Haeckel, for HAW Hamburg
-//
-module NetConfManagementUnit extends StandardHost
+simple NetConfStateDataStoreBase like INetConfStateDataStore
 {
-    parameters:
-    	numTcpApps = default(1);
-    	string netConfClientType = default("");
-    
-    gates:
-        // no additional gates needed
-    
-    submodules:
-        // Netconf Client module
-        netConfClient: <netConfClientType> like INetConfClient {
-            
-        }
         
-    connections: 
-        netConfClient.transportIn <-- tcp.appOut++;
-        netConfClient.transportOut --> tcp.appIn++;   
+    gates:
+        // input for netconf requests
+        input requestIn @directIn;
 }

@@ -15,41 +15,42 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.server;
+package sdn4core.netconf.server.base;
+
+import sdn4core.netconf.server.INetConfServer;
 
 //
-// Contains the common interface of a netconf server.
+// Base implementation for a NetConfServerBase that is transport protocol independent. 
 // This module can be connected to any Transport protocol that should be of 
 // "Connection-Oriented Operation" and should provide "Authentication, 
 // Integrity, and Confidentiality" as specified in Network Configuration 
-// Protocol (NETCONF) RFC6241.
+// Protocol (NETCONF) RFC6241. Inherit for transport specific implementations.
 //
 // A NetConf Server must be connected to device specific config and state datastores.
 //
-// Known implementations: ~NetConfServerBase
-//
 // @author Timo Haeckel, for HAW Hamburg
 //
-moduleinterface INetConfServer
+simple NetConfServerBase like INetConfServer
 {
     parameters:
+        @class(SDN4CoRE::NetConfServerBase);
         @display("i=block/server");
         // name of the configuration to be launched on startup
-        string launchConfigName;
+        string launchConfigName = default("");
         // the number of config strores in this host.
-        int numConfigStores;
+        int numConfigStores = default(1);
         // the path to the NetConfConfigDataStore module(s) array.
-        string pathToConfigDataStores;
+        string pathToConfigDataStores = default("^.configStores");
         // the path to the NetConfStateDataStore module
-        string pathToStateDataStore;
+        string pathToStateDataStore = default("^.stateStore");
         // modelling realistic environment:
         // request processing time
-       	double processingTime @unit("s");
+       	double processingTime @unit("s") = default(0s);
         
     gates:
         input responseIn @directIn;
         
         // connection to transport protocols
         input transportIn;
-        output transportOut;    
+        output transportOut;   
 }

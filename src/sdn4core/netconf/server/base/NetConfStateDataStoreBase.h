@@ -15,25 +15,21 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.server;
+#ifndef __SDN4CORE_NETCONFSTATEDATASTOREBASE_H_
+#define __SDN4CORE_NETCONFSTATEDATASTOREBASE_H_
 
-//
-// Contains the common interface of a netconf config store.
-// A config store has a name and contains the full configuration information of the device.
-// Its status indicates if it is currently active or not. 
-// There can only be one active configuration.
-//
-// Modules of types cListener can subscribe to this module to be notified on updates.
-//
-// @author Timo Haeckel, for HAW Hamburg
-//
-moduleinterface INetConfDataStore
+#include <omnetpp.h>
+
+using namespace omnetpp;
+
+/**
+ * TODO - Generated class
+ */
+class NetConfStateDataStoreBase : public cSimpleModule
 {
-    parameters:
-        @display("i=block/buffer2");
-        
-    gates:
-        // input for netconf requests
-        input requestIn @directIn;
-        
-}
+  protected:
+    virtual void initialize();
+    virtual void handleMessage(cMessage *msg);
+};
+
+#endif

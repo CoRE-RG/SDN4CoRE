@@ -20,19 +20,35 @@ package sdn4core.examples.netconf_test.netconf_test_standardhost;
 import sdn4core.netconf.nodes.NetConfManagedUnit;
 import sdn4core.netconf.nodes.NetConfManagementUnit;
 
+//INET
+import inet.common.misc.ThruputMeteringChannel;
+import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+
 //
 // This is a test network for the basic netconf functionality. It contains a Management 
 // Unit (@see ~NetConfManagementUnit) and a Managed Unit (@see ~NetConfManagedUnit). 
 //
 network netconf_test_standardhost
 {
+    types:
+        channel connection extends ThruputMeteringChannel
+        {
+            delay = 1us;
+            datarate = 1Gbps;
+            thruputDisplayFormat = "u";
+        }
+        
     submodules:
+
+        configurator: IPv4NetworkConfigurator {
+        }
+        
         managedUnit: NetConfManagedUnit{
         }
         
-        managementUnit: NetConfManagementUnit{
-        }
+//        managementUnit: NetConfManagementUnit{
+//        }
         
-    connections:
-        managementUnit.ethg++ <--> managedUnit.ethg++;
+//    connections:
+//        managementUnit.ethg++ <--> managedUnit.ethg++;
 }
