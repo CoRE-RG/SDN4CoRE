@@ -5,7 +5,7 @@
  *      Author: timo
  */
 
-#include <sdn4core/netconf/messages/NetConfConfig.h>
+#include "sdn4core/netconf/datastores/datastructures/base/NetConfConfig.h"
 
 namespace SDN4CoRE {
 

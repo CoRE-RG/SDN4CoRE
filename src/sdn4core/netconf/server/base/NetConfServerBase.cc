@@ -15,14 +15,15 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
+#include <sdn4core/netconf/datastores/manager/base/NetConfDataStoreManagerBase.h>
 #include <sdn4core/netconf/server/base/NetConfServerBase.h>
-#include "sdn4core/netconf/server/base/NetConfConfigDataStoreBase.h"
-#include "sdn4core/netconf/server/base/NetConfStateDataStoreBase.h"
-//AUTO-GENERATED MESSAGES
+
 #include "sdn4core/netconf/messages/NetConfOperation_m.h"
 #include "sdn4core/netconf/messages/NetConfCapability_m.h"
 //INET
 #include "inet/common/ModuleAccess.h"
+//STD
+#include <string>
 
 using namespace std;
 
@@ -38,26 +39,12 @@ void NetConfServerBase::initialize() {
     ProcessingTimeSimulation::initialize();
 
     //find netconf data stores
-    _stateDataStore = inet::getModuleFromPar<NetConfStateDataStoreBase>(
-            par("pathToStateDataStore"), this, true);
-    if (!_stateDataStore) {
+    _configDataStoreManager = inet::getModuleFromPar<NetConfDataStoreManagerBase>(
+            par("pathToConfigManager"), this, true);
+    if (!_configDataStoreManager) {
         string msg = "No state data store found in ";
-        msg += par("pathToStateDataStore").stdstringValue();
+        msg += par("pathToConfigManager").stdstringValue();
         cRuntimeError(msg.c_str());
-    }
-    string path = par("pathToConfigDataStores").stdstringValue();
-    int numStores = par("numConfigStores");
-    for (int i = 0; i < numStores; i++) {
-        path += "[" + to_string(i) + "]";
-        if (NetConfConfigDataStoreBase* config =
-                dynamic_cast<NetConfConfigDataStoreBase*>(this->getModuleByPath(
-                        path.c_str()))) {
-            _configDataStores[config->getName()] = config;
-        } else {
-            string msg = "No config data store found in ";
-            msg += path;
-            cRuntimeError(msg.c_str());
-        }
     }
 }
 
@@ -74,11 +61,11 @@ void NetConfServerBase::handleMessage(cMessage* msg) {
             NetConfMessage_RPCReply* reply = new NetConfMessage_RPCReply();
             reply->setMessage_id(ctrl->getMessage_id());
             reply->encapsulate(element);
-
-            // re-attach transport control info
-//            reply->setControlInfo(&ctrl->getTransportInfo());
-            // forward it to the correct client
+            // reattach control info and forward it.
+            reply->setControlInfo(ctrl);
             sendToTransport(reply);
+        } else {
+            delete msg;
         }
 
     } else {
@@ -139,14 +126,13 @@ void NetConfServerBase::handleHello(cMessage* msg) {
 }
 
 void NetConfServerBase::handleRPC(NetConfMessage* msg) {
-    // decapsulate the operation
-    //
-    //                // find the correct store
-    //
-    //                // if it is a request attach NetConfCtrlInfo
-    //
-    //
-    //                // forward it to the correct store
+    if(NetConfMessage_RPC* rpc = dynamic_cast<NetConfMessage_RPC*>(msg)){
+        // decapsulate the operation
+        if(NetConfOperation* operation = dynamic_cast<NetConfOperation*>(rpc->decapsulate())){
+            //forward it to the config store manager
+            sendDirect(operation, _configDataStoreManager->gate(REQUEST_FWD_GATE_NAME));
+        }
+    }
 }
 
 NetConfSessionInfo* NetConfServerBase::findSessionInfoForId(

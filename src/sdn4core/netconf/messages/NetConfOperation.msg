@@ -21,14 +21,14 @@
 
 
 cplusplus {{
-#include "NetConfFilter.h"
-#include "NetConfConfig.h"
+#include "sdn4core/netconf/datastores/datastructures/base/NetConfFilter.h"
+#include "sdn4core/netconf/datastores/datastructures/base/NetConfConfig.h"
 }}
+
+namespace SDN4CoRE;
 
 struct NetConfFilter;
 struct NetConfConfig;
-
-namespace SDN4CoRE;
 
 //
 // Base class for all NetConf operations.

@@ -15,7 +15,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#include <sdn4core/netconf/messages/NetConfFilter.h>
+#include "sdn4core/netconf/datastores/datastructures/base/NetConfFilter.h"
 
 namespace SDN4CoRE {
 

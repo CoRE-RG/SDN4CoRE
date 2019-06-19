@@ -35,14 +35,8 @@ simple NetConfServerBase extends ProcessingTimeSimulation like INetConfServer
 {
     parameters:
         @display("i=block/server");
-        // name of the configuration to be launched on startup
-        string launchConfigName = default("");
-        // the number of config strores in this host.
-        int numConfigStores = default(1);
-        // the path to the NetConfConfigDataStore module(s) array.
-        string pathToConfigDataStores = default("^.configStores");
-        // the path to the NetConfStateDataStore module
-        string pathToStateDataStore = default("^.stateStore");
+        // the path to the INetConfDataStoreManager module
+        string pathToConfigManager = default("^.dataStoreManager");
         
     gates:
         input responseIn @directIn;

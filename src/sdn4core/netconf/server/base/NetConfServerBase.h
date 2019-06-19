@@ -20,13 +20,10 @@
 
 #include <omnetpp.h>
 #include <unordered_map>
-#include <string>
 #include <vector>
 
 #include "sdn4core/utility/processing/ProcessingTimeSimulation.h"
 
-#include "sdn4core/netconf/server/base/NetConfConfigDataStoreBase.h"
-#include "sdn4core/netconf/server/base/NetConfStateDataStoreBase.h"
 #include "sdn4core/netconf/server/base/NetConfSessionInfo.h"
 // AUTO-GENERATED MESSAGES
 #include "sdn4core/netconf/messages/NetConfMessage_m.h"
@@ -35,6 +32,10 @@
 using namespace omnetpp;
 
 namespace SDN4CoRE {
+/**
+ * forward declaration of NetConfDataStoreManagerBase
+ */
+class NetConfDataStoreManagerBase;
 
 /**
  * Base implementation for a NetConfServer, communicating with a NetConf client @see~NetConfClient.
@@ -99,19 +100,9 @@ protected:
     int _nextSessionId = 0;
 
     /**
-     * Active configuration data store
+     * Cached reference to the NetConf data store manager.
      */
-    std::string _activeConfigDataStore;
-
-    /**
-     * Cached reference to the NetConf configuration data stores.
-     */
-    std::unordered_map<std::string,NetConfConfigDataStoreBase*> _configDataStores;
-
-    /**
-     * Cached reference to the NetConf state data store.
-     */
-    NetConfStateDataStoreBase* _stateDataStore;
+    NetConfDataStoreManagerBase* _configDataStoreManager;
 
     /**
      * Gate name (@directIn) for request inputs in data stores

@@ -18,8 +18,7 @@
 package sdn4core.netconf.nodes;
 
 import sdn4core.netconf.server.INetConfServer;
-import sdn4core.netconf.server.INetConfConfigDataStore;
-import sdn4core.netconf.server.INetConfStateDataStore;
+import sdn4core.netconf.datastores.manager.INetConfDataStoreManager;
 //INET
 import inet.node.inet.StandardHost;
 
@@ -33,8 +32,7 @@ module NetConfManagedUnit extends StandardHost
     parameters:
         hasTcp = true;
         string netConfServerType = default("");
-        // the number of config stores to create
-        int numConfigStores = default(1);
+        string dataStoreManagerType = default("");
 
     gates:
         // no additional gates needed
@@ -42,18 +40,13 @@ module NetConfManagedUnit extends StandardHost
     submodules:
         // Netconf Client module
         netConfServer: <netConfServerType> like INetConfServer {
-            numConfigStores = numConfigStores;
             @display("p=147,219");
         }
 
-        // Netconf config store modules
-        configStores[numConfigStores]: <> like INetConfConfigDataStore {
-
-            @display("p=147,292");
-        }
-
         // Netconf state store modules
-        stateStore: <> like INetConfStateDataStore;
+        dataStoreManager: <dataStoreManagerType> like INetConfDataStoreManager {
+            @display("p=149,292");
+        }
 
     connections:
         netConfServer.transportIn <-- tcp.appOut++;

@@ -15,20 +15,30 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.server;
+package sdn4core.netconf.datastores.manager.base;
 
 //
-// Contains the common interface of a netconf config store.
-// This module handles state netconf requests. A device which is configurable with Netconf
-// needs to contain an inherited version of this interface to respond to state requests.
-//
-// Modules of types cListener can subscribe to this module to be notified on updates.
+// Adds a base implementation to the moduleinterface INetConfDataStoreManager.
+// NetConfDataStoreManger implementations handle NetConf configuration and 
+// state operations for a specific device. 
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-moduleinterface INetConfStateDataStore extends INetConfDataStore
+simple NetConfDataStoreManagerBase
 {
     parameters:
         @display("i=block/buffer2");
+        // if true this module will create a display string for status messages
+        bool displayStatus = default(true);
+        // the path to the INetConfServer module
+        string pathToNetConfServer = default("^.netConfServer");
+        // maximum number of config data stores 
+        int numMaxDataStores = default(1);
+        // xml file for a startup configuration of the device.
+    	xml startupConfigXML = default(xml("<root/>"));
         
+    gates:
+        
+        // input for netconf requests
+        input requestIn @directIn;
 }

@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
+cplusplus {{
+#include "sdn4core/netconf/datastores/datastructures/base/NetConfConfig.h"
+}}
 
 namespace SDN4CoRE;
+
+struct NetConfConfig;
 
 //
 // Enum for all NetConf message types
@@ -94,6 +99,7 @@ packet NetConfMessage_RPCReply extends NetConfMessage {
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConf_RPCReplyElement_Data extends NetConf_RPCReplyElement {
+    NetConfConfig config;
 }
 
 //
