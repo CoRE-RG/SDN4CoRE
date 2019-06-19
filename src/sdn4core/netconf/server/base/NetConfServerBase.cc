@@ -19,9 +19,8 @@
 #include "sdn4core/netconf/server/base/NetConfConfigDataStoreBase.h"
 #include "sdn4core/netconf/server/base/NetConfStateDataStoreBase.h"
 //AUTO-GENERATED MESSAGES
-#include "sdn4core/netconf/messages/NetConfCtrlInfo_m.h"
-#include "sdn4core/netconf/messages/NetConfMessage_m.h"
 #include "sdn4core/netconf/messages/NetConfOperation_m.h"
+#include "sdn4core/netconf/messages/NetConfCapability_m.h"
 //INET
 #include "inet/common/ModuleAccess.h"
 
@@ -77,9 +76,9 @@ void NetConfServerBase::handleMessage(cMessage* msg) {
             reply->encapsulate(element);
 
             // re-attach transport control info
-            reply->setControlInfo(&ctrl->getTransportInfo());
+//            reply->setControlInfo(&ctrl->getTransportInfo());
             // forward it to the correct client
-            forwardToTransport(reply);
+            sendToTransport(reply);
         }
 
     } else {
@@ -90,32 +89,89 @@ void NetConfServerBase::handleMessage(cMessage* msg) {
 
 void NetConfServerBase::processScheduledMessage(cMessage* msg) {
     if (msg->arrivedOn(TRANSPORT_IN_GATE_NAME)) {
-        // TODO what happens with netconf hello
 
-        // this should be a message from a client --> check if it is NetConf
-        NetConfMessage* netconf = getNetConfFromTransport(msg);
-        if (netconf) {
-            NetConfCtrlInfo_Transport* transportInfo = dynamic_cast<NetConfCtrlInfo_Transport*>(netconf->removeControlInfo());
-            NetConfMessage_RPC* rpc = dynamic_cast<NetConfMessage_RPC*>(netconf);
-            if ((netconf->getMessageType()
-                    == NetConfMessageType::NETCONFMESSAGETYPE_RPC) && rpc) {
-                // decapsulate the operation
+        if (dynamic_cast<NetConfHello*>(msg)) {
+            // received hello
+            handleHello(msg);
 
-                // find the correct store
+        } else if (NetConfMessage* netconf = dynamic_cast<NetConfMessage*>(msg)){
+            NetConfSessionInfo* sessionInfo = findSessionInfoForMsg(msg);
+            if(sessionInfo) {
+                // create control info
+                netconf->removeControlInfo();
+                netconf->setControlInfo(createCtrlInfoFor(sessionInfo,netconf));
+                //check for mesage type
+                switch(netconf->getMessageType()){
+                case NetConfMessageType::NETCONFMESSAGETYPE_RPC:
+                    // received RPC
+                    handleRPC(netconf);
+                    break;
 
-                // if it is a request attach NetConfCtrlInfo
-                NetConfCtrlInfo* ctrl = new NetConfCtrlInfo();
-                ctrl->setMessageType(rpc->getMessageType());
-                ctrl->setMessage_id(rpc->getMessage_id());
-                ctrl->setTransportInfo(*transportInfo);
+                default:
+                    break;
 
-                // forward it to the correct store
+                }
 
+            } else {
+                throw cRuntimeError("Received NetConfMessage but there is no session for it.");
             }
+
         }
     }
 
     delete msg;
+}
+
+void NetConfServerBase::handleHello(cMessage* msg) {
+    if (dynamic_cast<NetConfHello*>(msg)) {
+        // received hello so open a new session
+        NetConfSessionInfo* sessionInfo = openNewSession(msg);
+        // create hello
+        NetConfHello* reply = new NetConfHello();
+        reply->setSession_id(sessionInfo->getSessionId());
+        //create and attach control info
+        NetConfCtrlInfo* info = new NetConfCtrlInfo();
+        info->setSession_id(sessionInfo->getSessionId());
+        reply->setControlInfo(info);
+        // send reply
+        sendToTransport(reply);
+    }
+}
+
+void NetConfServerBase::handleRPC(NetConfMessage* msg) {
+    // decapsulate the operation
+    //
+    //                // find the correct store
+    //
+    //                // if it is a request attach NetConfCtrlInfo
+    //
+    //
+    //                // forward it to the correct store
+}
+
+NetConfSessionInfo* NetConfServerBase::findSessionInfoForId(
+        int sessionId) {
+
+    for(auto i=_openSessions.begin(); i != _openSessions.end(); ++i) {
+        if((*i).getSessionId() == sessionId){
+            return &(*i);
+        }
+    }
+    return NULL;
+}
+
+NetConfCtrlInfo* NetConfServerBase::createCtrlInfoFor(
+        NetConfSessionInfo* sessionInfo, NetConfMessage* msg) {
+    // create control info
+    NetConfCtrlInfo* ctrl = new NetConfCtrlInfo();
+    ctrl->setMessageType(msg->getMessageType());
+    ctrl->setSession_id(sessionInfo->getSessionId());
+    if(NetConfMessage_RPC* rpc = dynamic_cast<NetConfMessage_RPC*>(msg)){
+        ctrl->setMessage_id(rpc->getMessage_id());
+    } else if (NetConfMessage_RPCReply* rpc = dynamic_cast<NetConfMessage_RPCReply*>(msg)){
+        ctrl->setMessage_id(rpc->getMessage_id());
+    }
+    return ctrl;
 }
 
 }  // namespace SDN4CoRE

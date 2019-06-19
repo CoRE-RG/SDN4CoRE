@@ -15,23 +15,23 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-cplusplus {{
-#include "NetConfMessage_m.h"
-}}
+package sdn4core.netconf.server.tcp;
 
-namespace SDN4CoRE;
-
-enum NetConfMessageType;
+import sdn4core.netconf.server.base.NetConfServerBase;
 
 //
-// Control info which is attached to a request by the NetConfServer, 
-// when forwarded to a data store, or the other way around. 
-// It is used to map a response to the request.
+// TCP implementation for a NetConfServer. Handles all the TCP specific functionality.
+//
+// A NetConf Server must be connected to device specific config and state datastores.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-class NetConfCtrlInfo {
-    int messageType@enum(NetConfMessageType);
-    string message_id;
-    int session_id;
+simple NetConfServerTCP extends NetConfServerBase
+{
+    parameters:
+        @class(SDN4CoRE::NetConfServerTCP);
+        // The ip address of the host
+        string address = default("");
+        // The port to use for the NetConf session
+        int port = default(830);
 }

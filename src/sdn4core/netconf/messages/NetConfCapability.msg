@@ -40,7 +40,7 @@
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConfHello {
-    int session-id;
+    int session_id;
 }
    
    

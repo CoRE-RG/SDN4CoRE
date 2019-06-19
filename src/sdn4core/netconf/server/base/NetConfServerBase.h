@@ -21,14 +21,16 @@
 #include <omnetpp.h>
 #include <unordered_map>
 #include <string>
-#include <list>
+#include <vector>
 
 #include "sdn4core/utility/processing/ProcessingTimeSimulation.h"
 
 #include "sdn4core/netconf/server/base/NetConfConfigDataStoreBase.h"
 #include "sdn4core/netconf/server/base/NetConfStateDataStoreBase.h"
+#include "sdn4core/netconf/server/base/NetConfSessionInfo.h"
 // AUTO-GENERATED MESSAGES
 #include "sdn4core/netconf/messages/NetConfMessage_m.h"
+#include "sdn4core/netconf/messages/NetConfCtrlInfo_m.h"
 
 using namespace omnetpp;
 
@@ -47,24 +49,54 @@ protected:
     virtual void handleMessage(cMessage *msg);
 
     /**
+     * Forwards the message to the protocol specific transport layer.
+     * The NetConfCtrlInfo_Transport should be attached to the message.
+     * @param msg   the message to forward
+     */
+    virtual void sendToTransport(cMessage* msg) = 0;
+
+    /**
+     * Protocol specific implementation to open a new session.
+     * Checks if the session already exists, else opens a new one and adds the _nextSessionId
+     * Must insert the new session into the _openSessions list.
+     * @param msg   the message to create a session for
+     */
+    virtual NetConfSessionInfo* openNewSession(cMessage* msg) = 0;
+
+    /**
+     * Closes the protocol specific session and removes the session from openSessions list.
+     * @param msg   the last message of the session to close
+     */
+    virtual void closeSession(cMessage* msg) = 0;
+
+    /**
+     * Finds the session info for an incoming message.
+     * @param msg   the message of a session
+     * @return      pointer to the session info stored in _openSessions, null if none found.
+     */
+    virtual NetConfSessionInfo* findSessionInfoForMsg(cMessage *msg) = 0;
+
+    /**
+     * Finds the session info for an existing session id.
+     * @param sessionId   the id of the session to find
+     * @return      pointer to the session info stored in _openSessions, null if none found.
+     */
+    virtual NetConfSessionInfo* findSessionInfoForId(int sessionId);
+
+    /**
      * @see ~ProcessingTimeSimulation::processScheduledMessage(cMessage *msg)
      */
     virtual void processScheduledMessage(cMessage *msg);
 
     /**
-     * Forwards the message to the protocol specific transport layer.
-     * The NetConfCtrlInfo_Transport should be attached to the message.
-     * @param msg   the message to forward
+     * Network and Controller State
      */
-    virtual void forwardToTransport(cMessage* msg) = 0;
+    std::vector<NetConfSessionInfo> _openSessions;
 
     /**
-     * Extract the NetConfMessage from the message and attach protocol specific
-     * transport layer information as NetConfCtrlInfo_Transport to the message.
-     * @param msg   the message to forward
-     * @return      the extracte NetConfMessage
+     * The session ID to add to the next session opened with openNewSession();
      */
-    virtual NetConfMessage* getNetConfFromTransport(cMessage* msg) = 0;
+    int _nextSessionId = 0;
 
     /**
      * Active configuration data store
@@ -98,6 +130,26 @@ protected:
      */
     static const char TRANSPORT_OUT_GATE_NAME []; //= "transportOut";
 
+private:
+    /**
+     * Handles the hello message and replys to it.
+     * @param msg   the incoming hello message
+     */
+    void handleHello(cMessage* msg);
+
+    /**
+     * Handles the RPC message and forwards it to the correct store.
+     * @param msg   the incoming RPC message
+     */
+    void handleRPC(NetConfMessage* msg);
+
+    /**
+     * Creates a NetConfCtrlInfo for the incoming message and sessionInfo.
+     * @param sessionInfo   the session info for the message
+     * @param msg           the incoming message
+     * @return  a new NetConfCtrlInfo
+     */
+    virtual NetConfCtrlInfo* createCtrlInfoFor(NetConfSessionInfo* sessionInfo, NetConfMessage* msg);
 };
 
 }  // namespace SDN4CoRE
