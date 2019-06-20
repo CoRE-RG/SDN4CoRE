@@ -29,7 +29,6 @@ void NetConfClientTCP::initialize()
 {
     NetConfClientBase::initialize();
 
-    _localAddress = par("localAddress").stringValue();
 }
 
 void NetConfClientTCP::sendToTransport(cMessage* msg) {// Detach control info and use it for forwarding
@@ -46,15 +45,14 @@ void NetConfClientTCP::sendToTransport(cMessage* msg) {// Detach control info an
 }
 
 NetConfClientSessionInfo* NetConfClientTCP::openNewSession(NetConfHello* hello) {
-    NetConfClientCtrlInfo_NewSession* ctrl = dynamic_cast<NetConfClientCtrlInfo_NewSession*>(hello->removeControlInfo());
+    NetConfClientCtrlInfo_Connection* ctrl = dynamic_cast<NetConfClientCtrlInfo_Connection*>(hello->removeControlInfo());
 
     if(ctrl){
         // create new socket
         TCPSocket *socket = new TCPSocket(hello);
-        // TODO maybe we need to bind the socket to a new port?!
         socket->setOutputGate(gate("TRANSPORT_OUT_GATE_NAME"));
         socket->setDataTransferMode(TCP_TRANSFER_OBJECT);
-        socket->bind(_localAddress ? L3Address(_localAddress) : L3Address(), ctrl->getLocalPort());
+        socket->bind(ctrl->getLocalPort());
 
         NetConfClientSessionInfoTCP* sessionInfo = new NetConfClientSessionInfoTCP();
         sessionInfo->setSocket(socket);

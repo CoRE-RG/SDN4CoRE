@@ -15,21 +15,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.client.TCP;
-
-import sdn4core.netconf.client.base.NetConfClientBase;
+package sdn4core.netconf.applications;
 
 //
-// Contains the TCP specific implementation of a NetConf client.
-// This module has to be connected to the tcp module.
-//
-// All responses will be forwarded to the applicaitonOut gate with the 
-// same index as the arriving applicationIn gate   
+// Contains the common interface of a netconf application.
+// This module needs to be connected to the NetConf client.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple NetConfClientTCP extends NetConfClientBase
+moduleinterface INetConfApplication
 {
-    parameters:
-        @class(SDN4CoRE::NetConfClientTCP);
+    gates:
+        // connection to NetConf client application 
+        input applicationIn;
+        output applicaitonOut;    
 }

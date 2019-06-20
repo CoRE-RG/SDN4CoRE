@@ -36,7 +36,7 @@ class NetConfCtrlInfo {
     int session_id;
 }
 
-class NetConfClientCtrlInfo_NewSession {
+class NetConfClientCtrlInfo_Connection {
     int localPort;
     string connectAddress;
     int connectPort;

@@ -1,0 +1,8 @@
+<!--
+This is an example file on how to declare remotes for an INetConfApplication.
+-->
+
+<server_connections>
+	<connection local_port="123" remote_address="node1" remote_port="830" connect_at="1"/>
+	<connection local_port="124" remote_address="node2" remote_port="830" connect_at="2"/>
+</server_connections>

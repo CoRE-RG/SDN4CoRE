@@ -71,8 +71,6 @@ class NetConfClientTCP : public NetConfClientBase
      */
     virtual NetConfClientSessionInfo* findSessionInfoForMsg(cMessage *msg) override;
 
-  private:
-    const char *_localAddress;
 };
 
 }  // namespace SDN4CoRE
