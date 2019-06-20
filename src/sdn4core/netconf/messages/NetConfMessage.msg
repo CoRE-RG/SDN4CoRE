@@ -143,7 +143,7 @@ enum NetConf_RPCReplyElement_Error_Severity {
 //
 // error-tag:  Contains a string identifying the error condition.
 //
-// error-severity (@see ~NetConf_RPCReplyElement_Error_Type):  
+// error-severity (@see ~NetConf_RPCReplyElement_Error_Severity):  
 // 	  Contains an enum identifying the error severity, as
 //    determined by the device.
 //

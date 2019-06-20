@@ -48,6 +48,20 @@ void NetConfServerBase::initialize() {
     }
 }
 
+NetConfMessage_RPCReply* NetConfServerBase::createRPCReply(
+        NetConf_RPCReplyElement* element) {
+    // if it is a reply detach NetConfCtrlInfo
+    NetConfCtrlInfo* ctrl =
+            dynamic_cast<NetConfCtrlInfo*>(element->removeControlInfo());
+    // create NetConf reply message
+    NetConfMessage_RPCReply* reply = new NetConfMessage_RPCReply();
+    reply->setMessage_id(ctrl->getMessage_id());
+    reply->encapsulate(element);
+    // reattach control info and forward it.
+    reply->setControlInfo(ctrl);
+    return reply;
+}
+
 void NetConfServerBase::handleMessage(cMessage* msg) {
 
     if (msg->arrivedOn(RESPONSE_IN_GATE_NAME)) {
@@ -55,14 +69,7 @@ void NetConfServerBase::handleMessage(cMessage* msg) {
         NetConf_RPCReplyElement* element = dynamic_cast<NetConf_RPCReplyElement*>(msg);
         if(element){
             // if it is a reply detach NetConfCtrlInfo
-            NetConfCtrlInfo* ctrl = dynamic_cast<NetConfCtrlInfo*>(element->removeControlInfo());
-
-            // create NetConf reply message
-            NetConfMessage_RPCReply* reply = new NetConfMessage_RPCReply();
-            reply->setMessage_id(ctrl->getMessage_id());
-            reply->encapsulate(element);
-            // reattach control info and forward it.
-            reply->setControlInfo(ctrl);
+            NetConfMessage_RPCReply* reply = createRPCReply(element);
             sendToTransport(reply);
         } else {
             delete msg;
@@ -95,6 +102,14 @@ void NetConfServerBase::processScheduledMessage(cMessage* msg) {
                     break;
 
                 default:
+                    NetConf_RPCReplyElement* element = createRPCReplyElement_Error(
+                                    NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                                    "Incoming message not of type NETCONFMESSAGETYPE_RPC",
+                                    NETCONF_REPLY_ERROR_SEVIRITY_ERROR,"");
+
+                    element->setControlInfo(netconf->removeControlInfo());
+                    NetConfMessage_RPCReply* reply = createRPCReply(element);
+                    sendToTransport(reply);
                     break;
 
                 }
@@ -125,12 +140,61 @@ void NetConfServerBase::handleHello(cMessage* msg) {
     }
 }
 
+void NetConfServerBase::handleCloseSession(cMessage* msg) {
+    if(NetConfOperation* operation = dynamic_cast<NetConfOperation*>(msg)){
+        NetConfCtrlInfo* ctrl = dynamic_cast<NetConfCtrlInfo*>(operation->removeControlInfo());
+        NetConf_RPCReplyElement* element;
+        if(closeSession(ctrl->getSession_id())){
+            //session was closed
+            element = createRPCReplyElement_Ok();
+        } else {
+            //session could not be closed
+            element = createRPCReplyElement_Error(
+                            NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                            "Session could not be closed.",
+                            NETCONF_REPLY_ERROR_SEVIRITY_ERROR,"");
+        }
+
+        // if it is a reply detach NetConfCtrlInfo
+        element->setControlInfo(ctrl);
+        NetConfMessage_RPCReply* reply = createRPCReply(element);
+        sendToTransport(reply);
+    }
+}
+
+
+NetConf_RPCReplyElement* NetConfServerBase::createRPCReplyElement_Error(
+        int error_type, const char * error_tag, int error_severity,
+        const char * error_app_tag = "") {
+    // create error
+    NetConf_RPCReplyElement_Error* errorReply =
+            new NetConf_RPCReplyElement_Error();
+    errorReply->setError_type(error_type);
+    errorReply->setError_tag(error_tag);
+    errorReply->setError_severity(error_severity);
+    errorReply->setError_app_tag(error_app_tag);
+    return dynamic_cast<NetConf_RPCReplyElement*>(errorReply);
+}
+
+NetConf_RPCReplyElement* NetConfServerBase::createRPCReplyElement_Ok() {
+    NetConf_RPCReplyElement_Ok* okReply = new NetConf_RPCReplyElement_Ok();
+    return dynamic_cast<NetConf_RPCReplyElement*>(okReply);
+}
+
 void NetConfServerBase::handleRPC(NetConfMessage* msg) {
     if(NetConfMessage_RPC* rpc = dynamic_cast<NetConfMessage_RPC*>(msg)){
         // decapsulate the operation
         if(NetConfOperation* operation = dynamic_cast<NetConfOperation*>(rpc->decapsulate())){
+            //get the control info
+            operation->setControlInfo(msg->removeControlInfo());
+            if(dynamic_cast<NetConfOperation_CloseSession*>(operation)){
+                handleCloseSession(operation);
+            }
+
             //forward it to the config store manager
+            operation->setControlInfo(msg->removeControlInfo());
             sendDirect(operation, _configDataStoreManager->gate(REQUEST_FWD_GATE_NAME));
+
         }
     }
 }

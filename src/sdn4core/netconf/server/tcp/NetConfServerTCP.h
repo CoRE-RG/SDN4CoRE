@@ -58,9 +58,10 @@ class NetConfServerTCP : public NetConfServerBase
 
     /**
      * Closes the protocol specific session and removes the session from openSessions list.
-     * @param msg   the last message of the session to close
+     * @param sessionId   the  session to close
+     * @return      true if the session was closed
      */
-    virtual void closeSession(cMessage* msg) override;
+    virtual bool closeSession(int sessionId) override;
 
     /**
      * Finds the session info for an incoming message.

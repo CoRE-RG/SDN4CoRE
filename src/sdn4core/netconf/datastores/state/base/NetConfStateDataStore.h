@@ -18,6 +18,10 @@
 #ifndef SDN4CORE_NETCONF_DATASTORES_STATE_NETCONFSTATEDATASTORE_H_
 #define SDN4CORE_NETCONF_DATASTORES_STATE_NETCONFSTATEDATASTORE_H_
 
+
+#include "sdn4core/netconf/datastores/datastructures/base/NetConfFilter.h"
+#include "sdn4core/netconf/datastores/datastructures/base/NetConfConfig.h"
+
 namespace SDN4CoRE {
 
 /**
@@ -30,6 +34,13 @@ class NetConfStateDataStore {
 public:
     NetConfStateDataStore();
     virtual ~NetConfStateDataStore();
+
+    /**
+     * Creates a NetConfConfig from the current state data that only contains elements in the filter.
+     * @param filter    the filter to be applied, if empty the whole state data set is returned
+     * @return          the requested configuration data
+     */
+    virtual NetConfConfig* get(NetConfFilter& filter) = 0;
 };
 
 } /* namespace SDN4CoRE */

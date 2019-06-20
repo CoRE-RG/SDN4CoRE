@@ -58,8 +58,8 @@ NetConfSessionInfo* NetConfServerTCP::openNewSession(cMessage* msg) {
     return sessionInfo;
 }
 
-void NetConfServerTCP::closeSession(cMessage* msg) {
-    NetConfSessionInfoTCP* sessionInfo = dynamic_cast<NetConfSessionInfoTCP*>(findSessionInfoForMsg(msg));
+bool NetConfServerTCP::closeSession(int session_id) {
+    NetConfSessionInfoTCP* sessionInfo = dynamic_cast<NetConfSessionInfoTCP*>(findSessionInfoForId(session_id));
     if(!sessionInfo){
         // close socket
         sessionInfo->getSocket()->close();
@@ -70,7 +70,9 @@ void NetConfServerTCP::closeSession(cMessage* msg) {
                 _openSessions.erase(i);
             }
         }
+        return true;
     }
+    return false;
 }
 
 void NetConfServerTCP::sendToTransport(cMessage* msg) {

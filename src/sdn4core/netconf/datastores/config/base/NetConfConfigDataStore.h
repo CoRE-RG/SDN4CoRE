@@ -20,9 +20,6 @@
 
 #include <string>
 
-#include "sdn4core/netconf/messages/NetConfMessage_m.h"
-#include "sdn4core/netconf/messages/NetConfOperation_m.h"
-
 #include "sdn4core/netconf/datastores/datastructures/base/NetConfFilter.h"
 #include "sdn4core/netconf/datastores/datastructures/base/NetConfConfig.h"
 
@@ -39,7 +36,27 @@ public:
     NetConfConfigDataStore();
     virtual ~NetConfConfigDataStore();
 
-    virtual NetConfConfig* getConfig(NetConfFilter& filter);
+    /**
+     * Creates a NetConfConfig from the current configuration data that only contains elements in the filter.
+     * @param filter    the filter to be applied, if empty the whole config data set is returned
+     * @return          the requested configuration data
+     */
+    virtual NetConfConfig* getConfig(NetConfFilter& filter) = 0;
+
+    /**
+     * Applies the changes in the config using the defaultOperation.
+     * @param defaultOperation  Selects the default operation, one of @see ~NetConfOperation_Operation.
+     * @param errorOption       Selects how to react on errors, one of @see ~NetConfOperation_ErrorOption.
+     * @param config            The config to be applied
+     * @return                  true if the changes could be applied, false if an error occurred.
+     */
+    virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig& config) = 0;
+
+    /**
+     * Creates a copy of this config data store and returns it.
+     * @return  the copy of this configuration
+     */
+    virtual NetConfConfigDataStore* copyConfig() = 0;
 };
 
 } /* namespace SDN4CoRE */

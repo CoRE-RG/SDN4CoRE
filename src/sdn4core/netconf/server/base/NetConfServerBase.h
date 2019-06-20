@@ -67,8 +67,9 @@ protected:
     /**
      * Closes the protocol specific session and removes the session from openSessions list.
      * @param msg   the last message of the session to close
+     * @return      true if the session was closed
      */
-    virtual void closeSession(cMessage* msg) = 0;
+    virtual bool closeSession(int msg) = 0;
 
     /**
      * Finds the session info for an incoming message.
@@ -88,6 +89,28 @@ protected:
      * @see ~ProcessingTimeSimulation::processScheduledMessage(cMessage *msg)
      */
     virtual void processScheduledMessage(cMessage *msg);
+
+    /**
+     * Creates an rpc reply element containing the error message.
+     * @param error_type        Defines the conceptual layer that the error occurred.
+     *                          One of @see ~NetConf_RPCReplyElement_Error_Type
+     * @param error_tag         Contains a string identifying the error condition.
+     * @param error_severity    Contains an enum identifying the error severity, as
+     *                          determined by the device. One of @see ~NetConf_RPCReplyElement_Error_Severity
+     * @param error_app_tag     Contains a string identifying the data-model-specific
+     *                          or implementation-specific error condition, if one exists.
+     * @return                  the NetConf_RPCReplyElement_Error
+     */
+    virtual NetConf_RPCReplyElement* createRPCReplyElement_Error(
+            int error_type, const char * error_tag, int error_severity,
+            const char * error_app_tag);
+
+    /**
+     * Creates an rpc reply element containing OK.
+     * @return the NetConf_RPCReplyElement_Ok
+     */
+    virtual NetConf_RPCReplyElement* createRPCReplyElement_Ok();
+    NetConfMessage_RPCReply* createRPCReply(NetConf_RPCReplyElement* element);
 
     /**
      * Network and Controller State
@@ -127,6 +150,12 @@ private:
      * @param msg   the incoming hello message
      */
     void handleHello(cMessage* msg);
+
+    /**
+     * Handles the close session message and replys to it.
+     * @param msg   the incoming close session message
+     */
+    void handleCloseSession(cMessage* msg);
 
     /**
      * Handles the RPC message and forwards it to the correct store.
