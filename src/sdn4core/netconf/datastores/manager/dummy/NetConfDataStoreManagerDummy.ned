@@ -15,21 +15,21 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.utility.processing;
+package sdn4core.netconf.datastores.manager.dummy;
+
+import sdn4core.netconf.datastores.manager.base.NetConfDataStoreManagerBase;
 
 //
-// Base module to simulate processing time.
+// This is a dummy netconf data store manager that uses the dummy config 
+// and state manager (@see ~NetConfConfigDataStoreDummy, ~NetConfStateDataStoreDummy)
+// All request are answered empty and success.
+// NetConfDataStoreManger implementations handle NetConf configuration and 
+// state operations for a specific device. 
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple ProcessingTimeSimulation
+simple NetConfDataStoreManagerDummy extends NetConfDataStoreManagerBase
 {
     parameters:
-        @signal[queueSize](type="unsigned long");
-        @statistic[queueSize](title="QueueSize"; record=vector?,stats; interpolationmode=none);
-        @signal[waitingTime](type="simtime_t");
-        @statistic[waitingTime](title="WaitingTime"; record=vector?,stats?; interpolationmode=none);
-        // modelling realistic environment:
-        // request processing time
-       	double processingTime @unit(s) = default(0s);
+    	@class(SDN4CoRE::NetConfDataStoreManagerDummy);
 }

@@ -35,8 +35,8 @@ moduleinterface INetConfClient {
         
     gates:
         // connection to management application 
-        input applicationIn [numNetConfApps];
-        output applicaitonOut [numNetConfApps];
+        input applicationIn [];
+        output applicationOut [];
         
         // connection to transport protocols
         input transportIn;

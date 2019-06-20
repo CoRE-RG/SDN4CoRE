@@ -28,5 +28,5 @@ moduleinterface INetConfApplication
     gates:
         // connection to NetConf client application 
         input applicationIn;
-        output applicaitonOut;    
+        output applicationOut;    
 }

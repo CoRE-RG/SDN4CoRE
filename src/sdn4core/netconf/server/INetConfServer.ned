@@ -34,17 +34,8 @@ moduleinterface INetConfServer
 {
     parameters:
         @display("i=block/server");
-        // name of the configuration to be launched on startup
-        string launchConfigName;
-        // the number of config strores in this host.
-        int numConfigStores;
-        // the path to the NetConfConfigDataStore module(s) array.
-        string pathToConfigDataStores;
-        // the path to the NetConfStateDataStore module
-        string pathToStateDataStore;
-        // modelling realistic environment:
-        // request processing time
-       	double processingTime @unit("s");
+        // the path to the INetConfDataStoreManager module
+        string pathToConfigManager;
         
     gates:
         input responseIn @directIn;

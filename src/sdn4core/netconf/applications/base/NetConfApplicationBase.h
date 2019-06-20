@@ -39,11 +39,21 @@ public:
     /**
      * Information on how and when to connect to server.
      */
+    typedef enum ConnectionState{
+        ConnectionStateWaiting = 0,
+        ConnectionStateScheduled = 1,
+        ConnectionStateRequested = 2,
+        ConnectionStateEstablished = 3
+    }ConnectionState_t;
+    /**
+     * Information on how and when to connect to server.
+     */
     typedef struct Connections{
         int localPort;
         const char* remoteAddress;
         int remotePort;
         SimTime connectAt;
+        ConnectionState_t state;
     }Connections_t;
 
 protected:

@@ -15,37 +15,29 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef SDN4CORE_NETCONF_DATASTORES_CONFIG_NETCONFCONFIGDATASTORE_H_
-#define SDN4CORE_NETCONF_DATASTORES_CONFIG_NETCONFCONFIGDATASTORE_H_
+#ifndef SDN4CORE_NETCONF_DATASTORES_CONFIG_DUMMY_NETCONFCONFIGDATASTOREDUMMY_H_
+#define SDN4CORE_NETCONF_DATASTORES_CONFIG_DUMMY_NETCONFCONFIGDATASTOREDUMMY_H_
 
-#include <string>
-
-#include "sdn4core/netconf/datastructures/base/NetConfFilter.h"
-#include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
+#include <sdn4core/netconf/datastores/config/base/NetConfConfigDataStore.h>
 
 namespace SDN4CoRE {
 
 /**
- * Provides a base implementation for the interface of a NetConfConfigDataStore.
- * This must be inherited by a device specific state data store.
+ * Provides a dummy implementation for the interface of a NetConfConfigDataStore.
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class NetConfConfigDataStore {
+class NetConfConfigDataStoreDummy: public NetConfConfigDataStore {
 public:
-    NetConfConfigDataStore() {
-
-    };
-    virtual ~NetConfConfigDataStore(){
-
-    };
+    NetConfConfigDataStoreDummy();
+    virtual ~NetConfConfigDataStoreDummy();
 
     /**
      * Creates a NetConfConfig from the current configuration data that only contains elements in the filter.
      * @param filter    the filter to be applied, if empty the whole config data set is returned
      * @return          the requested configuration data
      */
-    virtual NetConfConfig* getConfig(NetConfFilter& filter) = 0;
+    virtual NetConfConfig* getConfig(NetConfFilter& filter);
 
     /**
      * Applies the changes in the config using the defaultOperation.
@@ -54,15 +46,15 @@ public:
      * @param config            The config to be applied
      * @return                  true if the changes could be applied, false if an error occurred.
      */
-    virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig& config) = 0;
+    virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig& config);
 
     /**
      * Creates a copy of this config data store and returns it.
      * @return  the copy of this configuration
      */
-    virtual NetConfConfigDataStore* copyConfig() = 0;
+    virtual NetConfConfigDataStore* copyConfig();
 };
 
 } /* namespace SDN4CoRE */
 
-#endif /* SDN4CORE_NETCONF_DATASTORES_CONFIG_NETCONFCONFIGDATASTORE_H_ */
+#endif /* SDN4CORE_NETCONF_DATASTORES_CONFIG_DUMMY_NETCONFCONFIGDATASTOREDUMMY_H_ */

@@ -17,6 +17,8 @@
 
 package sdn4core.netconf.datastores.manager.base;
 
+import sdn4core.netconf.datastores.manager.INetConfDataStoreManager;
+
 //
 // Adds a base implementation to the moduleinterface INetConfDataStoreManager.
 // NetConfDataStoreManger implementations handle NetConf configuration and 
@@ -24,7 +26,7 @@ package sdn4core.netconf.datastores.manager.base;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple NetConfDataStoreManagerBase
+simple NetConfDataStoreManagerBase like INetConfDataStoreManager
 {
     parameters:
         @display("i=block/buffer2");

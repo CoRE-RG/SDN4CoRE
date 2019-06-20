@@ -18,6 +18,7 @@
 package sdn4core.netconf.nodes;
 
 import sdn4core.netconf.client.INetConfClient;
+import sdn4core.netconf.applications.INetConfApplication;
 //INET
 import inet.node.inet.StandardHost;
 
@@ -29,13 +30,18 @@ import inet.node.inet.StandardHost;
 module NetConfManagementUnit extends StandardHost
 {
     parameters:
-    	numTcpApps = default(1);
+    	hasTcp = true;
+    	int numNetConfApps = default(0);
     	string netConfClientType = default("");
     
     gates:
         // no additional gates needed
     
     submodules:
+
+		//NetConfClient applications
+		netConfApps [numNetConfApps]: <> like INetConfApplication;		        
+        
         // Netconf Client module
         netConfClient: <netConfClientType> like INetConfClient {
             
@@ -43,5 +49,10 @@ module NetConfManagementUnit extends StandardHost
         
     connections: 
         netConfClient.transportIn <-- tcp.appOut++;
-        netConfClient.transportOut --> tcp.appIn++;   
+        netConfClient.transportOut --> tcp.appIn++;
+        
+        for i=0..(numNetConfApps-1){
+            netConfClient.applicationIn++ <-- netConfApps[i].applicationOut;
+            netConfClient.applicationOut++ --> netConfApps[i].applicationIn;
+        }
 }

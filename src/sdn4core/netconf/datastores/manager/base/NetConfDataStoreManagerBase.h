@@ -52,10 +52,6 @@ class NetConfServerBase;
 class NetConfDataStoreManagerBase : public cSimpleModule
 {
   protected:
-    /**
-     * NetConfDataStoreManager implementations should override this
-     * to initialize the data stores and call it after their initialization process.
-     */
     virtual void initialize();
     virtual void handleParameterChange(const char* parname);
     virtual void handleMessage(cMessage *msg);

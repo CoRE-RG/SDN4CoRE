@@ -46,15 +46,16 @@ void NetConfClientTCP::sendToTransport(cMessage* msg) {// Detach control info an
 
 NetConfClientSessionInfo* NetConfClientTCP::openNewSession(NetConfHello* hello) {
     NetConfClientCtrlInfo_Connection* ctrl = dynamic_cast<NetConfClientCtrlInfo_Connection*>(hello->removeControlInfo());
+    NetConfClientSessionInfoTCP* sessionInfo = nullptr;
 
     if(ctrl){
         // create new socket
-        TCPSocket *socket = new TCPSocket(hello);
-        socket->setOutputGate(gate("TRANSPORT_OUT_GATE_NAME"));
+        TCPSocket *socket = new TCPSocket();
+        socket->setOutputGate(gate(TRANSPORT_OUT_GATE_NAME));
         socket->setDataTransferMode(TCP_TRANSFER_OBJECT);
         socket->bind(ctrl->getLocalPort());
 
-        NetConfClientSessionInfoTCP* sessionInfo = new NetConfClientSessionInfoTCP();
+        sessionInfo = new NetConfClientSessionInfoTCP();
         sessionInfo->setSocket(socket);
         sessionInfo->setConnId(socket->getConnectionId());
 
@@ -70,7 +71,7 @@ NetConfClientSessionInfo* NetConfClientTCP::openNewSession(NetConfHello* hello) 
 
     delete ctrl;
 
-    return nullptr;
+    return dynamic_cast<NetConfClientSessionInfo*>(sessionInfo);
 }
 
 bool NetConfClientTCP::closeSession(int sessionId) {

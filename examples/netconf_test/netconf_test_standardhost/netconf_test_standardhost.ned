@@ -23,6 +23,7 @@ import sdn4core.netconf.nodes.NetConfManagementUnit;
 //INET
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.node.ethernet.EtherSwitch;
 
 //
 // This is a test network for the basic netconf functionality. It contains a Management 
@@ -30,6 +31,10 @@ import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 //
 network netconf_test_standardhost
 {
+    parameters:
+        int numOfManagers = default(1);
+        int numOfManaged = default(1);
+
     types:
         channel connection extends ThruputMeteringChannel
         {
@@ -37,18 +42,28 @@ network netconf_test_standardhost
             datarate = 1Gbps;
             thruputDisplayFormat = "u";
         }
-        
+
     submodules:
 
-        configurator: IPv4NetworkConfigurator {
+        configurator: IPv4NetworkConfigurator;
+        
+        managedUnit[numOfManaged]: NetConfManagedUnit {
+            @display("p=95,234,c,50");
         }
-        
-        managedUnit: NetConfManagedUnit{
+
+        managementUnit[numOfManagers]: NetConfManagementUnit {
+            @display("p=95,68,c,50");
         }
-        
-//        managementUnit: NetConfManagementUnit{
-//        }
-        
-//    connections:
-//        managementUnit.ethg++ <--> managedUnit.ethg++;
+
+        switch: EtherSwitch {
+            @display("p=95,151");
+        }
+
+    connections:
+        for i=0..numOfManagers-1 {
+            managementUnit[i].ethg++ <--> connection <--> switch.ethg++;
+        }
+        for i=0..numOfManaged-1 {
+            managedUnit[i].ethg++ <--> connection <--> switch.ethg++;
+        }
 }

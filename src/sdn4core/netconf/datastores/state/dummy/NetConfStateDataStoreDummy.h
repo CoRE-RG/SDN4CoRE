@@ -15,38 +15,31 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef SDN4CORE_NETCONF_DATASTORES_STATE_NETCONFSTATEDATASTORE_H_
-#define SDN4CORE_NETCONF_DATASTORES_STATE_NETCONFSTATEDATASTORE_H_
+#ifndef SDN4CORE_NETCONF_DATASTORES_STATE_DUMMY_NETCONFSTATEDATASTOREDUMMY_H_
+#define SDN4CORE_NETCONF_DATASTORES_STATE_DUMMY_NETCONFSTATEDATASTOREDUMMY_H_
 
-
-#include "sdn4core/netconf/datastructures/base/NetConfFilter.h"
-#include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
+#include <sdn4core/netconf/datastores/state/base/NetConfStateDataStore.h>
 
 namespace SDN4CoRE {
 
 /**
- * Provides a base implementation for the interface of a NetConfStateDataStore.
- * This must be inherited by a device specific state data store.
+ * Provides a dummy implementation for the interface of a NetConfStateDataStore.
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class NetConfStateDataStore {
+class NetConfStateDataStoreDummy: public NetConfStateDataStore {
 public:
-    NetConfStateDataStore(){
-
-    };
-    virtual ~NetConfStateDataStore(){
-
-    };
+    NetConfStateDataStoreDummy();
+    virtual ~NetConfStateDataStoreDummy();
 
     /**
      * Creates a NetConfConfig from the current state data that only contains elements in the filter.
      * @param filter    the filter to be applied, if empty the whole state data set is returned
      * @return          the requested configuration data
      */
-    virtual NetConfConfig* get(NetConfFilter& filter) = 0;
+    virtual NetConfConfig* get(NetConfFilter& filter);
 };
 
 } /* namespace SDN4CoRE */
 
-#endif /* SDN4CORE_NETCONF_DATASTORES_STATE_NETCONFSTATEDATASTORE_H_ */
+#endif /* SDN4CORE_NETCONF_DATASTORES_STATE_DUMMY_NETCONFSTATEDATASTOREDUMMY_H_ */

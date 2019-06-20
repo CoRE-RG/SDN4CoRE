@@ -35,7 +35,7 @@ void NetConfApplicationBase::initialize()
             {//the xml contains connections so set them.
                 const char* localPort = connectionsXML[i]->getAttribute("local_port");
                 const char* remoteAddress = connectionsXML[i]->getAttribute("remote_address");
-                const char* remotePort = connectionsXML[i]->getAttribute("remotePort");
+                const char* remotePort = connectionsXML[i]->getAttribute("remote_port");
                 const char* connectAt = connectionsXML[i]->getAttribute("connect_at");
 
                 if(localPort && remoteAddress && remotePort && connectAt) {
@@ -45,6 +45,7 @@ void NetConfApplicationBase::initialize()
                     connection.remoteAddress = remoteAddress;
                     connection.remotePort = atoi(remotePort);
                     connection.connectAt = std::stod(connectAt);
+                    connection.state = ConnectionState_t::ConnectionStateWaiting;
                     _connections.push_back(connection);
                 }
             }
@@ -59,7 +60,7 @@ void NetConfApplicationBase::scheduleNextConnection() {
     SimTime next = SimTime::getMaxTime();
     for (size_t i=0; i<_connections.size(); i++) {
         auto connection = _connections[i];
-        if(connection.connectAt < next && connection.connectAt >= simTime()){
+        if(connection.connectAt < next && connection.connectAt >= simTime() && (connection.state == ConnectionState_t::ConnectionStateWaiting)){
             index = i;
             next = connection.connectAt;
         }
@@ -69,6 +70,7 @@ void NetConfApplicationBase::scheduleNextConnection() {
         cMessage* msg = new cMessage();
         msg->setContextPointer(&_connections[index]);
         scheduleAt(next, msg);
+        _connections[index].state = ConnectionState_t::ConnectionStateScheduled;
     }
 }
 
@@ -78,7 +80,8 @@ void NetConfApplicationBase::handleMessage(cMessage *msg)
         Connections_t* connection = static_cast<Connections_t*>(msg->getContextPointer());
 
         if(connection) {
-            send(createHelloFor(connection), gate("applicaitonOut"));
+            send(createHelloFor(connection), gate("applicationOut"));
+            connection->state=ConnectionState_t::ConnectionStateRequested;
         }
 
         scheduleNextConnection();

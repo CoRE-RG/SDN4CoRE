@@ -15,17 +15,29 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#include <sdn4core/netconf/datastores/config/base/NetConfConfigDataStore.h>
+#include <sdn4core/netconf/datastores/config/dummy/NetConfConfigDataStoreDummy.h>
 
 namespace SDN4CoRE {
 
-NetConfConfigDataStore::NetConfConfigDataStore() {
-    // TODO Auto-generated constructor stub
+NetConfConfigDataStoreDummy::NetConfConfigDataStoreDummy() {
 
 }
 
-NetConfConfigDataStore::~NetConfConfigDataStore() {
-    // TODO Auto-generated destructor stub
+NetConfConfigDataStoreDummy::~NetConfConfigDataStoreDummy() {
+}
+
+NetConfConfig* NetConfConfigDataStoreDummy::getConfig(
+        NetConfFilter& filter) {
+    return new NetConfConfig();
+}
+
+bool NetConfConfigDataStoreDummy::editConfig(int defaultOperation,
+        int errorOption, NetConfConfig& config) {
+    return true;
+}
+
+NetConfConfigDataStore* NetConfConfigDataStoreDummy::copyConfig() {
+    return new NetConfConfigDataStoreDummy();
 }
 
 } /* namespace SDN4CoRE */
