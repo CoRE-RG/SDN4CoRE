@@ -19,8 +19,8 @@
 #define SDN4CORE_NETCONF_DATASTORES_STATE_NETCONFSTATEDATASTORE_H_
 
 
-#include "sdn4core/netconf/datastores/datastructures/base/NetConfFilter.h"
-#include "sdn4core/netconf/datastores/datastructures/base/NetConfConfig.h"
+#include "sdn4core/netconf/datastructures/base/NetConfFilter.h"
+#include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
 
 namespace SDN4CoRE {
 

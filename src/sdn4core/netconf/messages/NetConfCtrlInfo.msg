@@ -35,3 +35,9 @@ class NetConfCtrlInfo {
     string message_id;
     int session_id;
 }
+
+class NetConfClientCtrlInfo_NewSession {
+    int localPort;
+    string connectAddress;
+    int connectPort;
+}

@@ -15,7 +15,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 cplusplus {{
-#include "sdn4core/netconf/datastores/datastructures/base/NetConfConfig.h"
+#include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
 }}
 
 namespace SDN4CoRE;

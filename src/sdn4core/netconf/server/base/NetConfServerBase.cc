@@ -89,7 +89,7 @@ void NetConfServerBase::processScheduledMessage(cMessage* msg) {
             handleHello(msg);
 
         } else if (NetConfMessage* netconf = dynamic_cast<NetConfMessage*>(msg)){
-            NetConfSessionInfo* sessionInfo = findSessionInfoForMsg(msg);
+            NetConfServerSessionInfo* sessionInfo = findSessionInfoForMsg(msg);
             if(sessionInfo) {
                 // create control info
                 netconf->removeControlInfo();
@@ -127,7 +127,7 @@ void NetConfServerBase::processScheduledMessage(cMessage* msg) {
 void NetConfServerBase::handleHello(cMessage* msg) {
     if (dynamic_cast<NetConfHello*>(msg)) {
         // received hello so open a new session
-        NetConfSessionInfo* sessionInfo = openNewSession(msg);
+        NetConfServerSessionInfo* sessionInfo = openNewSession(msg);
         // create hello
         NetConfHello* reply = new NetConfHello();
         reply->setSession_id(sessionInfo->getSessionId());
@@ -199,19 +199,19 @@ void NetConfServerBase::handleRPC(NetConfMessage* msg) {
     }
 }
 
-NetConfSessionInfo* NetConfServerBase::findSessionInfoForId(
+NetConfServerSessionInfo* NetConfServerBase::findSessionInfoForId(
         int sessionId) {
 
     for(auto i=_openSessions.begin(); i != _openSessions.end(); ++i) {
-        if((*i).getSessionId() == sessionId){
-            return &(*i);
+        if((*i)->getSessionId() == sessionId){
+            return (*i);
         }
     }
     return NULL;
 }
 
 NetConfCtrlInfo* NetConfServerBase::createCtrlInfoFor(
-        NetConfSessionInfo* sessionInfo, NetConfMessage* msg) {
+        NetConfServerSessionInfo* sessionInfo, NetConfMessage* msg) {
     // create control info
     NetConfCtrlInfo* ctrl = new NetConfCtrlInfo();
     ctrl->setMessageType(msg->getMessageType());

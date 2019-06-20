@@ -15,10 +15,9 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
+#include <sdn4core/netconf/datastructures/tcp/NetConfServerSessionInfoTCP.h>
 #include "NetConfServerTCP.h"
 
-#include "sdn4core/netconf/server/tcp/NetConfSessionInfoTCP.h"
-//AUTO-GENERATED MESSAGES
 #include "sdn4core/netconf/messages/NetConfCtrlInfo_m.h"
 
 using namespace inet;
@@ -31,42 +30,42 @@ void NetConfServerTCP::initialize() {
     NetConfServerBase::initialize();
 
     // TCP socket; listen on incoming connections
-    const char *address = par("address");
-    int port = par("port");
+    const char *address = par("localAddress");
+    int port = par("localPort");
     _serverSocket.setOutputGate(gate(TRANSPORT_OUT_GATE_NAME));
     _serverSocket.setDataTransferMode(TCP_TRANSFER_OBJECT);
     _serverSocket.bind(address ? L3Address(address) : L3Address(), port);
     _serverSocket.listen();
 }
 
-NetConfSessionInfo* NetConfServerTCP::openNewSession(cMessage* msg) {
-    NetConfSessionInfoTCP* sessionInfo = dynamic_cast<NetConfSessionInfoTCP*>(findSessionInfoForMsg(msg));
+NetConfServerSessionInfo* NetConfServerTCP::openNewSession(cMessage* msg) {
+    NetConfServerSessionInfoTCP* sessionInfo = dynamic_cast<NetConfServerSessionInfoTCP*>(findSessionInfoForMsg(msg));
     if(!sessionInfo){
         // create the new socket from the message
         TCPSocket *socket = new TCPSocket(msg);
         socket->setOutputGate(gate("TRANSPORT_OUT_GATE_NAME"));
 
         // create SessionInfo
-        sessionInfo = new NetConfSessionInfoTCP();
+        sessionInfo = new NetConfServerSessionInfoTCP();
         sessionInfo->setSessionId(_nextSessionId++);
         sessionInfo->setSocket(socket);
         sessionInfo->setConnId(socket->getConnectionId());
 
         // insert into open sessions
-        _openSessions.push_back(*sessionInfo);
+        _openSessions.push_back(sessionInfo);
     }
     return sessionInfo;
 }
 
 bool NetConfServerTCP::closeSession(int session_id) {
-    NetConfSessionInfoTCP* sessionInfo = dynamic_cast<NetConfSessionInfoTCP*>(findSessionInfoForId(session_id));
+    NetConfServerSessionInfoTCP* sessionInfo = dynamic_cast<NetConfServerSessionInfoTCP*>(findSessionInfoForId(session_id));
     if(!sessionInfo){
         // close socket
         sessionInfo->getSocket()->close();
 
-        // insert into open sessions
+        // delete from open sessions
         for(auto i=_openSessions.begin(); i != _openSessions.end(); ++i) {
-            if((*i).getSessionId() == sessionInfo->getSessionId()){
+            if((*i)->getSessionId() == sessionInfo->getSessionId()){
                 _openSessions.erase(i);
             }
         }
@@ -80,7 +79,7 @@ void NetConfServerTCP::sendToTransport(cMessage* msg) {
     NetConfCtrlInfo* ctrl = dynamic_cast<NetConfCtrlInfo*>(msg->removeControlInfo());
 
     // get session info
-    NetConfSessionInfoTCP* sessionInfo = dynamic_cast<NetConfSessionInfoTCP*>(findSessionInfoForId(ctrl->getSession_id()));
+    NetConfServerSessionInfoTCP* sessionInfo = dynamic_cast<NetConfServerSessionInfoTCP*>(findSessionInfoForId(ctrl->getSession_id()));
 
     // forward to tcp
     sessionInfo->getSocket()->send(msg);
@@ -89,16 +88,16 @@ void NetConfServerTCP::sendToTransport(cMessage* msg) {
     delete ctrl;
 }
 
-NetConfSessionInfo* NetConfServerTCP::findSessionInfoForMsg(cMessage* msg) {
+NetConfServerSessionInfo* NetConfServerTCP::findSessionInfoForMsg(cMessage* msg) {
     TCPCommand *ind = dynamic_cast<TCPCommand *>(msg->getControlInfo());
     if (!ind)
         throw cRuntimeError("TCPSocketMap: findSocketFor(): no TCPCommand control info in message (not from TCP?)");
 
     int connId = ind->getConnId();
     for(auto i=_openSessions.begin(); i != _openSessions.end(); ++i) {
-        NetConfSessionInfoTCP& sessionInfo = static_cast<NetConfSessionInfoTCP&>(*i);
-        if(sessionInfo.getConnId() == connId){
-            return &sessionInfo;
+        NetConfServerSessionInfoTCP* sessionInfo = dynamic_cast<NetConfServerSessionInfoTCP*>(*i);
+        if(sessionInfo->getConnId() == connId){
+            return sessionInfo;
         }
     }
     return NULL;

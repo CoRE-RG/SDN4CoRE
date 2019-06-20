@@ -15,26 +15,26 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef SDN4CORE_NETCONF_SERVER_TCP_NETCONFSESSIONINFOTCP_H_
-#define SDN4CORE_NETCONF_SERVER_TCP_NETCONFSESSIONINFOTCP_H_
+#ifndef SDN4CORE_NETCONF_CLIENT_TCP_NETCONFSESSIONINFOTCP_H_
+#define SDN4CORE_NETCONF_CLIENT_TCP_NETCONFSESSIONINFOTCP_H_
 
-#include <sdn4core/netconf/server/base/NetConfSessionInfo.h>
+#include <sdn4core/netconf/datastructures/base/NetConfClientSessionInfo.h>
 
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 
 namespace SDN4CoRE {
 
 /**
- * TCP specific session information.
+ * TCP specific server session information.
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class NetConfSessionInfoTCP: public NetConfSessionInfo {
+class NetConfClientSessionInfoTCP: public NetConfClientSessionInfo {
 public:
-    NetConfSessionInfoTCP(){
+    NetConfClientSessionInfoTCP(){
 
     }
-    virtual ~NetConfSessionInfoTCP(){
+    virtual ~NetConfClientSessionInfoTCP(){
 
     }
 
@@ -70,4 +70,4 @@ private:
 
 } /* namespace SDN4CoRE */
 
-#endif /* SDN4CORE_NETCONF_SERVER_TCP_NETCONFSESSIONINFOTCP_H_ */
+#endif /* SDN4CORE_NETCONF_CLIENT_TCP_NETCONFSESSIONINFOTCP_H_ */

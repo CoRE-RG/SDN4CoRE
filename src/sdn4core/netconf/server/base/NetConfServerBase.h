@@ -19,19 +19,19 @@
 #define __SDN4CORE_NETCONFSERVER_H_
 
 #include <omnetpp.h>
+#include <sdn4core/netconf/datastructures/base/NetConfServerSessionInfo.h>
 #include <unordered_map>
 #include <vector>
 
 #include "sdn4core/utility/processing/ProcessingTimeSimulation.h"
 
-#include "sdn4core/netconf/server/base/NetConfSessionInfo.h"
-// AUTO-GENERATED MESSAGES
 #include "sdn4core/netconf/messages/NetConfMessage_m.h"
 #include "sdn4core/netconf/messages/NetConfCtrlInfo_m.h"
 
 using namespace omnetpp;
 
 namespace SDN4CoRE {
+
 /**
  * forward declaration of NetConfDataStoreManagerBase
  */
@@ -62,33 +62,59 @@ protected:
      * Must insert the new session into the _openSessions list.
      * @param msg   the message to create a session for
      */
-    virtual NetConfSessionInfo* openNewSession(cMessage* msg) = 0;
+    virtual NetConfServerSessionInfo* openNewSession(cMessage* msg) = 0;
 
     /**
      * Closes the protocol specific session and removes the session from openSessions list.
-     * @param msg   the last message of the session to close
+     * @param sessionId   the last message of the session to close
      * @return      true if the session was closed
      */
-    virtual bool closeSession(int msg) = 0;
+    virtual bool closeSession(int sessionId) = 0;
 
     /**
      * Finds the session info for an incoming message.
      * @param msg   the message of a session
      * @return      pointer to the session info stored in _openSessions, null if none found.
      */
-    virtual NetConfSessionInfo* findSessionInfoForMsg(cMessage *msg) = 0;
+    virtual NetConfServerSessionInfo* findSessionInfoForMsg(cMessage *msg) = 0;
 
     /**
      * Finds the session info for an existing session id.
      * @param sessionId   the id of the session to find
      * @return      pointer to the session info stored in _openSessions, null if none found.
      */
-    virtual NetConfSessionInfo* findSessionInfoForId(int sessionId);
+    virtual NetConfServerSessionInfo* findSessionInfoForId(int sessionId);
 
     /**
      * @see ~ProcessingTimeSimulation::processScheduledMessage(cMessage *msg)
      */
     virtual void processScheduledMessage(cMessage *msg);
+
+    /**
+     * Handles the hello message and replys to it.
+     * @param msg   the incoming hello message
+     */
+    virtual void handleHello(cMessage* msg);
+
+    /**
+     * Handles the close session message and replys to it.
+     * @param msg   the incoming close session message
+     */
+    virtual void handleCloseSession(cMessage* msg);
+
+    /**
+     * Handles the RPC message and forwards it to the correct store.
+     * @param msg   the incoming RPC message
+     */
+    virtual void handleRPC(NetConfMessage* msg);
+
+    /**
+     * Creates a NetConfCtrlInfo for the incoming message and sessionInfo.
+     * @param sessionInfo   the session info for the message
+     * @param msg           the incoming message
+     * @return  a new NetConfCtrlInfo
+     */
+    virtual NetConfCtrlInfo* createCtrlInfoFor(NetConfServerSessionInfo* sessionInfo, NetConfMessage* msg);
 
     /**
      * Creates an rpc reply element containing the error message.
@@ -115,7 +141,7 @@ protected:
     /**
      * Network and Controller State
      */
-    std::vector<NetConfSessionInfo> _openSessions;
+    std::vector<NetConfServerSessionInfo*> _openSessions;
 
     /**
      * The session ID to add to the next session opened with openNewSession();
@@ -144,32 +170,6 @@ protected:
      */
     static const char TRANSPORT_OUT_GATE_NAME []; //= "transportOut";
 
-private:
-    /**
-     * Handles the hello message and replys to it.
-     * @param msg   the incoming hello message
-     */
-    void handleHello(cMessage* msg);
-
-    /**
-     * Handles the close session message and replys to it.
-     * @param msg   the incoming close session message
-     */
-    void handleCloseSession(cMessage* msg);
-
-    /**
-     * Handles the RPC message and forwards it to the correct store.
-     * @param msg   the incoming RPC message
-     */
-    void handleRPC(NetConfMessage* msg);
-
-    /**
-     * Creates a NetConfCtrlInfo for the incoming message and sessionInfo.
-     * @param sessionInfo   the session info for the message
-     * @param msg           the incoming message
-     * @return  a new NetConfCtrlInfo
-     */
-    virtual NetConfCtrlInfo* createCtrlInfoFor(NetConfSessionInfo* sessionInfo, NetConfMessage* msg);
 };
 
 }  // namespace SDN4CoRE

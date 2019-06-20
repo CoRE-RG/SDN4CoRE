@@ -15,12 +15,12 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __SDN4CORE_NETCONFSERVERTCP_H_
-#define __SDN4CORE_NETCONFSERVERTCP_H_
+#ifndef __SDN4CORE_NETCONFCLIENTTCP_H_
+#define __SDN4CORE_NETCONFCLIENTTCP_H_
 
 #include <omnetpp.h>
 
-#include <sdn4core/netconf/server/base/NetConfServerBase.h>
+#include "sdn4core/netconf/client/base/NetConfClientBase.h"
 
 //INET
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
@@ -30,13 +30,15 @@ using namespace omnetpp;
 namespace SDN4CoRE {
 
 /**
- * TCP implementation for a NetConfServer. Handles all the TCP specific functionality.
+ * Contains the TCP specific implementation of a NetConf client.
+ * This module has to be connected to the tcp module.
  *
- * A NetConf Server must be connected to device specific config and state datastores.
+ * All responses will be forwarded to the applicaitonOut gate with the
+ * same index as the arriving applicationIn gate
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class NetConfServerTCP : public NetConfServerBase
+class NetConfClientTCP : public NetConfClientBase
 {
   protected:
     virtual void initialize();
@@ -49,12 +51,11 @@ class NetConfServerTCP : public NetConfServerBase
     virtual void sendToTransport(cMessage* msg) override;
 
     /**
-     * Protocol specific implementation to open a new session.
-     * Checks if the session already exists, else opens a new one and adds the _nextSessionId
+     * Protocol specific implementation to open a new session for a NetConfHello message.
      * Must insert the new session into the _openSessions list.
-     * @param msg   the message to create a session for
+     * @param hello   the NetConfHello to create a session for NetConfHello
      */
-    virtual NetConfServerSessionInfo* openNewSession(cMessage* msg) override;
+    virtual NetConfClientSessionInfo* openNewSession(NetConfHello* hello) override;
 
     /**
      * Closes the protocol specific session and removes the session from openSessions list.
@@ -68,13 +69,10 @@ class NetConfServerTCP : public NetConfServerBase
      * @param msg   the message of a session
      * @return      pointer to the session info stored in _openSessions, null if none found.
      */
-    virtual NetConfServerSessionInfo* findSessionInfoForMsg(cMessage *msg) override;
+    virtual NetConfClientSessionInfo* findSessionInfoForMsg(cMessage *msg) override;
 
   private:
-    /**
-     * The TCP connection to NetConf clients
-     */
-    inet::TCPSocket _serverSocket;
+    const char *_localAddress;
 };
 
 }  // namespace SDN4CoRE

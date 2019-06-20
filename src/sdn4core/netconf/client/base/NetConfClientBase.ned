@@ -15,10 +15,12 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.client;
+package sdn4core.netconf.client.base;
+
+import sdn4core.netconf.client.INetConfClient;
 
 //
-// Contains the common interface of a NetConf client.
+// Contains the basic implementation of a NetConf client.
 // This module can be connected to any Transport protocol that should be of 
 // "Connection-Oriented Operation" and should provide "Authentication, 
 // Integrity, and Confidentiality" as specified in Network Configuration 
@@ -29,11 +31,12 @@ package sdn4core.netconf.client;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-moduleinterface INetConfClient {
+simple NetConfClientBase like INetConfClient
+{
     parameters:
         @display("i=block/socket");
         
-    gates:
+    gates:        
         // connection to management application 
         input applicationIn [numNetConfApps];
         output applicaitonOut [numNetConfApps];

@@ -24,12 +24,12 @@ namespace SDN4CoRE {
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class NetConfSessionInfo {
+class NetConfServerSessionInfo {
 public:
-    NetConfSessionInfo(){
+    NetConfServerSessionInfo(){
 
     }
-    virtual ~NetConfSessionInfo(){
+    virtual ~NetConfServerSessionInfo(){
 
     }
 
