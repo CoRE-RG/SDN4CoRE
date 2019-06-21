@@ -48,11 +48,11 @@ network netconf_test_standardhost
         configurator: IPv4NetworkConfigurator;
         
         managedUnit[numOfManaged]: NetConfManagedUnit {
-            @display("p=95,234,c,50");
+            @display("p=95,234,r,50");
         }
 
         managementUnit[numOfManagers]: NetConfManagementUnit {
-            @display("p=95,68,c,50");
+            @display("p=95,68,r,50");
         }
 
         switch: EtherSwitch {

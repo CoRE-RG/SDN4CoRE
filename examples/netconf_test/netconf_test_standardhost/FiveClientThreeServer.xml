@@ -1,0 +1,32 @@
+<!--
+This is an example file on how to declare remotes for an INetConfApplication.
+-->
+
+<server_connections>
+	<application client_host="managementUnit[0]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+	</application>
+	<application client_host="managementUnit[0]" client_app="1">
+		<connection local_port="6124" remote_address="managedUnit[1]" remote_port="830" connect_at="1"/>
+	</application>
+	<application client_host="managementUnit[0]" client_app="2">
+		<connection local_port="6125" remote_address="managedUnit[2]" remote_port="830" connect_at="1"/>
+	</application>
+	
+	<application client_host="managementUnit[1]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+	</application>
+	
+	<application client_host="managementUnit[2]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[1]" remote_port="830" connect_at="1"/>
+	</application>
+	
+	<application client_host="managementUnit[3]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[2]" remote_port="830" connect_at="1"/>
+	</application>
+	
+	<application client_host="managementUnit[4]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+	</application>
+	
+</server_connections>
