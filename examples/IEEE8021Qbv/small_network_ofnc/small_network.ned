@@ -12,20 +12,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
+// c Timo Haeckel, for HAW Hamburg
+// 
 
 package sdn4core.examples.IEEE8021Qbv.small_network_ofnc;
+
+import sdn4core.controller.base.OpenFlowControllerBase;
 
 //inet
 import inet.node.ethernet.Eth100M;
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
-//openflow
-import openflow.openflow.controller.Open_Flow_Controller;
 
 //
 // Small sample network with three hosts and one openflow switch that shows how to 
 // configure the IEEE 802.1Q Model with openflow. Configuration in omnetpp.ini
 // - 80ns Tick length
+//
+// @author Timo Haeckel, for HAW Hamburg
 //
 network small_network_ofnc
 {
@@ -45,7 +49,7 @@ network small_network_ofnc
             parameters:
                 @display("p=39,20");
         }
-        open_flow_controller1: Open_Flow_Controller {
+        open_flow_controller1: OpenFlowControllerBase {
             @display("p=147,160");
         }
 

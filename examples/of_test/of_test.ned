@@ -2,10 +2,12 @@
 
 package sdn4core.examples.of_test;
 
+import sdn4core.controller.base.OpenFlowControllerBase;
+//INET
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 import inet.node.ethernet.EtherSwitch;
-import openflow.openflow.controller.Open_Flow_Controller;
+//OPENFLOW
 import openflow.utility.OpenFlowGraphAnalyzer;
 import openflow.utility.StaticSpanningTree;
 
@@ -30,7 +32,7 @@ network of_test
             parameters:
                 @display("p=198,190");
         }
-        open_flow_controller1: Open_Flow_Controller {
+        open_flow_controller1: OpenFlowControllerBase {
             @display("p=322,190");
         }
 
