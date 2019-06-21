@@ -1,0 +1,6 @@
+Demonstrates a small OpenFlow IEEE 802.1Q Network. Traffic generators send Ethernet frames directly.
+
+- The small network contains three hosts (node1, node2, node3) and an OpenFlow switch, which 
+  connects these hosts. The Switch is connected to an OpenFlow controller.
+  
+  

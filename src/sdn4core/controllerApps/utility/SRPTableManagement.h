@@ -19,7 +19,7 @@
 #define OPENFLOW_REALTIME_CONTROLLERAPPS_SRPTABLEMANAGEMENT_H_
 
 
-#include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
+#include <sdn4core/controller/avb/SRP/OF_CTRL_SRPTable.h>
 
 //STD
 #include <unordered_map>

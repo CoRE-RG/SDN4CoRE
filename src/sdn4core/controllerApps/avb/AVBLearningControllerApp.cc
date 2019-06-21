@@ -15,7 +15,7 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-#include <sdn4core/controller/services/avb/SRP/OF_CTRL_SRPTable.h>
+#include <sdn4core/controller/avb/SRP/OF_CTRL_SRPTable.h>
 
 #include <sdn4core/controllerApps/avb/AVBLearningControllerApp.h>
 //STD

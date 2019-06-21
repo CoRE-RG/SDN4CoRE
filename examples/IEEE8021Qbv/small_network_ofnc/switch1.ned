@@ -13,14 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.IEEE8021Qbv.small_network;
+package sdn4core.examples.IEEE8021Qbv.small_network_ofnc;
 
-import sdn4core.switch.IEEE8021Qbv.IEEE8021QbvOpenFlowSwitch;
+import sdn4core.switch.IEEE8021Qbv.IEEE8021QbvOFNCSwitch;
 
 //
 // Switch1: configuration in switch1.ini
 //
-module Switch1 extends IEEE8021QbvOpenFlowSwitch
+module Switch1 extends IEEE8021QbvOFNCSwitch
 {
     @display("i=device/switch;i2=OpenFlow-Logo-small");
 }

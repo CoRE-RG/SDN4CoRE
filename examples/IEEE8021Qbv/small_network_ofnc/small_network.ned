@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.IEEE8021Qbv.small_network;
+package sdn4core.examples.IEEE8021Qbv.small_network_ofnc;
 
 //inet
 import inet.node.ethernet.Eth100M;
@@ -27,7 +27,7 @@ import openflow.openflow.controller.Open_Flow_Controller;
 // configure the IEEE 802.1Q Model with openflow. Configuration in omnetpp.ini
 // - 80ns Tick length
 //
-network small_network
+network small_network_ofnc
 {
     parameters:
         @display("bgb=,,white");

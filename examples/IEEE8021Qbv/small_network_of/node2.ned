@@ -13,14 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.IEEE8021Qbv.small_network;
+package sdn4core.examples.IEEE8021Qbv.small_network_of;
 
 import core4inet.nodes.ethernet.IEEE8021Qbv.IEEE8021QbvEtherHost;
 
 //
-// Node1: configuration in node1.ini.
+// Node2: configuration in node2.ini.
 //
-module Node1 extends IEEE8021QbvEtherHost
+module Node2 extends IEEE8021QbvEtherHost
 {
-    @display("bgb=479,314");
+    @display("bgb=484,314");
 }
