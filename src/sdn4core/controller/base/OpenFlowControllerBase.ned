@@ -40,9 +40,6 @@ import openflow.openflow.controller.IOpenFlowController;
 module OpenFlowControllerBase extends NetworkControllerBase
 {
     parameters:
-        @networkNode();
-        @labels(node,ethernet-node);
-        @display("i=device/server;bgb=795,445;i2=openflow/OpenFlow-Logo-small");
         int numControllerApps = default(0);
         int numTcpControllerApps = default(0);
         string openflowControllerType = default("OF_Controller");

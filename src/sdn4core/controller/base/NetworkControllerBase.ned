@@ -28,6 +28,9 @@ import inet.node.inet.StandardHost;
 //
 module NetworkControllerBase extends StandardHost
 {
+        @networkNode();
+        @labels(node,ethernet-node);
+        @display("i=device/server;bgb=795,445;i2=openflow/OpenFlow-Logo-small");
 }
 
 

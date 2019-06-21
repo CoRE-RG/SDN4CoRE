@@ -45,7 +45,7 @@ module IEEE8021QbvOFNCSwitch extends IEEE8021QbvOpenFlowSwitch
 
         // Netconf state store modules
         dataStoreManager: <dataStoreManagerType> like INetConfDataStoreManager {
-            @display("p=226,290");
+            @display("p=265,38");
         }
 
     connections:

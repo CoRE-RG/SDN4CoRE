@@ -1,0 +1,9 @@
+<!--
+This is an example file on how to declare remotes for an INetConfApplication.
+-->
+
+<server_connections>
+	<application client_host="open_flow_controller1" client_app="0">
+		<connection local_port="6123" remote_address="switch1" remote_port="830" connect_at="0.1"/>
+	</application>
+</server_connections>

@@ -17,7 +17,7 @@
 
 package sdn4core.examples.IEEE8021Qbv.small_network_ofnc;
 
-import sdn4core.controller.base.OpenFlowControllerBase;
+import sdn4core.controller.base.NetConfOpenFlowController;
 
 //inet
 import inet.node.ethernet.Eth100M;
@@ -49,7 +49,7 @@ network small_network_ofnc
             parameters:
                 @display("p=39,20");
         }
-        open_flow_controller1: OpenFlowControllerBase {
+        open_flow_controller1: NetConfOpenFlowController {
             @display("p=147,160");
         }
 
