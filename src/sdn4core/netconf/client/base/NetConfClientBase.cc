@@ -87,6 +87,7 @@ void NetConfClientBase::handleHello(NetConfHello* hello) {
     if(sessionInfo){
         sessionInfo->setSessionId(hello->getSession_id());
     }
+    hello->setContextPointer(sessionInfo);
     send(hello,this->gate(APPLICATION_OUT_GATE_NAME, sessionInfo->getApplicationIndex()));
 }
 

@@ -35,6 +35,8 @@ const char NetConfServerBase::RESPONSE_IN_GATE_NAME[] = "responseIn";
 const char NetConfServerBase::TRANSPORT_IN_GATE_NAME[] = "transportIn";
 const char NetConfServerBase::TRANSPORT_OUT_GATE_NAME[] = "transportOut";
 
+int NetConfServerBase::_nextSessionId = 0;
+
 void NetConfServerBase::initialize() {
     ProcessingTimeSimulation::initialize();
 

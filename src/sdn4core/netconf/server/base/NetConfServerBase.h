@@ -146,7 +146,7 @@ protected:
     /**
      * The session ID to add to the next session opened with openNewSession();
      */
-    int _nextSessionId = 0;
+    static int _nextSessionId;
 
     /**
      * Cached reference to the NetConf data store manager.

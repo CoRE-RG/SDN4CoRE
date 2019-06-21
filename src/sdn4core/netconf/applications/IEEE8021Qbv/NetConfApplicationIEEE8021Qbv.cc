@@ -15,25 +15,20 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.applications.base;
+#include "NetConfApplicationIEEE8021Qbv.h"
 
-import sdn4core.netconf.applications.INetConfApplication;
+namespace SDN4CoRE {
 
-//
-// Contains the base implementation of a netconf application.
-// This module needs to be connected to the NetConf client.
-//
-// @author Timo Haeckel, for HAW Hamburg
-//
-simple NetConfApplicationBase like INetConfApplication
+Define_Module(NetConfApplicationIEEE8021Qbv);
+
+void NetConfApplicationIEEE8021Qbv::initialize()
 {
-     parameters:
-        @class(SDN4CoRE::NetConfApplicationBase);
-        // xml format for NetConf server remotes parameters
-        // example: see remotes.xml
-        xml serverConnections= default(xml("<server_connections/>"));
-    gates:
-        // connection to NetConf client application 
-        input applicationIn;
-        output applicationOut;    
+    // TODO - Generated method body
 }
+
+void NetConfApplicationIEEE8021Qbv::handleMessage(cMessage *msg)
+{
+    // TODO - Generated method body
+}
+
+}  // namespace SDN4CoRE
