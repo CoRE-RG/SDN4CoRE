@@ -109,6 +109,7 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::createRPCReplyElement_Data
     if (config) {
         dataReply = new NetConf_RPCReplyElement_Data();
         dataReply->setConfig(*config);
+        dataReply->setByteLength(sizeof(*config));
     }
 
     return dynamic_cast<NetConf_RPCReplyElement*>(dataReply);
@@ -124,11 +125,13 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::createRPCReplyElement_Erro
     errorReply->setError_tag(error_tag);
     errorReply->setError_severity(error_severity);
     errorReply->setError_app_tag(error_app_tag);
+    errorReply->setByteLength(std::strlen(error_tag) + sizeof(error_type) + sizeof(error_severity) + std::strlen(error_app_tag));
     return dynamic_cast<NetConf_RPCReplyElement*>(errorReply);
 }
 
 NetConf_RPCReplyElement* NetConfDataStoreManagerBase::createRPCReplyElement_Ok() {
     NetConf_RPCReplyElement_Ok* okReply = new NetConf_RPCReplyElement_Ok();
+    okReply->setByteLength(4);
     return dynamic_cast<NetConf_RPCReplyElement*>(okReply);
 }
 

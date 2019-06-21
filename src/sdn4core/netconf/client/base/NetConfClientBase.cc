@@ -19,7 +19,7 @@
 
 namespace SDN4CoRE {
 
-const char NetConfClientBase::APPLICATION_OUT_GATE_NAME[] = "applicaitonOut";
+const char NetConfClientBase::APPLICATION_OUT_GATE_NAME[] = "applicationOut";
 const char NetConfClientBase::APPLICATION_IN_GATE_NAME[] = "applicationIn";
 
 const char NetConfClientBase::TRANSPORT_IN_GATE_NAME[] = "transportIn";

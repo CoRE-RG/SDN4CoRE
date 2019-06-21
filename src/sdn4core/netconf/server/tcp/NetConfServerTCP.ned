@@ -30,8 +30,6 @@ simple NetConfServerTCP extends NetConfServerBase
 {
     parameters:
         @class(SDN4CoRE::NetConfServerTCP);
-        // The ip address of the host
-        string localAddress = default("");
         // The port to use for the NetConf session
         int localPort = default(830);
 }

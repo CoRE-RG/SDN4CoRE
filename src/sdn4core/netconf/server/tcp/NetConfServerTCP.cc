@@ -30,11 +30,10 @@ void NetConfServerTCP::initialize() {
     NetConfServerBase::initialize();
 
     // TCP socket; listen on incoming connections
-    const char *address = par("localAddress");
     int port = par("localPort");
     _serverSocket.setOutputGate(gate(TRANSPORT_OUT_GATE_NAME));
     _serverSocket.setDataTransferMode(TCP_TRANSFER_OBJECT);
-    _serverSocket.bind(address ? L3Address(address) : L3Address(), port);
+    _serverSocket.bind(port);
     _serverSocket.listen();
 }
 
@@ -43,7 +42,7 @@ NetConfServerSessionInfo* NetConfServerTCP::openNewSession(cMessage* msg) {
     if(!sessionInfo){
         // create the new socket from the message
         TCPSocket *socket = new TCPSocket(msg);
-        socket->setOutputGate(gate("TRANSPORT_OUT_GATE_NAME"));
+        socket->setOutputGate(gate(TRANSPORT_OUT_GATE_NAME ));
 
         // create SessionInfo
         sessionInfo = new NetConfServerSessionInfoTCP();

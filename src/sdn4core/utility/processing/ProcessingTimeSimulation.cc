@@ -76,6 +76,7 @@ void ProcessingTimeSimulation::simulateProcessingTime(cMessage* msg) {
         _busy = true;
         cMessage* event = new cMessage("event");
         event->setKind(MSGKIND_SERVICETIME);
+        event->setContextPointer(msg);
         scheduleAt(simTime() + _processingTime, event);
     }
     emit(_queueSize, _msgList.size());

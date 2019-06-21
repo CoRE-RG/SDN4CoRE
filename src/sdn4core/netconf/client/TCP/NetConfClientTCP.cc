@@ -31,6 +31,17 @@ void NetConfClientTCP::initialize()
 
 }
 
+void NetConfClientTCP::handleMessage(cMessage* msg) {
+
+    if(msg->getKind() == TCP_I_ESTABLISHED){
+        NetConfClientSessionInfoTCP* sessionInfo = dynamic_cast<NetConfClientSessionInfoTCP*>(findSessionInfoForMsg(msg));
+        sessionInfo->getSocket()->processMessage(msg);
+    }else{
+        NetConfClientBase::handleMessage(msg);
+    }
+
+}
+
 void NetConfClientTCP::sendToTransport(cMessage* msg) {// Detach control info and use it for forwarding
     NetConfCtrlInfo* ctrl = dynamic_cast<NetConfCtrlInfo*>(msg->removeControlInfo());
 

@@ -29,11 +29,7 @@ simple NetConfApplicationBase like INetConfApplication
      parameters:
         @class(SDN4CoRE::NetConfApplicationBase);
         // xml format for NetConf server remotes parameters
-        // structure:
-        // 	<server_connections>
-		//		<connection local_port="123" remote_address="node1" remote_port="830" connect_at="1"/>
-		//		<connection local_port="124" remote_address="node2" remote_port="830" connect_at="2"/>
-		// 	</server_connections>
+        // example: see remotes.xml
         xml serverConnections= default(xml("<server_connections/>"));
     gates:
         // connection to NetConf client application 

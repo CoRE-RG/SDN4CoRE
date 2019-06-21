@@ -42,6 +42,7 @@ class NetConfClientTCP : public NetConfClientBase
 {
   protected:
     virtual void initialize();
+    virtual void handleMessage(cMessage* msg);
 
     /**
      * Forwards the message to the protocol specific transport layer.

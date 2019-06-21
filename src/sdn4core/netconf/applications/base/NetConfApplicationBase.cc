@@ -30,23 +30,32 @@ void NetConfApplicationBase::initialize()
     cXMLElement* xmlServerConnections = par("serverConnections").xmlValue();
     if(xmlServerConnections){
         if(strcmp(xmlServerConnections->getName(), "server_connections") == 0){
-            cXMLElementList connectionsXML = xmlServerConnections->getChildrenByTagName("connection");
-            for (size_t i=0; i<connectionsXML.size(); i++)
+            cXMLElementList applicationsXML = xmlServerConnections->getChildrenByTagName("application");
+            for (size_t i=0; i<applicationsXML.size(); i++)
             {//the xml contains connections so set them.
-                const char* localPort = connectionsXML[i]->getAttribute("local_port");
-                const char* remoteAddress = connectionsXML[i]->getAttribute("remote_address");
-                const char* remotePort = connectionsXML[i]->getAttribute("remote_port");
-                const char* connectAt = connectionsXML[i]->getAttribute("connect_at");
+                const char* clientAppHost = applicationsXML[i]->getAttribute("client_host");
+                const char* clientAppIndex = applicationsXML[i]->getAttribute("client_app");
+                const char* realHost = getParentModule()->getFullName();
+                if(clientAppIndex && clientAppHost && (atoi(clientAppIndex) == getIndex()) && (strcmp(realHost, clientAppHost) == 0)) {
+                    cXMLElementList connectionsXML = applicationsXML[i]->getChildrenByTagName("connection");
+                    for (size_t i=0; i<connectionsXML.size(); i++)
+                    {//the xml contains connections so set them.
+                        const char* localPort = connectionsXML[i]->getAttribute("local_port");
+                        const char* remoteAddress = connectionsXML[i]->getAttribute("remote_address");
+                        const char* remotePort = connectionsXML[i]->getAttribute("remote_port");
+                        const char* connectAt = connectionsXML[i]->getAttribute("connect_at");
 
-                if(localPort && remoteAddress && remotePort && connectAt) {
-                    // set the connection and push_back to array.
-                    Connections_t connection;
-                    connection.localPort = atoi(localPort);
-                    connection.remoteAddress = remoteAddress;
-                    connection.remotePort = atoi(remotePort);
-                    connection.connectAt = std::stod(connectAt);
-                    connection.state = ConnectionState_t::ConnectionStateWaiting;
-                    _connections.push_back(connection);
+                        if(localPort && remoteAddress && remotePort && connectAt) {
+                            // set the connection and push_back to array.
+                            Connections_t connection;
+                            connection.localPort = atoi(localPort);
+                            connection.remoteAddress = remoteAddress;
+                            connection.remotePort = atoi(remotePort);
+                            connection.connectAt = std::stod(connectAt);
+                            connection.state = ConnectionState_t::ConnectionStateWaiting;
+                            _connections.push_back(connection);
+                        }
+                    }
                 }
             }
         }
@@ -86,11 +95,13 @@ void NetConfApplicationBase::handleMessage(cMessage *msg)
 
         scheduleNextConnection();
     }
+    delete msg;
 }
 
 NetConfHello* NetConfApplicationBase::createHelloFor(
         Connections_t* connection) {
-    NetConfHello* hello = new NetConfHello();
+    NetConfHello* hello = new NetConfHello("NetConfHello");
+    hello->setByteLength(4);
 
     NetConfClientCtrlInfo_Connection* ctrl = new NetConfClientCtrlInfo_Connection();
     ctrl->setConnectAddress(connection->remoteAddress);
