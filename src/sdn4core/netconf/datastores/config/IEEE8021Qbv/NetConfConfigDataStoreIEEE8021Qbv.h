@@ -20,6 +20,14 @@
 
 #include <sdn4core/netconf/datastores/config/base/NetConfConfigDataStore.h>
 
+//std
+#include <omnetpp.h>
+#include <unordered_map>
+//CoRE4INET
+#include "core4inet/linklayer/shaper/IEEE8021Qbv/gate/IEEE8021QbvGateControlList.h"
+
+using namespace omnetpp;
+
 namespace SDN4CoRE {
 
 /**
@@ -29,7 +37,7 @@ namespace SDN4CoRE {
  */
 class NetConfConfigDataStoreIEEE8021Qbv: public NetConfConfigDataStore {
 public:
-    NetConfConfigDataStoreIEEE8021Qbv();
+    NetConfConfigDataStoreIEEE8021Qbv(std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>& gateControlListModules);
     virtual ~NetConfConfigDataStoreIEEE8021Qbv();
 
     /**
@@ -53,6 +61,12 @@ public:
      * @return  the copy of this configuration
      */
     virtual NetConfConfigDataStore* copyConfig();
+
+protected:
+    /**
+     * Map: key port number, value IEEE8021QbvGateControlList modules in this host.
+     */
+    std::unordered_map<int,CoRE4INET::IEEE8021QbvGateControlList*> _gateControlListModules;
 };
 
 } /* namespace SDN4CoRE */

@@ -109,7 +109,7 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::createRPCReplyElement_Data
     if (config) {
         dataReply = new NetConf_RPCReplyElement_Data();
         dataReply->setConfig(*config);
-        dataReply->setByteLength(sizeof(*config));
+        dataReply->setByteLength(config->getByteSize());
     }
 
     return dynamic_cast<NetConf_RPCReplyElement*>(dataReply);

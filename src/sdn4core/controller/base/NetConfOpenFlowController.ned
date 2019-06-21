@@ -21,6 +21,7 @@ import sdn4core.controller.base.OpenFlowControllerBase;
 
 import sdn4core.netconf.client.INetConfClient;
 import sdn4core.netconf.applications.INetConfApplication;
+import openflow.controllerApps.AbstractControllerApp;
 
 //
 // Model of an OpenFlow and NetConf capable controller.
@@ -41,6 +42,8 @@ module NetConfOpenFlowController extends OpenFlowControllerBase
     submodules:
 
         //NetConfClient applications
+        //these may also implement the AbstractControllerApp interface 
+        //for OpenFlow apps and subscribe to controller events
         netConfApps[numNetConfApps]: <> like INetConfApplication {
 
             @display("p=147,287,r,50");
