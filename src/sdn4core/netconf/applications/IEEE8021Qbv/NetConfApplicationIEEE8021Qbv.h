@@ -32,8 +32,16 @@ class NetConfApplicationIEEE8021Qbv : public NetConfApplicationBase
 {
 public:
   protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+
+    /**
+     * Create config data from XML.
+     */
+    virtual NetConfConfig* getConfigDataFor(cXMLElement* element) override;
+
+    /**
+     * Create config filter from XML.
+     */
+    virtual NetConfFilter* getConfigFilterFor(cXMLElement* element) override;
 };
 
 }  // namespace SDN4CoRE

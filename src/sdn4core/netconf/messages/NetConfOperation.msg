@@ -79,7 +79,7 @@ packet NetConfOperation {
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-packet NetConfOperation_GetConfig {
+packet NetConfOperation_GetConfig extends NetConfOperation{
     string source;
     NetConfFilter filter;    
 }
@@ -239,7 +239,7 @@ enum NetConfOperation_ErrorOption {
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-packet NetConfOperation_EditConfig {
+packet NetConfOperation_EditConfig extends NetConfOperation{
     string target;
     int defaultOperation @enum(NetConfOperation_Operation);
     int errorOption @enum(NetConfOperation_ErrorOption);
@@ -271,7 +271,7 @@ packet NetConfOperation_EditConfig {
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-packet NetConfOperation_CopyConfig {
+packet NetConfOperation_CopyConfig extends NetConfOperation{
     string source;
     string target;
 }
@@ -294,7 +294,7 @@ packet NetConfOperation_CopyConfig {
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-packet NetConfOperation_DeleteConfig {
+packet NetConfOperation_DeleteConfig extends NetConfOperation{
     string target;
 }
 
@@ -319,7 +319,7 @@ packet NetConfOperation_DeleteConfig {
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-packet NetConfOperation_Get {
+packet NetConfOperation_Get extends NetConfOperation{
     NetConfFilter filter;    
 }
 
@@ -342,7 +342,7 @@ packet NetConfOperation_Get {
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-packet NetConfOperation_CloseSession {
+packet NetConfOperation_CloseSession extends NetConfOperation{
 }
 
 

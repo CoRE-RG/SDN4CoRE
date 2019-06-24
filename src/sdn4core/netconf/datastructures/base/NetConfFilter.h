@@ -24,6 +24,12 @@ class NetConfFilter {
 public:
     NetConfFilter();
     virtual ~NetConfFilter();
+
+    /**
+     * Calculates the byte size of this config.
+     * @return  the calculated byte size.
+     */
+    virtual unsigned int getByteSize();
 };
 
 } /* namespace SDN4CoRE */

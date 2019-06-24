@@ -57,7 +57,7 @@ void NetConfClientBase::handleMessage(cMessage *msg)
                 switch(netconf->getMessageType()){
                 case NetConfMessageType::NETCONFMESSAGETYPE_RPCREPLY:
                     // received RPC
-                    handleRPCReply(netconf);
+                    send(msg,this->gate(APPLICATION_OUT_GATE_NAME, sessionInfo->getApplicationIndex()));
                     break;
 
                 default:
@@ -89,11 +89,6 @@ void NetConfClientBase::handleHello(NetConfHello* hello) {
     }
     hello->setContextPointer(sessionInfo);
     send(hello,this->gate(APPLICATION_OUT_GATE_NAME, sessionInfo->getApplicationIndex()));
-}
-
-void NetConfClientBase::handleRPCReply(NetConfMessage* msg) {
-    NetConfClientSessionInfo* sessionInfo = findSessionInfoForMsg(msg);
-    send(msg,this->gate(APPLICATION_OUT_GATE_NAME, sessionInfo->getApplicationIndex()));
 }
 
 NetConfClientSessionInfo* NetConfClientBase::findSessionInfoForId(

@@ -24,7 +24,11 @@
 
 #include <sdn4core/netconf/datastructures/tcp/NetConfClientSessionInfoTCP.h>
 #include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
+#include "sdn4core/netconf/datastructures/base/NetConfFilter.h"
 #include "sdn4core/netconf/messages/NetConfCapability_m.h"
+#include "sdn4core/netconf/messages/NetConfMessage_m.h"
+#include "sdn4core/netconf/messages/NetConfCtrlInfo_m.h"
+#include "sdn4core/netconf/messages/NetConfOperation_m.h"
 
 using namespace omnetpp;
 
@@ -51,6 +55,14 @@ public:
     }ConfigurationState_t;
 
     /**
+     * Configuration message type
+     */
+    typedef enum NetConfMessageType{
+        NetConfMessageType_EditConfig = 0,
+        NetConfMessageType_GetConfig = 1
+    }NetConfMessageType_t;
+
+    /**
      * Configurations to start at certain points in time.
      */
     class Configurations_t {
@@ -63,7 +75,17 @@ public:
         /**
          * Configuration data to transmit
          */
-        NetConfConfig data;
+        NetConfConfig* data;
+
+        /**
+         * Configuration filters to transmit
+         */
+        NetConfFilter* filter;
+
+        /**
+         * Type
+         */
+        NetConfMessageType_t type;
 
         /**
          * the state of this config
@@ -120,6 +142,18 @@ protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 
+    virtual int getConfigTypeFor(const char* type);
+
+    /**
+     * Create config data from XML.
+     */
+    virtual NetConfConfig* getConfigDataFor(cXMLElement* element);
+
+    /**
+     * Create config filter from XML.
+     */
+    virtual NetConfFilter* getConfigFilterFor(cXMLElement* element);
+
     /**
      * Schedules a self messsage for the next connection creation;
      */
@@ -133,8 +167,23 @@ protected:
     /**
      * Creates a NetConfHello message for the connection.
      * @param connection    the connection data.
+     * @return the NetConfHello message
      */
     virtual NetConfHello* createHelloFor(Connections_t* connection);
+
+    /**
+     * Create an editconfig configuration operation.
+     * @param config the configuration details
+     * @return the NetConfOperation_EditConfig message
+     */
+    virtual NetConfOperation_EditConfig* createEditConfigOperation(Configurations_t* config);
+
+    /**
+     * Create an getconfig configuration operation.
+     * @param config the configuration details
+     * @return the NetConfOperation_GetConfig message
+     */
+    virtual NetConfOperation_GetConfig* createGetConfigOperation(Configurations_t* config);
 
     /**
      * Creates a NetConfMessage_RPC message for a connection and the configuration at the given index
@@ -148,6 +197,12 @@ protected:
      * map the sessioninfo to a connection.
      */
     virtual Connections_t* mapSessionInfoToConnection(NetConfClientSessionInfoTCP* sessionInfo);
+
+    /**
+     * Fills in the control info parameters
+     */
+    virtual NetConfCtrlInfo* createControlInfo(int messageType, int sessionId,
+            const char* messageId);
 
     /**
      * The connections for this application

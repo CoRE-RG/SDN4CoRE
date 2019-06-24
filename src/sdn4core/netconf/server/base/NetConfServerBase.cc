@@ -56,7 +56,7 @@ NetConfMessage_RPCReply* NetConfServerBase::createRPCReply(
     NetConfCtrlInfo* ctrl =
             dynamic_cast<NetConfCtrlInfo*>(element->removeControlInfo());
     // create NetConf reply message
-    NetConfMessage_RPCReply* reply = new NetConfMessage_RPCReply();
+    NetConfMessage_RPCReply* reply = new NetConfMessage_RPCReply("RPC Reply");
     reply->setMessage_id(ctrl->getMessage_id());
     reply->setByteLength(sizeof(ctrl->getMessage_id()));
     reply->encapsulate(element);
@@ -198,7 +198,6 @@ void NetConfServerBase::handleRPC(NetConfMessage* msg) {
             }
 
             //forward it to the config store manager
-            operation->setControlInfo(msg->removeControlInfo());
             sendDirect(operation, _configDataStoreManager->gate(REQUEST_FWD_GATE_NAME));
 
         }

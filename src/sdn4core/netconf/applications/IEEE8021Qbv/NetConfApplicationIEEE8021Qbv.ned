@@ -30,5 +30,9 @@ simple NetConfApplicationIEEE8021Qbv extends NetConfApplicationBase
     parameters:
         @class(SDN4CoRE::NetConfApplicationIEEE8021Qbv);
         
+        // xml format for NetConf server remotes parameters inherited from base
+        // example: see remotes.xml
+		// xml serverConnections= default(xml("<server_connections/>"));
+        
         
 }

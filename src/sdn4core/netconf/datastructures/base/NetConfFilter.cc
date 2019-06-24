@@ -28,4 +28,8 @@ NetConfFilter::~NetConfFilter() {
     // TODO Auto-generated destructor stub
 }
 
+unsigned int  NetConfFilter::getByteSize() {
+    return 4;
+}
+
 } /* namespace SDN4CoRE */

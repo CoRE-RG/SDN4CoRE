@@ -106,12 +106,6 @@ class NetConfClientBase : public cSimpleModule
     virtual void handleHello(NetConfHello* hello);
 
     /**
-     * Handles the RPC reply message from the server and forwards it to the correct application.
-     * @param msg   the incoming RPCReply message
-     */
-    virtual void handleRPCReply(NetConfMessage* msg);
-
-    /**
      * Creates a NetConfCtrlInfo for the incoming message and sessionInfo.
      * @param sessionInfo   the session info for the message
      * @param msg           the incoming message

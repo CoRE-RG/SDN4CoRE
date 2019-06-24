@@ -17,18 +17,34 @@
 
 #include "NetConfApplicationIEEE8021Qbv.h"
 
+#include "sdn4core/netconf/datastructures/IEEE8021Qbv/NetConfConfigIEEE8021Qbv.h"
+
 namespace SDN4CoRE {
 
 Define_Module(NetConfApplicationIEEE8021Qbv);
 
-void NetConfApplicationIEEE8021Qbv::initialize()
-{
-    // TODO - Generated method body
+NetConfConfig* NetConfApplicationIEEE8021Qbv::getConfigDataFor(cXMLElement* element) {
+    NetConfConfigIEEE8021Qbv* configData = new NetConfConfigIEEE8021Qbv();
+    cXMLElementList configsXML =
+            element->getChildrenByTagName("config");
+    for(auto configXML : configsXML){
+        const char* portC = configXML->getAttribute("port");
+        const char* gateControlList = configXML->getAttribute("gatecontrollist");
+
+        if (portC && gateControlList){
+            NetConfConfigIEEE8021Qbv::IEEE8021QbvGateConfig_t* gateConfig = new NetConfConfigIEEE8021Qbv::IEEE8021QbvGateConfig_t();
+            gateConfig->port = atoi(portC);
+            gateConfig->gateControlList = gateControlList;
+            configData->setGateConfiguration(gateConfig);
+        }
+    }
+    return dynamic_cast<NetConfConfig*> (configData);
 }
 
-void NetConfApplicationIEEE8021Qbv::handleMessage(cMessage *msg)
-{
-    // TODO - Generated method body
+NetConfFilter* NetConfApplicationIEEE8021Qbv::getConfigFilterFor(
+        cXMLElement* element) {
+    //TODO really create a filter!!
+    return new NetConfFilter();
 }
 
 }  // namespace SDN4CoRE
