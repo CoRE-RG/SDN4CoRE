@@ -92,6 +92,11 @@ public:
         _gateConfigurations = gateConfigurations;
     }
 
+    /**
+     * overrides message duplication to use class specific copy.
+     */
+    virtual NetConfConfig_Base *dup() const override {return new NetConfConfigIEEE8021Qbv(*this);};
+
 protected:
     std::vector<IEEE8021QbvGateConfig_t*> _gateConfigurations;
 };

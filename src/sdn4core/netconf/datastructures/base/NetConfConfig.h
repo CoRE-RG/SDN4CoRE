@@ -18,6 +18,8 @@
 #ifndef SDN4CORE_NETCONF_MESSAGES_NETCONFCONFIG_H_
 #define SDN4CORE_NETCONF_MESSAGES_NETCONFCONFIG_H_
 
+#include "sdn4core/netconf/messages/NetConfMessage_m.h"
+
 namespace SDN4CoRE {
 
 /**
@@ -25,7 +27,7 @@ namespace SDN4CoRE {
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class NetConfConfig {
+class NetConfConfig : public NetConfConfig_Base{
 public:
     NetConfConfig();
     virtual ~NetConfConfig();
@@ -42,6 +44,11 @@ public:
      * @return  the calculated byte size.
      */
     virtual unsigned int getByteSize();
+
+    /**
+     * overrides message duplication to use class specific copy.
+     */
+    virtual NetConfConfig_Base *dup() const override {return new NetConfConfig(*this);};
 };
 
 } /* namespace SDN4CoRE */

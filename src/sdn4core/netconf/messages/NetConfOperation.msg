@@ -22,13 +22,11 @@
 
 cplusplus {{
 #include "sdn4core/netconf/datastructures/base/NetConfFilter.h"
-#include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
 }}
 
 namespace SDN4CoRE;
 
 struct NetConfFilter;
-struct NetConfConfig;
 
 //
 // Base class for all NetConf operations.
@@ -224,7 +222,8 @@ enum NetConfOperation_ErrorOption {
 //    error-option:  The <error-option> element has one of the following
 //       values (@see~NetConfOperation_ErrorOption).
 //
-//    config:  A hierarchy of configuration data as defined by one of
+//    config:  encapsulated packet @see ~NetConfConfig 
+//		 A hierarchy of configuration data as defined by one of
 //       the device's data models.  The contents MUST be placed in an
 //       appropriate namespace, to allow the device to detect the
 //       appropriate data model, and the contents MUST follow the
@@ -243,7 +242,6 @@ packet NetConfOperation_EditConfig extends NetConfOperation{
     string target;
     int defaultOperation @enum(NetConfOperation_Operation);
     int errorOption @enum(NetConfOperation_ErrorOption);
-    NetConfConfig config;
 }
 
 //

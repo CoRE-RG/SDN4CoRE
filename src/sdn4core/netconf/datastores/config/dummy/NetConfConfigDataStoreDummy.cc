@@ -32,7 +32,7 @@ NetConfConfig* NetConfConfigDataStoreDummy::getConfig(
 }
 
 bool NetConfConfigDataStoreDummy::editConfig(int defaultOperation,
-        int errorOption, NetConfConfig& config) {
+        int errorOption, NetConfConfig* config) {
     return true;
 }
 

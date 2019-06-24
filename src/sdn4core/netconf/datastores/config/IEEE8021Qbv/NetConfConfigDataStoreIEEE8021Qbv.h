@@ -54,7 +54,7 @@ public:
      * @param config            The config to be applied
      * @return                  true if the changes could be applied, false if an error occurred.
      */
-    virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig& config);
+    virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig* config);
 
     /**
      * Creates a copy of this config data store and returns it.

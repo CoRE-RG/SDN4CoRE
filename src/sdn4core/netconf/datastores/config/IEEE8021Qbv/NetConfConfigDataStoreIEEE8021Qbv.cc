@@ -56,9 +56,9 @@ NetConfConfig* NetConfConfigDataStoreIEEE8021Qbv::getConfig(
 }
 
 bool NetConfConfigDataStoreIEEE8021Qbv::editConfig(int defaultOperation,
-        int errorOption, NetConfConfig& config) {
+        int errorOption, NetConfConfig* config) {
     bool updated = false;
-    NetConfConfigIEEE8021Qbv* qbvConfig = dynamic_cast<NetConfConfigIEEE8021Qbv*>(&config);
+    NetConfConfigIEEE8021Qbv* qbvConfig = dynamic_cast<NetConfConfigIEEE8021Qbv*>(config);
     if(qbvConfig){
         for (std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
                 _gateControlListModules.begin();

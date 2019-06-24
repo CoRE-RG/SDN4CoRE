@@ -242,7 +242,7 @@ NetConfOperation_EditConfig* NetConfApplicationBase::createEditConfigOperation(
     NetConfOperation_EditConfig* editconfig =
                         new NetConfOperation_EditConfig();
     editconfig->setTarget("running");
-    editconfig->setConfig(*(config->data));
+    editconfig->encapsulate(config->data);
     editconfig->setDefaultOperation(
             NetConfOperation_Operation::NETCONFOPERATION_OPERATION_MERGE);
     editconfig->setErrorOption(

@@ -108,7 +108,7 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::createRPCReplyElement_Data
     NetConf_RPCReplyElement_Data* dataReply = nullptr;
     if (config) {
         dataReply = new NetConf_RPCReplyElement_Data();
-        dataReply->setConfig(*config);
+        dataReply->encapsulate(config);
         dataReply->setByteLength(config->getByteSize());
     }
 
@@ -234,9 +234,13 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleEditConfig(
         }
         // pass on the edit config
         if (success) {
-            success = _configStores[editConfig->getTarget()]->editConfig(
-                    editConfig->getDefaultOperation(),
-                    editConfig->getErrorOption(), editConfig->getConfig());
+            if(NetConfConfig* config = dynamic_cast<NetConfConfig*>(editConfig->decapsulate())){
+                success = _configStores[editConfig->getTarget()]->editConfig(
+                                    editConfig->getDefaultOperation(),
+                                    editConfig->getErrorOption(), config);
+            } else {
+                success = false;
+            }
         }
 
         if (success) {

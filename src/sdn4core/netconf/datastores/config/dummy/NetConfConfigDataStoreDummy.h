@@ -37,7 +37,7 @@ public:
      * @param filter    the filter to be applied, if empty the whole config data set is returned
      * @return          the requested configuration data
      */
-    virtual NetConfConfig* getConfig(NetConfFilter& filter);
+    virtual NetConfConfig* getConfig(NetConfFilter& filter) override;
 
     /**
      * Applies the changes in the config using the defaultOperation.
@@ -46,13 +46,13 @@ public:
      * @param config            The config to be applied
      * @return                  true if the changes could be applied, false if an error occurred.
      */
-    virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig& config);
+    virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig* config)override;
 
     /**
      * Creates a copy of this config data store and returns it.
      * @return  the copy of this configuration
      */
-    virtual NetConfConfigDataStore* copyConfig();
+    virtual NetConfConfigDataStore* copyConfig() override;
 };
 
 } /* namespace SDN4CoRE */
