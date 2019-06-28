@@ -188,7 +188,9 @@ void OF_RelayUnit::simulateServiceTime(cMessage* msg) {
     if (busy) {
         msgList.push_back(msg);
     } else {
-        busy = true;
+        if(parallelProcessing) {
+            busy = true;
+        }
         cMessage* event = new cMessage("event");
         event->setKind(MSGKIND_SERVICETIME);
         event->setContextPointer(msg);
@@ -551,6 +553,9 @@ void OF_RelayUnit::handleParameterChange(const char* parname) {
     }
     if (!parname || !strcmp(parname, "sendCompletePacket")){
         sendCompletePacket = par("sendCompletePacket");
+    }
+    if (!parname || !strcmp(parname, "parallelProcessing")){
+        parallelProcessing = par("parallelProcessing");
     }
 
 

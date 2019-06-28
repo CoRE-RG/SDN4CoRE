@@ -58,6 +58,7 @@ simple OF_RelayUnit like IOpenFlowRelayUnit
 		double serviceTime @unit("s") = default(0s);		// The relay units service time, models finite processing power 
 		int bufferCapacity = default(0); 	// Max. number of frames in Buffer, infinity if <= 0
 
+		bool parallelProcessing = default(true);
 		bool sendCompletePacket = default(true);
 		bool highlightActivePorts = default(false);
 		

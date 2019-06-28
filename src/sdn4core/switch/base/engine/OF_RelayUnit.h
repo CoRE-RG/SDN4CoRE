@@ -63,6 +63,11 @@ protected:
      */
     bool sendCompletePacket;
     /**
+     * Cached omnetpp parameter if this switch has only a single forwarding engine per switch.
+     * this will allow the switch to enter a busy status.
+     */
+    bool parallelProcessing;
+    /**
      * Indicates if the relay unit has a packet in the queue
      */
     bool busy;

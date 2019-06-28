@@ -1,0 +1,28 @@
+<config>
+    <controllerapp type="AVBLearningControllerApp">
+        <macManager>
+            <mactable switch_id="0A-00-00-00-00-C2">
+                <entry mac="0A-00-00-00-00-A0" port="0" />
+                <entry mac="0A-00-00-00-00-A1" port="0" />
+                <entry mac="0A-00-00-00-00-A2" port="0" />
+                <entry mac="0A-00-00-00-00-A3" port="0" />
+                <entry mac="0A-00-00-00-00-A4" port="0" />
+                <entry mac="0A-00-00-00-00-A5" port="0" />
+                <entry mac="0A-00-00-00-00-A6" port="0" />
+                <entry mac="0A-00-00-00-00-A7" port="0" />
+                <entry mac="0A-00-00-00-00-B0" port="1" />
+            </mactable>
+            <mactable switch_id="0A-00-00-00-00-C1">
+                <entry mac="0A-00-00-00-00-A0" port="0" />
+                <entry mac="0A-00-00-00-00-A1" port="1" />
+                <entry mac="0A-00-00-00-00-A2" port="2" />
+                <entry mac="0A-00-00-00-00-A3" port="3" />
+                <entry mac="0A-00-00-00-00-A4" port="4" />
+                <entry mac="0A-00-00-00-00-A5" port="5" />
+                <entry mac="0A-00-00-00-00-A6" port="6" />
+                <entry mac="0A-00-00-00-00-A7" port="7" />
+                <entry mac="0A-00-00-00-00-B0" port="8" />
+            </mactable>
+        </macManager>
+    </controllerapp>
+</config>
