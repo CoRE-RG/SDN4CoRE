@@ -264,7 +264,7 @@ bool AVBLearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
     cXMLElement* xmlDoc = par("configXML").xmlValue();
     if(xmlDoc)
     {//we got an XML document for config set.
-        cXMLElement* controllerXML = xmlDoc->getFirstChildWithAttribute("controllerapp", "type", "RTEthernetControllerApp");
+        cXMLElement* controllerXML = xmlDoc->getFirstChildWithAttribute("controllerapp", "type", "AVBLearningControllerApp");
         if(controllerXML)
         {//the XML document contains config for this type of controller app.
             //get the switch ids.
@@ -277,10 +277,8 @@ bool AVBLearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
                     if(!macTableXML.empty())
                     {// we git mac entries for this switch.
                         //check if there already is a mac table for the switch
-                        std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> > lut = _macManager->getLookupTable();
+                        std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> >* lut = _macManager->getLookupTable();
 
-
-                        std::map<inet::MACAddress,uint32_t> macToPortMap = lut[info];
 
                         //fill the map.
                         for(size_t i=0; i<macTableXML.size(); i++){
@@ -290,12 +288,12 @@ bool AVBLearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
                                     uint32_t port = atoi(portC);
                                     bool insert = true;
                                     //check if the entry exists.
-                                    if(macToPortMap.find(mac) != macToPortMap.end()){
+                                    if((*lut)[info].find(mac) != (*lut)[info].end()){
                                         //mac allready exists.
                                         insert = false;
                                     }
                                     if(insert) {
-                                        macToPortMap[mac] = port;
+                                        (*lut)[info][mac] = port;
                                         changed = true;
                                     }
                                 }
@@ -326,8 +324,8 @@ std::string AVBLearningControllerApp::stateToXML() {
 
     //mac table
     oss << tab << tab << "<macManager>" << endl;
-    std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> > lut = _macManager->getLookupTable();
-    for(auto switchMap =lut.begin();switchMap != lut.end();++switchMap){
+    std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> >* lut = _macManager->getLookupTable();
+    for(auto switchMap =lut->begin();switchMap != lut->end();++switchMap){
         oss << tab << tab << tab << "<mactable switch_id=\"" << switchMap->first->getMacAddress() << "\">" << endl;
 
         for(auto macToPortMap =switchMap->second.begin();macToPortMap != switchMap->second.end();++macToPortMap){

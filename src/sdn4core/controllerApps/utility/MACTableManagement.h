@@ -64,8 +64,8 @@ public:
      */
     int lookup(ofp::Switch_Info* sw_info, inet::MACAddress destination);
 
-    std::unordered_map<ofp::Switch_Info*, std::map<inet::MACAddress, uint32_t> >& getLookupTable() {
-        return lookupTable;
+    std::unordered_map<ofp::Switch_Info*, std::map<inet::MACAddress, uint32_t> >* getLookupTable() {
+        return &lookupTable;
     }
 
     void setLookupTable(
