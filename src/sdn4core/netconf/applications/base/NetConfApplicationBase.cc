@@ -217,6 +217,28 @@ void NetConfApplicationBase::handleMessage(cMessage *msg) {
             connection->state = ConnectionState_t::ConnectionStateEstablished;
             scheduleNextConfigurationFor(connection);
         }
+    } else if (NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg)){
+        if(NetConfCtrlInfo* info = dynamic_cast<NetConfCtrlInfo*>(reply->getControlInfo())){
+
+                Connections_t* found = nullptr;
+                for (size_t i = 0; i < _connections.size(); i++) {
+                    auto& connection = _connections[i];
+                    if (connection.state
+                            == ConnectionState_t::ConnectionStateEstablished
+                            && connection.session_id == info->getSession_id()) {
+                        found = &connection;
+                    }
+                }
+                if(found){
+                    if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
+                        found->configurations[atoi(info->getMessage_id())]->state = ConfigurationState_t::ConfigurationStateSuccess;
+                    } else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket())) {
+                        found->configurations[atoi(info->getMessage_id())]->state = ConfigurationState_t::ConfigurationStateError;
+                    }
+
+                    scheduleNextConfigurationFor(found);
+                }
+        }
     }
 
     delete msg;

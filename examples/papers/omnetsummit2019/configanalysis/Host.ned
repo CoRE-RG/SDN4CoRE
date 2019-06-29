@@ -19,7 +19,7 @@ package sdn4core.examples.papers.omnetsummit2019.configanalysis;
 
 
 //CoRE4INET
-//import core4inet.nodes.ethernet.IEEE8021Qbv.IEEE8021QbvEtherHost;
+import core4inet.nodes.ethernet.IEEE8021Qbv.IEEE8021QbvEtherHost;
 import core4inet.nodes.ethernet.avb_AS6802.TTEAVBEtherHost;
 
 module Host extends TTEAVBEtherHost
