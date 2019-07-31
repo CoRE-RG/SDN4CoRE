@@ -29,7 +29,13 @@ simple ProcessingTimeSimulation
         @statistic[queueSize](title="QueueSize"; record=vector?,stats; interpolationmode=none);
         @signal[waitingTime](type="simtime_t");
         @statistic[waitingTime](title="WaitingTime"; record=vector?,stats?; interpolationmode=none);
+        
         // modelling realistic environment:
         // request processing time
        	double processingTime @unit(s) = default(0s);
+       	
+       	// allow parallel processing so new incoming 
+       	// messages will be scheduled in processing time.
+       	bool allowParallelProcessing = default(false);
+       	
 }

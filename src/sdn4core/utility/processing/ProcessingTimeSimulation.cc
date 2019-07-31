@@ -33,11 +33,15 @@ void ProcessingTimeSimulation::initialize()
 {
     _queueSize = registerSignal("queueSize");
     _waitingTime = registerSignal("waitingTime");
+    _busy = false;
 }
 
 void ProcessingTimeSimulation::handleParameterChange(const char* parname) {
     if (!parname || !strcmp(parname, "processingTime")) {
         _processingTime = par("processingTime");
+    }
+    if (!parname || !strcmp(parname, "allowParallelProcessing")) {
+        _allowParallelProcessing = par("allowParallelProcessing");
     }
 }
 
@@ -64,13 +68,14 @@ void ProcessingTimeSimulation::handleMessage(cMessage *msg)
         processScheduledMessage(data_msg);
         //Trigger next service time
         triggerNextProcessingTime();
+        delete msg;
     } else {
         simulateProcessingTime(msg);
     }
 }
 
 void ProcessingTimeSimulation::simulateProcessingTime(cMessage* msg) {
-    if (_busy) {
+    if (_busy && !_allowParallelProcessing) {
         _msgList.push_back(msg);
     } else {
         _busy = true;

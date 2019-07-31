@@ -25,7 +25,9 @@ using namespace omnetpp;
 namespace SDN4CoRE {
 
 /**
- * TODO - Generated class
+ * Schedules Processing for incoming messages two for a later time slot.
+ * Only allows the processing of one message at the time.
+ * Other incoming messages wait in a queue.
  */
 class ProcessingTimeSimulation: public cSimpleModule {
 public:
@@ -59,6 +61,13 @@ protected:
      * Cached parameter processing time.
      */
     double _processingTime;
+
+    /**
+     * Caches the allowParallelProcessing parameter.
+     * allow parallel processing so new incoming
+     * messages will be scheduled in processing time.
+     */
+    bool _allowParallelProcessing;
 
     /**
      * Incoming message list to simulate processing time.
