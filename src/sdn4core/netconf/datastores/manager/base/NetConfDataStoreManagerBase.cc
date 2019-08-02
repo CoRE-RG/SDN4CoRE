@@ -80,7 +80,7 @@ bool NetConfDataStoreManagerBase::createOrReplaceConfigStore(string target,
     }
 
     // now we can create the new target by copying
-    NetConfConfigDataStore* targetStore = _configStores[source]->copyConfig();
+    NetConfConfigDataStoreBase* targetStore = _configStores[source]->copyConfig();
     if (!targetStore) {
         // the copy did not succeed for whatever reason...
         return false;
@@ -95,9 +95,10 @@ bool NetConfDataStoreManagerBase::deleteConfigStore(const string& target) {
     // delete target store first
     if (_configStores.count(target)) {
         // target exists so delete it.
-        NetConfConfigDataStore* temp = _configStores[target];
+        NetConfConfigDataStoreBase* temp = _configStores[target];
         _configStores.erase(target);
-        delete temp;
+        temp->callFinish();
+        temp->deleteModule();
         return true;
     }
     return false;

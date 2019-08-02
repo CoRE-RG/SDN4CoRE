@@ -18,10 +18,8 @@
 #ifndef SDN4CORE_NETCONF_DATASTORES_CONFIG_IEEE8021QBV_NETCONFCONFIGDATASTOREIEEE8021QBV_H_
 #define SDN4CORE_NETCONF_DATASTORES_CONFIG_IEEE8021QBV_NETCONFCONFIGDATASTOREIEEE8021QBV_H_
 
-#include <sdn4core/netconf/datastores/config/base/NetConfConfigDataStore.h>
-
-//std
 #include <omnetpp.h>
+#include <sdn4core/netconf/datastores/config/base/NetConfConfigDataStoreBase.h>
 #include <unordered_map>
 //CoRE4INET
 #include "core4inet/linklayer/shaper/IEEE8021Qbv/gate/IEEE8021QbvGateControlList.h"
@@ -35,17 +33,15 @@ namespace SDN4CoRE {
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class NetConfConfigDataStoreIEEE8021Qbv: public NetConfConfigDataStore {
+class NetConfConfigDataStoreIEEE8021Qbv: public NetConfConfigDataStoreBase {
 public:
-    NetConfConfigDataStoreIEEE8021Qbv(std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>& gateControlListModules);
-    virtual ~NetConfConfigDataStoreIEEE8021Qbv();
 
     /**
      * Creates a NetConfConfig from the current configuration data that only contains elements in the filter.
      * @param filter    the filter to be applied, if empty the whole config data set is returned
      * @return          the requested configuration data
      */
-    virtual NetConfConfig* getConfig(NetConfFilter& filter);
+    virtual NetConfConfig* getConfig(NetConfFilter& filter) override;
 
     /**
      * Applies the changes in the config using the defaultOperation.
@@ -54,13 +50,20 @@ public:
      * @param config            The config to be applied
      * @return                  true if the changes could be applied, false if an error occurred.
      */
-    virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig* config);
+    virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig* config) override;
 
     /**
      * Creates a copy of this config data store and returns it.
      * @return  the copy of this configuration
      */
-    virtual NetConfConfigDataStore* copyConfig();
+    virtual NetConfConfigDataStoreBase* copyConfig() override;
+
+    /**
+     * Set the gate control list modules this store should manage.
+     * Should be called after the creation of this module.
+     * @param gateControlListModules    This gate control list modules to manage.
+     */
+    void setGateControlListModules(std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>& gateControlListModules);
 
 protected:
     /**

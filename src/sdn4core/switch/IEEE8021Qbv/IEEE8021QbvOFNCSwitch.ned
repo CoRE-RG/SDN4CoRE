@@ -20,6 +20,7 @@ import sdn4core.netconf.server.INetConfServer;
 import sdn4core.netconf.datastores.manager.INetConfDataStoreManager;
 
 import sdn4core.switch.IEEE8021Qbv.IEEE8021QbvOpenFlowSwitch;
+import sdn4core.netconf.datastores.config.base.INetConfConfigDataStore;
 
 //
 // This module adds programmable parameters via NetConf two the original model of an OpenFlow Ethernet 
@@ -45,7 +46,11 @@ module IEEE8021QbvOFNCSwitch extends IEEE8021QbvOpenFlowSwitch
 
         // Netconf state store modules
         dataStoreManager: <dataStoreManagerType> like INetConfDataStoreManager {
-            @display("p=265,38");
+            @display("p=226,280");
+        }
+
+        configStores[0]: <> like INetConfConfigDataStore {
+            @display("p=137,348,m,3,50,50");
         }
 
     connections:

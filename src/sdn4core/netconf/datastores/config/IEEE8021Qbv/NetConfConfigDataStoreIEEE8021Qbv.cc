@@ -16,7 +16,6 @@
 //
 
 #include <sdn4core/netconf/datastores/config/IEEE8021Qbv/NetConfConfigDataStoreIEEE8021Qbv.h>
-
 #include <sdn4core/netconf/datastructures/IEEE8021Qbv/NetConfConfigIEEE8021Qbv.h>
 
 using namespace std;
@@ -24,22 +23,11 @@ using namespace CoRE4INET;
 
 namespace SDN4CoRE {
 
-NetConfConfigDataStoreIEEE8021Qbv::NetConfConfigDataStoreIEEE8021Qbv(
-        unordered_map<int, IEEE8021QbvGateControlList*>& gateControlListModules) : NetConfConfigDataStore(){
-
-    for (std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
-            gateControlListModules.begin();
-            controlListIter != gateControlListModules.end();
-            ++controlListIter) {
-        _gateControlListModules[controlListIter->first] = controlListIter->second;
-    }
-}
-
-NetConfConfigDataStoreIEEE8021Qbv::~NetConfConfigDataStoreIEEE8021Qbv() {
-}
+Define_Module(NetConfConfigDataStoreIEEE8021Qbv);
 
 NetConfConfig* NetConfConfigDataStoreIEEE8021Qbv::getConfig(
         NetConfFilter& filter) {
+    Enter_Method("getConfig()");
     //todo add filter option
     NetConfConfigIEEE8021Qbv* config = new NetConfConfigIEEE8021Qbv();
     for (std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
@@ -57,6 +45,7 @@ NetConfConfig* NetConfConfigDataStoreIEEE8021Qbv::getConfig(
 
 bool NetConfConfigDataStoreIEEE8021Qbv::editConfig(int defaultOperation,
         int errorOption, NetConfConfig* config) {
+    Enter_Method("editConfig()");
     bool updated = false;
     NetConfConfigIEEE8021Qbv* qbvConfig = dynamic_cast<NetConfConfigIEEE8021Qbv*>(config);
     if(qbvConfig){
@@ -76,10 +65,21 @@ bool NetConfConfigDataStoreIEEE8021Qbv::editConfig(int defaultOperation,
     return updated;
 }
 
-NetConfConfigDataStore* NetConfConfigDataStoreIEEE8021Qbv::copyConfig() {
+NetConfConfigDataStoreBase* NetConfConfigDataStoreIEEE8021Qbv::copyConfig() {
+    Enter_Method("copyConfig()");
     throw cRuntimeError(
             "Copy config operation on NetConfConfigDataStoreIEEE8021Qbv not supported.");
     return nullptr;
+}
+
+void NetConfConfigDataStoreIEEE8021Qbv::setGateControlListModules(
+        std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>& gateControlListModules) {
+    for (std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
+            gateControlListModules.begin();
+            controlListIter != gateControlListModules.end();
+            ++controlListIter) {
+        _gateControlListModules[controlListIter->first] = controlListIter->second;
+    }
 }
 
 } /* namespace SDN4CoRE */

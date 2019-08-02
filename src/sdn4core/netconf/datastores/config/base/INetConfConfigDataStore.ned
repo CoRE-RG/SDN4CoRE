@@ -15,28 +15,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "NetConfConfigDataStoreDummy.h"
+package sdn4core.netconf.datastores.config.base;
 
-namespace SDN4CoRE {
-
-Define_Module(NetConfConfigDataStoreDummy);
-
-NetConfConfig* NetConfConfigDataStoreDummy::getConfig(
-        NetConfFilter& filter) {
-    Enter_Method("getConfig()");
-    return new NetConfConfig();
+//
+// Contains the common interface of a netconf config data store.
+// NetConfConfigDataStore implementations execute netconf commands on the 
+// device such as get, copy and edit config commands.
+// They are managed and dynamically created during runtime by 
+ // @see~INetConfDataStoreManager modules.
+//
+// @author Timo Haeckel, for HAW Hamburg
+//
+moduleinterface INetConfConfigDataStore
+{
+    //these modules are used via direct method calls.
 }
-
-bool NetConfConfigDataStoreDummy::editConfig(int defaultOperation,
-        int errorOption, NetConfConfig* config) {
-    Enter_Method("editConfig()");
-    return true;
-}
-
-NetConfConfigDataStoreBase* NetConfConfigDataStoreDummy::copyConfig() {
-    Enter_Method("copyConfig()");
-    //todo create module dynamically!
-    return new NetConfConfigDataStoreDummy();
-}
-
-} /* namespace SDN4CoRE */

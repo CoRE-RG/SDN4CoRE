@@ -15,10 +15,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
+#include <sdn4core/netconf/datastores/config/IEEE8021Qbv/NetConfConfigDataStoreIEEE8021Qbv.h>
 #include "NetConfDataStoreManagerIEEE8021Qbv.h"
 
 #include <sdn4core/netconf/datastores/state/IEEE8021Qbv/NetConfStateDataStoreIEEE8021Qbv.h>
-#include "sdn4core/netconf/datastores/config/IEEE8021Qbv/NetConfConfigDataStoreIEEE8021Qbv.h"
+#include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
 
 using namespace CoRE4INET;
 using namespace std;
@@ -48,7 +49,16 @@ void NetConfDataStoreManagerIEEE8021Qbv::initializeDataStores() {
     }
 
     //create the stores
-    _configStores[_activeConfigName] = new NetConfConfigDataStoreIEEE8021Qbv(map);
+    NetConfConfigDataStoreIEEE8021Qbv* store = dynamic_cast<NetConfConfigDataStoreIEEE8021Qbv*> (
+            createDynamicModule(
+        "sdn4core.netconf.datastores.config.IEEE8021Qbv.NetConfConfigDataStoreIEEE8021Qbv",
+        "configStores", this->getParentModule(), true));
+    if(!store){
+        throw cRuntimeError("Failed to create IEEE8021Qbv data store.");
+    }
+    store->finalizeParameters();
+    store->setGateControlListModules(map);
+    _configStores[_activeConfigName] = store;
     _stateStore = new NetConfStateDataStoreIEEE8021Qbv();
 
 }

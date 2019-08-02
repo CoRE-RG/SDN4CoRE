@@ -56,6 +56,8 @@ module IEEE8021QbvEthernetInterface like IWiredNic
         input upperLayerIn @loose @labels(EtherFrame);
         //Output to the upper layer for best-effort Traffic
         output upperLayerOut @loose @labels(EtherFrame);
+        //Direct input from the upper layer
+        input upperLayerDirectIn @directIn @labels(EtherFrame);
         //Connection to the physical layer
         inout phys @labels(EtherFrame);
 
@@ -87,6 +89,7 @@ module IEEE8021QbvEthernetInterface like IWiredNic
         
     connections:
         upperLayerIn --> shaper.in;
+        upperLayerDirectIn --> shaper.inD;
         upperLayerOut <-- inControl.out;
         shaper.out --> mac.upperLayerIn;
         inControl.in <-- mac.upperLayerOut;

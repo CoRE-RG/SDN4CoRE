@@ -15,28 +15,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "NetConfConfigDataStoreDummy.h"
+#include "NetConfConfigDataStoreBase.h"
 
 namespace SDN4CoRE {
 
-Define_Module(NetConfConfigDataStoreDummy);
-
-NetConfConfig* NetConfConfigDataStoreDummy::getConfig(
-        NetConfFilter& filter) {
-    Enter_Method("getConfig()");
-    return new NetConfConfig();
+void NetConfConfigDataStoreBase::initialize()
+{
+    //Do nothing for now.
 }
 
-bool NetConfConfigDataStoreDummy::editConfig(int defaultOperation,
-        int errorOption, NetConfConfig* config) {
-    Enter_Method("editConfig()");
-    return true;
-}
-
-NetConfConfigDataStoreBase* NetConfConfigDataStoreDummy::copyConfig() {
-    Enter_Method("copyConfig()");
-    //todo create module dynamically!
-    return new NetConfConfigDataStoreDummy();
+void NetConfConfigDataStoreBase::handleMessage(cMessage *msg)
+{
+    throw cRuntimeError("NetConfConfigDataStoreBase does not handle messages...");
 }
 
 } /* namespace SDN4CoRE */

@@ -19,11 +19,10 @@
 #define __SDN4CORE_NETCONFDATASTOREMANAGERBASE_H_
 
 #include <omnetpp.h>
-//STD
+#include <sdn4core/netconf/datastores/config/base/NetConfConfigDataStoreBase.h>
 #include <string>
 #include <unordered_map>
 
-#include "sdn4core/netconf/datastores/config/base/NetConfConfigDataStore.h"
 #include "sdn4core/netconf/datastores/state/base/NetConfStateDataStore.h"
 //AUTO-GENERATED MESSAGES
 #include "sdn4core/netconf/messages/NetConfMessage_m.h"
@@ -174,7 +173,7 @@ class NetConfDataStoreManagerBase : public cSimpleModule
     /**
      * Configuration data stores mapped to there name
      */
-    std::unordered_map<std::string, NetConfConfigDataStore*> _configStores;
+    std::unordered_map<std::string, NetConfConfigDataStoreBase*> _configStores;
 
     /**
      * Name of the running config. "running" by default"

@@ -15,28 +15,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "NetConfConfigDataStoreDummy.h"
+package sdn4core.netconf.datastores.config.IEEE8021Qbv;
 
-namespace SDN4CoRE {
+import sdn4core.netconf.datastores.config.base.NetConfConfigDataStoreBase;
 
-Define_Module(NetConfConfigDataStoreDummy);
-
-NetConfConfig* NetConfConfigDataStoreDummy::getConfig(
-        NetConfFilter& filter) {
-    Enter_Method("getConfig()");
-    return new NetConfConfig();
+//
+// Contains a IEEE8021Qbv switch implementation of a NetConf config data store.
+//
+// @author Timo Haeckel, for HAW Hamburg
+//
+simple NetConfConfigDataStoreIEEE8021Qbv extends NetConfConfigDataStoreBase
+{
+    parameters:
+        @class(SDN4CoRE::NetConfConfigDataStoreIEEE8021Qbv);
+    //these modules are used via direct method calls.
 }
-
-bool NetConfConfigDataStoreDummy::editConfig(int defaultOperation,
-        int errorOption, NetConfConfig* config) {
-    Enter_Method("editConfig()");
-    return true;
-}
-
-NetConfConfigDataStoreBase* NetConfConfigDataStoreDummy::copyConfig() {
-    Enter_Method("copyConfig()");
-    //todo create module dynamically!
-    return new NetConfConfigDataStoreDummy();
-}
-
-} /* namespace SDN4CoRE */
