@@ -53,12 +53,6 @@ public:
     virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig* config) override;
 
     /**
-     * Creates a copy of this config data store and returns it.
-     * @return  the copy of this configuration
-     */
-    virtual NetConfConfigDataStoreBase* copyConfig() override;
-
-    /**
      * Set the gate control list modules this store should manage.
      * Should be called after the creation of this module.
      * @param gateControlListModules    This gate control list modules to manage.

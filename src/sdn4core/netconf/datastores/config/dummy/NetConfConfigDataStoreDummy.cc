@@ -33,10 +33,4 @@ bool NetConfConfigDataStoreDummy::editConfig(int defaultOperation,
     return true;
 }
 
-NetConfConfigDataStoreBase* NetConfConfigDataStoreDummy::copyConfig() {
-    Enter_Method("copyConfig()");
-    //todo create module dynamically!
-    return new NetConfConfigDataStoreDummy();
-}
-
 } /* namespace SDN4CoRE */

@@ -34,7 +34,7 @@ void NetConfDataStoreManagerDummy::initializeDataStores() {
     }
     store->finalizeParameters();
 
-    _configStores[_activeConfigName] = new NetConfConfigDataStoreDummy();
+    _configStores[_activeConfigName] = store;
     _stateStore = new NetConfStateDataStoreDummy();
 
 }

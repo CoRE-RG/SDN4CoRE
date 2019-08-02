@@ -54,12 +54,6 @@ public:
      */
     virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig* config)override;
 
-    /**
-     * Creates a copy of this config data store and returns it.
-     * @return  the copy of this configuration
-     */
-    virtual NetConfConfigDataStoreBase* copyConfig() override;
-
 };
 
 } /* namespace SDN4CoRE */

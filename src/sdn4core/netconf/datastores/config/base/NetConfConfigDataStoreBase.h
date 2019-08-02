@@ -55,12 +55,6 @@ class NetConfConfigDataStoreBase : public cSimpleModule
      */
     virtual bool editConfig(int defaultOperation, int errorOption, NetConfConfig* config) = 0;
 
-    /**
-     * Creates a copy of this config data store and returns it.
-     * @return  the copy of this configuration
-     */
-    virtual NetConfConfigDataStoreBase* copyConfig() = 0;
-
   protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

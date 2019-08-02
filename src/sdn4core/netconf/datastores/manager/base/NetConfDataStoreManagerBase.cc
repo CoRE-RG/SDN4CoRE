@@ -17,6 +17,7 @@
 
 #include <sdn4core/netconf/datastores/manager/base/NetConfDataStoreManagerBase.h>
 #include <sdn4core/netconf/server/base/NetConfServerBase.h>
+#include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
 //INET
 #include "inet/common/ModuleAccess.h"
 
@@ -70,24 +71,32 @@ bool NetConfDataStoreManagerBase::createConfigStore(string target) {
 bool NetConfDataStoreManagerBase::createOrReplaceConfigStore(string target,
         string source) {
     // check if the source it valid
-    if (_configStores.count(source)) {
+    if (!_configStores.count(source)) {
         // source store does not exists.
         return false;
     }
-    // delete target store first
-    if (_configStores.count(target)) {
-        deleteConfigStore(target);
+    //get the original
+    NetConfConfigDataStoreBase* original = _configStores[source];
+
+    //check if the target already exists
+    if (!_configStores.count(target)) {
+        //if not create a new module.
+        NetConfConfigDataStoreBase* copy = dynamic_cast<NetConfConfigDataStoreBase*> (
+                        createDynamicModule(original->getModuleType()->getFullName(),
+                    "configStores", this->getParentModule(), true));
+        if(copy){
+            _configStores[target] = copy;
+        } else {
+            throw cRuntimeError("Could not create a copy of the config store.");
+        }
     }
 
-    // now we can create the new target by copying
-    NetConfConfigDataStoreBase* targetStore = _configStores[source]->copyConfig();
-    if (!targetStore) {
-        // the copy did not succeed for whatever reason...
-        return false;
-    }
+    //now we can copy
+    NetConfFilter filter;
+    _configStores[target]->editConfig(NetConfOperation_Operation::NETCONFOPERATION_OPERATION_REPLACE,
+            NetConfOperation_ErrorOption::NETCONFOPERATION_ERROROPTION_CONTINUEONERROR,
+            _configStores[source]->getConfig(filter));
 
-    // everything went fine so copy and return.
-    _configStores[target] = targetStore;
     return true;
 }
 

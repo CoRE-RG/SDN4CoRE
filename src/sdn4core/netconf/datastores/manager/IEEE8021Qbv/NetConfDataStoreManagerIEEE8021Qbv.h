@@ -52,7 +52,7 @@ protected:
      * @param operation     the NetConfOperation_CopyConfig message
      * @return              a NetConf_RPCReplyElement
      */
-    virtual NetConf_RPCReplyElement* handleCopyConfig(NetConfOperation* operation) override;
+//    virtual NetConf_RPCReplyElement* handleCopyConfig(NetConfOperation* operation) override;
 
     /**
      * NOT SUPPORTED FOR THIS STORE
@@ -61,7 +61,7 @@ protected:
      * @param operation     the NetConfOperation_DeleteConfig message
      * @return              a NetConf_RPCReplyElement
      */
-    virtual NetConf_RPCReplyElement* handleDeleteConfig(NetConfOperation* operation) override;
+//    virtual NetConf_RPCReplyElement* handleDeleteConfig(NetConfOperation* operation) override;
 };
 
 }  // namespace SDN4CoRE

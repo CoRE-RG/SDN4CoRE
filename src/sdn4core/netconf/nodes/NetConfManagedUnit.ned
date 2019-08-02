@@ -19,6 +19,7 @@ package sdn4core.netconf.nodes;
 
 import sdn4core.netconf.server.INetConfServer;
 import sdn4core.netconf.datastores.manager.INetConfDataStoreManager;
+import sdn4core.netconf.datastores.config.base.INetConfConfigDataStore;
 //INET
 import inet.node.inet.StandardHost;
 
@@ -46,6 +47,9 @@ module NetConfManagedUnit extends StandardHost
         // Netconf state store modules
         dataStoreManager: <dataStoreManagerType> like INetConfDataStoreManager {
             @display("p=149,292");
+        }
+        
+        configStores[0]: <> like INetConfConfigDataStore{
         }
 
     connections:

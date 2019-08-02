@@ -5,10 +5,12 @@ This is an example file on how to declare remotes for an INetConfApplication.
 <server_connections>
 	<application client_host="managementUnit[0]" client_app="0">
 		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
-			<configure at="1.5" type="edit_config">
+			<configure at="1.5" type="edit_config" target="running">
 			 	<config ..../>
 			 	<config ..../>
 		 	</configure>
+		 	<configure at="0.1" type="copy_config" source="running" target="candidate">		 		
+		 	</configure>		 	
 	 	</connection>
 		<connection local_port="6124" remote_address="managedUnit[0]" remote_port="830" connect_at="2"/>
 	</application>

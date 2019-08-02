@@ -62,21 +62,21 @@ void NetConfDataStoreManagerIEEE8021Qbv::initializeDataStores() {
     _stateStore = new NetConfStateDataStoreIEEE8021Qbv();
 
 }
+//
+//NetConf_RPCReplyElement* NetConfDataStoreManagerIEEE8021Qbv::handleCopyConfig(
+//        NetConfOperation* operation) {
+//    return createRPCReplyElement_Error(
+//            NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+//            "Copy config not supported!",
+//            NETCONF_REPLY_ERROR_SEVIRITY_ERROR,"");
+//}
 
-NetConf_RPCReplyElement* NetConfDataStoreManagerIEEE8021Qbv::handleCopyConfig(
-        NetConfOperation* operation) {
-    return createRPCReplyElement_Error(
-            NETCONF_REPLY_ERROR_TYPE_APPLICATION,
-            "Copy config not supported!",
-            NETCONF_REPLY_ERROR_SEVIRITY_ERROR,"");
-}
-
-NetConf_RPCReplyElement* NetConfDataStoreManagerIEEE8021Qbv::handleDeleteConfig(
-        NetConfOperation* operation) {
-    return createRPCReplyElement_Error(
-            NETCONF_REPLY_ERROR_TYPE_APPLICATION,
-            "Delete config not supported!",
-            NETCONF_REPLY_ERROR_SEVIRITY_ERROR,"");
-}
+//NetConf_RPCReplyElement* NetConfDataStoreManagerIEEE8021Qbv::handleDeleteConfig(
+//        NetConfOperation* operation) {
+//    return createRPCReplyElement_Error(
+//            NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+//            "Delete config not supported!",
+//            NETCONF_REPLY_ERROR_SEVIRITY_ERROR,"");
+//}
 
 }  // namespace SDN4CoRE

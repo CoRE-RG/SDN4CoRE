@@ -20,7 +20,7 @@
 
 #include <omnetpp.h>
 #include <vector>
-
+#include <string>
 
 #include <sdn4core/netconf/datastructures/tcp/NetConfClientSessionInfoTCP.h>
 #include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
@@ -58,8 +58,9 @@ public:
      * Configuration message type
      */
     typedef enum NetConfMessageType{
-        NetConfMessageType_EditConfig = 0,
-        NetConfMessageType_GetConfig = 1
+        NetConfMessageType_EditConfig = 0,//edit_config
+        NetConfMessageType_GetConfig = 1,//get_config
+        NetConfMessageType_CopyConfig = 2,//copy_config
     }NetConfMessageType_t;
 
     /**
@@ -71,6 +72,16 @@ public:
          * The time to execute the config
          */
         SimTime executeAt;
+
+        /**
+         * The target store.
+         */
+        std::string target;
+
+        /**
+         * The source store.
+         */
+        std::string source;
 
         /**
          * Configuration data to transmit
@@ -179,11 +190,18 @@ protected:
     virtual NetConfOperation_EditConfig* createEditConfigOperation(Configurations_t* config);
 
     /**
-     * Create an getconfig configuration operation.
+     * Create a getconfig configuration operation.
      * @param config the configuration details
      * @return the NetConfOperation_GetConfig message
      */
     virtual NetConfOperation_GetConfig* createGetConfigOperation(Configurations_t* config);
+
+    /**
+     * Create a copyconfig configuration operation.
+     * @param config the configuration details
+     * @return the NetConfOperation_GetConfig message
+     */
+    virtual NetConfOperation_CopyConfig* createCopyConfigOperation(Configurations_t* config);
 
     /**
      * Creates a NetConfMessage_RPC message for a connection and the configuration at the given index

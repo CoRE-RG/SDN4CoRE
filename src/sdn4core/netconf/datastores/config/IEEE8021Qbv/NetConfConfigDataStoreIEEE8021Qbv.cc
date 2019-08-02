@@ -65,13 +65,6 @@ bool NetConfConfigDataStoreIEEE8021Qbv::editConfig(int defaultOperation,
     return updated;
 }
 
-NetConfConfigDataStoreBase* NetConfConfigDataStoreIEEE8021Qbv::copyConfig() {
-    Enter_Method("copyConfig()");
-    throw cRuntimeError(
-            "Copy config operation on NetConfConfigDataStoreIEEE8021Qbv not supported.");
-    return nullptr;
-}
-
 void NetConfConfigDataStoreIEEE8021Qbv::setGateControlListModules(
         std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>& gateControlListModules) {
     for (std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =

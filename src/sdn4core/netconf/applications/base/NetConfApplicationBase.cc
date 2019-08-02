@@ -79,20 +79,48 @@ void NetConfApplicationBase::initialize() {
                                         configureXML->getAttribute("at");
                                 const char* configType =
                                         configureXML->getAttribute("type");
-                                if (executeAt && configType
-                                        && getConfigTypeFor(configType) >= 0) {
-                                    Configurations_t* config =
-                                            new Configurations_t();
+                                if (executeAt && configType && getConfigTypeFor(configType) >= 0) {
+                                    Configurations_t* config = new Configurations_t();
                                     config->executeAt = std::stod(executeAt);
-                                    config->type =
-                                            (NetConfApplicationBase::NetConfMessageType_t) getConfigTypeFor(
-                                                    configType);
+                                    config->type = (NetConfApplicationBase::NetConfMessageType_t) getConfigTypeFor(configType);
                                     config->state =
                                             ConfigurationState_t::ConfigurationStateWaiting;
-                                    config->data = getConfigDataFor(
-                                            configureXML);
-                                    config->filter = getConfigFilterFor(
-                                            configureXML);
+                                    switch(config->type){
+                                    case NetConfMessageType_t::NetConfMessageType_EditConfig:
+                                        config->data = getConfigDataFor(configureXML);
+                                        config->filter = getConfigFilterFor(configureXML);
+                                        if(const char* target = configureXML->getAttribute("target")){
+                                            config->target = target;
+                                        } else {
+                                            config->target = "running";
+                                        }
+                                        break;
+
+                                    case NetConfMessageType_t::NetConfMessageType_GetConfig:
+                                        config->filter = getConfigFilterFor(configureXML);
+                                        if(const char* target = configureXML->getAttribute("target")){
+                                            config->target = target;
+                                        } else {
+                                            config->target = "running";
+                                        }
+                                        break;
+
+                                    case NetConfMessageType_t::NetConfMessageType_CopyConfig:
+                                        if(const char* target = configureXML->getAttribute("target")){
+                                            config->target = target;
+                                        } else {
+                                            config->target = "candidate";
+                                        }
+                                        if(const char* source = configureXML->getAttribute("source")){
+                                            config->source = source;
+                                        } else {
+                                            config->source = "running";
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                    }
+
                                     connection.configurations.push_back(config);
                                 }
                             }
@@ -113,6 +141,8 @@ int NetConfApplicationBase::getConfigTypeFor(const char* type) {
         return NetConfMessageType::NetConfMessageType_EditConfig;
     } else if (!strcmp(type, "get_config")) {
         return NetConfMessageType::NetConfMessageType_GetConfig;
+    } else if (!strcmp(type, "copy_config")) {
+        return NetConfMessageType::NetConfMessageType_CopyConfig;
     }
     return -1;
 }
@@ -263,7 +293,7 @@ NetConfOperation_EditConfig* NetConfApplicationBase::createEditConfigOperation(
         Configurations_t* config) {
     NetConfOperation_EditConfig* editconfig =
                         new NetConfOperation_EditConfig();
-    editconfig->setTarget("running");
+    editconfig->setTarget(config->target.c_str());
     editconfig->encapsulate(config->data);
     editconfig->setDefaultOperation(
             NetConfOperation_Operation::NETCONFOPERATION_OPERATION_MERGE);
@@ -281,12 +311,24 @@ NetConfOperation_GetConfig* NetConfApplicationBase::createGetConfigOperation(
         Configurations_t* config) {
     NetConfOperation_GetConfig* getconfig =
                         new NetConfOperation_GetConfig();
-    getconfig->setSource("running");
+    getconfig->setSource(config->source.c_str());
     getconfig->setFilter(*(config->filter));
     getconfig->setByteLength(
             sizeof(getconfig->getSource())
                     + config->filter->getByteSize());
     return getconfig;
+}
+
+NetConfOperation_CopyConfig* NetConfApplicationBase::createCopyConfigOperation(
+        Configurations_t* config) {
+    NetConfOperation_CopyConfig* copyconfig =
+                        new NetConfOperation_CopyConfig();
+    copyconfig->setSource(config->source.c_str());
+    copyconfig->setTarget(config->target.c_str());
+    copyconfig->setByteLength(
+            sizeof(copyconfig->getSource())
+                    + sizeof(copyconfig->getTarget()));
+    return copyconfig;
 }
 
 NetConfCtrlInfo* NetConfApplicationBase::createControlInfo(int messageType, int sessionId,
@@ -322,6 +364,16 @@ NetConfMessage_RPC* NetConfApplicationBase::createNetConfRPCForConfiguration(
                     sizeof(rpc->getMessageType())
                             + sizeof(rpc->getMessage_id()));
             rpc->encapsulate(createGetConfigOperation(config));
+            rpc->setControlInfo(createControlInfo(rpc->getMessageType(), connection->session_id, rpc->getMessage_id()));
+            break;
+
+        case NetConfMessageType_CopyConfig:
+            rpc = new NetConfMessage_RPC("RCP CopyConfig");
+            rpc->setMessage_id(std::to_string(index).c_str());
+            rpc->setByteLength(
+                    sizeof(rpc->getMessageType())
+                            + sizeof(rpc->getMessage_id()));
+            rpc->encapsulate(createCopyConfigOperation(config));
             rpc->setControlInfo(createControlInfo(rpc->getMessageType(), connection->session_id, rpc->getMessage_id()));
             break;
 
