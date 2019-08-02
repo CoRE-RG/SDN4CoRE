@@ -15,7 +15,7 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-package sdn4core.utility;
+package sdn4core.utility.visual;
 
 //
 // The Color changing Node provides functions to set the Color and Opacity during runtime. 
@@ -26,14 +26,16 @@ package sdn4core.utility;
 //
 simple ColorChangingNode
 {
-    //
-    // The color loaded on startup. 
-    // An empty string will not update the color.
-    //
-    string initColor = default("");
-    //
-    // The opacity loaded on startup. 
-    // An empty string will not update the opacity.
-    //
-    string initOpacity = default("");
+    parameters:
+        @class(SDN4CoRE::ColorChangingNode);
+        //
+        // The color loaded on startup. 
+        // An empty string will not update the color.
+        //
+        string initColor = default("");
+        //
+        // The opacity loaded on startup. 
+        // An empty string will not update the opacity.
+        //
+        string initOpacity = default("");
 }

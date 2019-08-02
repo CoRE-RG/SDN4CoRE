@@ -21,7 +21,7 @@
 
 #include <sdn4core/controllerApps/avb/AVBLearningControllerApp.h>
 
-#include <sdn4core/utility/ColorChangingNode.h>
+#include <sdn4core/utility/visual/ColorChangingNode.h>
 //openflow
 #include <openflow/openflow/protocol/OpenFlow.h>
 

@@ -20,6 +20,8 @@
 using namespace std;
 using namespace omnetpp;
 
+namespace SDN4CoRE {
+
 Define_Module(ColorChangingNode);
 
 void ColorChangingNode::initialize()
@@ -53,3 +55,6 @@ void ColorChangingNode::setOpacity(const std::string& opacity) {
     this->_opacity = opacity;
     _colorUpdated = true;
 }
+
+
+}  // namespace SDN4CoRE

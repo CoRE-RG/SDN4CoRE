@@ -15,7 +15,7 @@
 // c Timo Haeckel, for HAW Hamburg
 //
 
-#include <sdn4core/utility/NodeDisplayEditor.h>
+#include <sdn4core/utility/visual/NodeDisplayEditor.h>
 
 using namespace omnetpp;
 

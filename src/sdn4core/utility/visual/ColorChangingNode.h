@@ -22,6 +22,8 @@
 #include <omnetpp.h>
 #include <string>
 
+namespace SDN4CoRE {
+
 /**
  * The Color changing Node provides functions to set the Color and Opacity during runtime.
  * It either can be used as a simple Node to Display Colors in the Network or extended to
@@ -76,5 +78,8 @@ private:
      */
     mutable bool _colorUpdated = false;
 };
+
+
+}  // namespace SDN4CoRE
 
 #endif
