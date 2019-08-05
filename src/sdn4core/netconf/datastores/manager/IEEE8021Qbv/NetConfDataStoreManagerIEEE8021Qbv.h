@@ -44,24 +44,6 @@ protected:
      * This function must also set the _activeConfigName to the running config name.
      */
     virtual void initializeDataStores() override;
-
-    /**
-     * NOT SUPPORTED FOR THIS STORE
-     * Handles a NetConfOperation_CopyConfig message, forwards it to the correct
-     * config store and creates a reply.
-     * @param operation     the NetConfOperation_CopyConfig message
-     * @return              a NetConf_RPCReplyElement
-     */
-//    virtual NetConf_RPCReplyElement* handleCopyConfig(NetConfOperation* operation) override;
-
-    /**
-     * NOT SUPPORTED FOR THIS STORE
-     * Handles a NetConfOperation_DeleteConfig message, forwards it to the correct
-     * config store and creates a reply.
-     * @param operation     the NetConfOperation_DeleteConfig message
-     * @return              a NetConf_RPCReplyElement
-     */
-//    virtual NetConf_RPCReplyElement* handleDeleteConfig(NetConfOperation* operation) override;
 };
 
 }  // namespace SDN4CoRE

@@ -61,6 +61,7 @@ public:
         NetConfMessageType_EditConfig = 0,//edit_config
         NetConfMessageType_GetConfig = 1,//get_config
         NetConfMessageType_CopyConfig = 2,//copy_config
+        NetConfMessageType_DeleteConfig = 3,//delete_config
     }NetConfMessageType_t;
 
     /**
@@ -202,6 +203,13 @@ protected:
      * @return the NetConfOperation_GetConfig message
      */
     virtual NetConfOperation_CopyConfig* createCopyConfigOperation(Configurations_t* config);
+
+    /**
+     * Create a copyconfig configuration operation.
+     * @param config the configuration details
+     * @return the NetConfOperation_GetConfig message
+     */
+    virtual NetConfOperation_DeleteConfig* createDeleteConfigOperation(Configurations_t* config);
 
     /**
      * Creates a NetConfMessage_RPC message for a connection and the configuration at the given index

@@ -82,7 +82,7 @@ bool NetConfDataStoreManagerBase::createOrReplaceConfigStore(string target,
     if (!_configStores.count(target)) {
         //if not create a new module.
         NetConfConfigDataStoreBase* copy = dynamic_cast<NetConfConfigDataStoreBase*> (
-                        createDynamicModule(original->getModuleType()->getFullName(),
+                        createFinalizeAndScheduleDynamicModule(original->getModuleType()->getFullName(),
                     "configStores", this->getParentModule(), true));
         if(copy){
             _configStores[target] = copy;

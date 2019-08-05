@@ -117,6 +117,14 @@ void NetConfApplicationBase::initialize() {
                                             config->source = "running";
                                         }
                                         break;
+
+                                    case NetConfMessageType_t::NetConfMessageType_DeleteConfig:
+                                        if(const char* target = configureXML->getAttribute("target")){
+                                            config->target = target;
+                                        } else {
+                                            throw cRuntimeError("No configStore specified to be deleted.");
+                                        }
+                                        break;
                                     default:
                                         break;
                                     }
@@ -143,6 +151,8 @@ int NetConfApplicationBase::getConfigTypeFor(const char* type) {
         return NetConfMessageType::NetConfMessageType_GetConfig;
     } else if (!strcmp(type, "copy_config")) {
         return NetConfMessageType::NetConfMessageType_CopyConfig;
+    } else if (!strcmp(type, "delete_config")) {
+        return NetConfMessageType::NetConfMessageType_DeleteConfig;
     }
     return -1;
 }
@@ -170,10 +180,10 @@ void NetConfApplicationBase::scheduleNextConnection() {
     }
 
     if (index > -1) {
+        _connections[index].state = ConnectionState_t::ConnectionStateScheduled;
         cMessage* msg = new cMessage(SELFMESSAGE_SEND_HELLO);
         msg->setContextPointer(&_connections[index]);
         scheduleAt(next, msg);
-        _connections[index].state = ConnectionState_t::ConnectionStateScheduled;
     }
 }
 
@@ -199,7 +209,7 @@ void NetConfApplicationBase::scheduleNextConfigurationFor(
             NetConfMessage_RPC* rpc = createNetConfRPCForConfiguration(
                     connection, index);
             if (rpc) {
-                rpc->setContextPointer(&_connections[index]);
+                rpc->setContextPointer(connection);
                 cMessage* msg = new cMessage(SELFMESSAGE_SEND_NETCONF);
                 msg->setContextPointer(rpc);
                 scheduleAt(next, msg);
@@ -223,6 +233,8 @@ void NetConfApplicationBase::handleMessage(cMessage *msg) {
                 send(createHelloFor(connection), gate("applicationOut"));
                 connection->state = ConnectionState_t::ConnectionStateRequested;
             }
+
+            scheduleNextConnection();
         } else if (strcmp(msg->getName(), SELFMESSAGE_SEND_NETCONF) == 0) {
             NetConfMessage_RPC* rpc = static_cast<NetConfMessage_RPC*> (msg->getContextPointer());
 
@@ -233,11 +245,11 @@ void NetConfApplicationBase::handleMessage(cMessage *msg) {
                 if(ctrl && connection){
                     connection->configurations[atoi(ctrl->getMessage_id())]->state = ConfigurationState_t::ConfigurationStateRequested;
                     send(rpc, gate("applicationOut"));
+
+                    scheduleNextConfigurationFor(connection);
                 }
             }
         }
-
-        scheduleNextConnection();
     } else if (NetConfHello* hello = dynamic_cast<NetConfHello*>(msg)) {
         NetConfClientSessionInfoTCP* sessionInfo =
                 (NetConfClientSessionInfoTCP*) hello->getContextPointer();
@@ -265,8 +277,6 @@ void NetConfApplicationBase::handleMessage(cMessage *msg) {
                     } else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket())) {
                         found->configurations[atoi(info->getMessage_id())]->state = ConfigurationState_t::ConfigurationStateError;
                     }
-
-                    scheduleNextConfigurationFor(found);
                 }
         }
     }
@@ -331,6 +341,16 @@ NetConfOperation_CopyConfig* NetConfApplicationBase::createCopyConfigOperation(
     return copyconfig;
 }
 
+NetConfOperation_DeleteConfig* NetConfApplicationBase::createDeleteConfigOperation(
+        Configurations_t* config) {
+    NetConfOperation_DeleteConfig* deleteconfig =
+                        new NetConfOperation_DeleteConfig();
+    deleteconfig->setTarget(config->target.c_str());
+    deleteconfig->setByteLength(
+                    sizeof(deleteconfig->getTarget()));
+    return deleteconfig;
+}
+
 NetConfCtrlInfo* NetConfApplicationBase::createControlInfo(int messageType, int sessionId,
         const char* messageId) {
     NetConfCtrlInfo* ctrl = new NetConfCtrlInfo();
@@ -342,45 +362,40 @@ NetConfCtrlInfo* NetConfApplicationBase::createControlInfo(int messageType, int 
 
 NetConfMessage_RPC* NetConfApplicationBase::createNetConfRPCForConfiguration(
         Connections_t* connection, int index) {
-    NetConfMessage_RPC* rpc = nullptr;
     auto config = connection->configurations[index];
+    NetConfMessage_RPC* rpc = new NetConfMessage_RPC();
+    rpc->setMessage_id(std::to_string(index).c_str());
+    rpc->setByteLength(
+            sizeof(rpc->getMessageType())
+                    + sizeof(rpc->getMessage_id()));
     if (config) {
         switch (config->type) {
         case NetConfMessageType_EditConfig:
-            rpc = new NetConfMessage_RPC("RCP EditConfig");
-            rpc->setMessage_id(std::to_string(index).c_str());
-            rpc->setByteLength(
-                    sizeof(rpc->getMessageType())
-                            + sizeof(rpc->getMessage_id()));
+            rpc->setName("RCP EditConfig");
             rpc->encapsulate(createEditConfigOperation(config));
-            createControlInfo(rpc->getMessageType(), connection->session_id, rpc->getMessage_id());
-            rpc->setControlInfo(createControlInfo(rpc->getMessageType(), connection->session_id, rpc->getMessage_id()));
             break;
 
         case NetConfMessageType_GetConfig:
-            rpc = new NetConfMessage_RPC("RCP GetConfig");
-            rpc->setMessage_id(std::to_string(index).c_str());
-            rpc->setByteLength(
-                    sizeof(rpc->getMessageType())
-                            + sizeof(rpc->getMessage_id()));
+            rpc->setName("RCP GetConfig");
             rpc->encapsulate(createGetConfigOperation(config));
-            rpc->setControlInfo(createControlInfo(rpc->getMessageType(), connection->session_id, rpc->getMessage_id()));
             break;
 
         case NetConfMessageType_CopyConfig:
-            rpc = new NetConfMessage_RPC("RCP CopyConfig");
-            rpc->setMessage_id(std::to_string(index).c_str());
-            rpc->setByteLength(
-                    sizeof(rpc->getMessageType())
-                            + sizeof(rpc->getMessage_id()));
+            rpc->setName("RCP CopyConfig");
             rpc->encapsulate(createCopyConfigOperation(config));
-            rpc->setControlInfo(createControlInfo(rpc->getMessageType(), connection->session_id, rpc->getMessage_id()));
+            break;
+
+        case NetConfMessageType_DeleteConfig:
+            rpc->setName("RCP DeleteConfig");
+            rpc->encapsulate(createDeleteConfigOperation(config));
             break;
 
         default:
+            throw cRuntimeError("Can't create RPC for configuration: NetConfMessageType unknown.");
             break;
         }
     }
+    rpc->setControlInfo(createControlInfo(rpc->getMessageType(), connection->session_id, rpc->getMessage_id()));
     return rpc;
 }
 
