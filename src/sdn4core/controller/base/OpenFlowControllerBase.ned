@@ -44,8 +44,8 @@ module OpenFlowControllerBase extends NetworkControllerBase
         int numTcpControllerApps = default(0);
         string openflowControllerType = default("OF_Controller");
 
-		//submodules
-		hasTcp = true;
+        //submodules
+        hasTcp = true;
         tcpType = default("TCP");  // tcp implementation (e.g. TCP, TCP_old, TCP_NSC)
         networkLayerType = default("IPv4NetworkLayer");
         routingTableType = default("IPv4RoutingTable");
@@ -70,9 +70,9 @@ module OpenFlowControllerBase extends NetworkControllerBase
             parameters:
                 @display("p=200,141,row,60");
         }
-        
+
         OF_Controller: <openflowControllerType> like IOpenFlowController {
-            @display("p=56,278");
+            @display("p=149,281");
             serviceTime = serviceTime;
         }
     connections allowunconnected:

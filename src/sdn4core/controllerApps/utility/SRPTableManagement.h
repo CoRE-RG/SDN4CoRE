@@ -18,15 +18,14 @@
 #ifndef OPENFLOW_REALTIME_CONTROLLERAPPS_SRPTABLEMANAGEMENT_H_
 #define OPENFLOW_REALTIME_CONTROLLERAPPS_SRPTABLEMANAGEMENT_H_
 
-
-#include <sdn4core/controller/avb/SRP/OF_CTRL_SRPTable.h>
-
+#include <omnetpp.h>
 //STD
 #include <unordered_map>
 #include <vector>
 //inet
 #include "inet/linklayer/common/MACAddress.h"
 //CoRE4INET
+#include "core4inet/services/avb/SRP/SRPTable.h"
 //AUTO_GENERATED MESSAGES
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 //openflow
@@ -35,31 +34,38 @@
 namespace SDN4CoRE {
 
 /**
- * Information how to forward AVB messages.
- */
-typedef struct SRPForwardingInfo {
-    int inPort;
-    inet::MACAddress dest;
-    uint16_t vlanID;
-    uint8_t srClass;
-    uint64_t streamID;
-    std::vector<int> outports;
-} SRPForwardingInfo_t;
-
-/**
  * SRPTableManagement manages the SRPTable operations for the controller.
  * It holds one SRP table per switch.
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class SRPTableManagement {
+class SRPTableManagement : public cSimpleModule {
 public:
+
+    /**
+     * Information how to forward AVB messages.
+     */
+    class SRPForwardingInfo_t {
+    public:
+        int inPort;
+        inet::MACAddress dest;
+        uint16_t vlanID;
+        uint8_t pcp;
+        uint8_t srClass;
+        uint64_t streamID;
+        std::vector<int> outports;
+    };
+
+    class PortModule : public virtual cSimpleModule {
+    public:
+        int port;
+    };
+
+
     SRPTableManagement() {
 
     }
-    virtual ~SRPTableManagement() {
-
-    }
+    virtual ~SRPTableManagement();
 
     /**
      * Register a talker for a switch and inport.
@@ -110,20 +116,26 @@ public:
     /**
      * @brief Module representing the srpTable
      */
-    std::unordered_map<ofp::Switch_Info*, OF_CTRL_SRPTable*> _srpTable;
+    std::unordered_map<ofp::Switch_Info*, CoRE4INET::SRPTable*> _srpTables;
+
 private:
     /**
      * Checks if a table exists for the switch or creates a new one.
      * @param swinfo    The switch to create a table for.
      * @return          The table of the switch for convenience.
      */
-    OF_CTRL_SRPTable* checkOrCreateTable(ofp::Switch_Info* swinfo);
+    CoRE4INET::SRPTable* checkOrCreateTable(ofp::Switch_Info* swinfo);
     /**
      * checks if a table for the switch exists.
      * @param swinfo    The switch to check the table for.
      * @return          true if a table already exists.
      */
     bool tableExistsForSwitch(ofp::Switch_Info* swinfo);
+
+    /**
+     * Path to the ned module of the SRPTable.
+     */
+    static const char SRPTABLEMODULEPATH [];
 };
 
 } /*end namespace SDN4CoRE*/

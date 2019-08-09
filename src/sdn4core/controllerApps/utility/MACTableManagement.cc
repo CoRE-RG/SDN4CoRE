@@ -23,6 +23,8 @@ using namespace ofp;
 
 namespace SDN4CoRE{
 
+Define_Module(MACTableManagement);
+
 void MACTableManagement::update(ofp::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port) {
     //search map for source mac address and enter
     if (lookupTable.count(sw_info) <= 0) {

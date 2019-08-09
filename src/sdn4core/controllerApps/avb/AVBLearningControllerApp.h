@@ -140,6 +140,16 @@ public:
      * The cached HardTimeOut parameter.
      */
     int _hardTimeout;
+
+    /**
+     * Path to the ned module of the SRPTableManagement.
+     */
+    static const char SRPTABLEMANAGERMODULEPATH [];
+
+    /**
+     * Path to the ned module of the MACTableManagement.
+     */
+    static const char MACTABLEMANAGERMODULEPATH [];
 };
 
 } /*end namespace SDN4CoRE*/

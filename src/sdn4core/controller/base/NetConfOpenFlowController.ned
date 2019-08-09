@@ -46,12 +46,12 @@ module NetConfOpenFlowController extends OpenFlowControllerBase
         //for OpenFlow apps and subscribe to controller events
         netConfApps[numNetConfApps]: <> like INetConfApplication {
 
-            @display("p=147,287,r,50");
+            @display("p=430,141,r,50");
         }
         // Netconf Client module
         netConfClient: <netConfClientType> like INetConfClient {
 
-            @display("p=147,219");
+            @display("p=216,281");
         }
 
     connections:

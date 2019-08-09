@@ -1,4 +1,6 @@
 //
+// c Timo Haeckel, for HAW Hamburg
+// 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -12,31 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
-// c Timo Haeckel, for HAW Hamburg
-// 
 
-package sdn4core.controller.base;
-
-//INET
-import inet.node.inet.StandardHost;
+package sdn4core.controllerApps.utility;
 
 //
-// Base model of network controller to control the forwarding engines of networking devices in a network.
-// As it extends the @see ~inet::StandardHost it can run any additional inet compatible application.
+// Module that manages MacTables for a Controller Application.
+// It holds one MACTabel per switch.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-module NetworkControllerBase extends StandardHost
+simple MACTableManagement
 {
-    parameters:
-        @networkNode();
-        @labels(node,ethernet-node);
-        @display("i=device/server;bgb=795,445;i2=OpenFlow-Logo-small");
-
-    submodules:
-        controllerState: ControllerState {
-            @display("p=740,40");
-        }
+    @class(SDN4CoRE::MACTableManagement);
 }
-
-

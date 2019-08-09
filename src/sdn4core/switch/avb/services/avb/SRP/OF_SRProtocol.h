@@ -18,11 +18,8 @@
 #ifndef CORE4INET_OF_SRProtocol_H_
 #define CORE4INET_OF_SRProtocol_H_
 
-//inet
-#include "inet/common/InitStages.h"
 //CoRE4INET
-#include <core4inet/services/avb/SRP/SRPTable.h>
-#include "core4inet/base/CoRE4INET_Defs.h"
+#include "core4inet/services/avb/SRP/SRProtocol.h"
 
 namespace SDN4CoRE {
 
@@ -34,26 +31,9 @@ namespace SDN4CoRE {
  *
  * @author Timo Häckel
  */
-class OF_SRProtocol : public virtual cSimpleModule, public cListener
+class OF_SRProtocol : public virtual CoRE4INET::SRProtocol
 {
-    private:
-        /**
-         * @brief Module representing the srpTable
-         */
-        CoRE4INET::SRPTable *srpTable;
-
-    public:
-        /**
-         * @brief Constructor
-         */
-        OF_SRProtocol();
-
     protected:
-        /**
-         * @brief Initialization, retrieves srpTable module and registers for signals
-         */
-        virtual void initialize(int stage) override;
-        virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
 
         /**
          * @brief handles incoming SRP Messages

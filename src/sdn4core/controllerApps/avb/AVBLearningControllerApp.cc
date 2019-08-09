@@ -15,9 +15,9 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-#include <sdn4core/controller/avb/SRP/OF_CTRL_SRPTable.h>
-
 #include <sdn4core/controllerApps/avb/AVBLearningControllerApp.h>
+
+#include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
 //STD
 #include <sstream>
 //inet
@@ -48,23 +48,33 @@ namespace SDN4CoRE{
 
 Define_Module(AVBLearningControllerApp);
 
+const char AVBLearningControllerApp::SRPTABLEMANAGERMODULEPATH[] = "sdn4core.controllerApps.utility.SRPTableManagement";
+
+const char AVBLearningControllerApp::MACTABLEMANAGERMODULEPATH[] = "sdn4core.controllerApps.utility.MACTableManagement";
+
 AVBLearningControllerApp::AVBLearningControllerApp() {
     _macManager = nullptr;
     _srpManager = nullptr;
 }
 
 AVBLearningControllerApp::~AVBLearningControllerApp() {
-    if (_macManager)
-        delete _macManager;
-    if (_srpManager)
-        delete _srpManager;
 }
 
 void AVBLearningControllerApp::initialize() {
     AbstractControllerApp::initialize();
 
-    _srpManager = new SRPTableManagement();
-    _macManager = new MACTableManagement();
+    _srpManager = dynamic_cast<SRPTableManagement*>(
+            createFinalizeAndScheduleDynamicModule(SRPTABLEMANAGERMODULEPATH,
+                    "srpTableManagement", this->getParentModule()->getSubmodule("controllerState"), false));
+    if(!_srpManager){
+        throw cRuntimeError("Could not create SRPTableManagement.");
+    }
+    _macManager = dynamic_cast<MACTableManagement*>(
+            createFinalizeAndScheduleDynamicModule(MACTABLEMANAGERMODULEPATH,
+                    "macTableManagement", this->getParentModule()->getSubmodule("controllerState"), false));
+    if(!_macManager){
+        throw cRuntimeError("Could not create MACTableManagement.");
+    }
 
 }
 
@@ -172,13 +182,13 @@ void AVBLearningControllerApp::doSRP(OFP_Packet_In* packet_in_msg) {
 
             if (updated) {
 
-                SRPForwardingInfo_t* fwd = _srpManager->getForwardingInfoForStreamID (swInfo, listenerReady->getStreamID(), listenerReady->getVlan_identifier());
+                SRPTableManagement::SRPForwardingInfo_t* fwd = _srpManager->getForwardingInfoForStreamID (swInfo, listenerReady->getStreamID(), listenerReady->getVlan_identifier());
                 oxm_basic_match match = oxm_basic_match();
                 // TODO implement AVB eth type.
                 match.in_port = fwd->inPort; // get talker in port.
                 match.dl_dst = fwd->dest; // set to multicast address
                 match.dl_vlan = fwd->vlanID;
-                match.dl_vlan_pcp = fwd->srClass;
+                match.dl_vlan_pcp = fwd->pcp;
                 match.dl_type = AVB_ETHERTYPE;
                 //TODO fix wildcards for OFP151!
                 match.wildcards = 0;
@@ -305,10 +315,7 @@ bool AVBLearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
             //get the switch ids.
             cXMLElement* srpManagerXML = controllerXML->getFirstChildWithTag("srpManager");
             if(srpManagerXML){
-                cXMLElement* switchXML = srpManagerXML->getFirstChildWithAttribute("srpTable","switch_id",info->getMacAddress().c_str());
-                if(switchXML){
-                    _srpManager->importFromXML(info, switchXML);
-                }
+                _srpManager->importFromXML(info, srpManagerXML);
             }
         }
     }

@@ -18,6 +18,8 @@
 
 package sdn4core.switch.avb.services.avb.SRP;
 
+import core4inet.services.avb.SRP.SRProtocol;
+
 //
 // This module handles the Stream Reservation Protocol
 //
@@ -31,23 +33,11 @@ package sdn4core.switch.avb.services.avb.SRP;
 //
 // @author Timo Haeckel
 //
-simple OF_SRProtocol
+simple OF_SRProtocol extends SRProtocol
 {
     parameters:
-        @display("i=block/network2,blue");
         @class(SDN4CoRE::OF_SRProtocol);
-        
-        //Amount of total bandwidth that is reservable (0-1) default: 0.75 representing 75% 
-        double reservableBandwidth = default(0.75); 
-        
-        //SRP Table module, default name is srpTable
-        string srpTable = default("^.^.srpTable");
         
         //Path to the port array in the switch, used for talker and listener assignment
         string portModule = default("etherMAC");
-    gates:
-        //Gate for incoming SRP messages
-        input in @labels(EtherFrame);
-        //Gate for outgoing SRP messages
-        output out @labels(EtherFrame);
 }

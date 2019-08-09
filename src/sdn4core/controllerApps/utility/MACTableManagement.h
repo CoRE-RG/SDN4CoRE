@@ -19,7 +19,7 @@
 #ifndef OPENFLOW_REALTIME_CONTROLLERAPPS_MACTABLEMANAGEMENT_H_
 #define OPENFLOW_REALTIME_CONTROLLERAPPS_MACTABLEMANAGEMENT_H_
 
-
+#include <omnetpp.h>
 //STD
 #include <unordered_map>
 //INET
@@ -38,7 +38,7 @@ namespace SDN4CoRE{
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class MACTableManagement {
+class MACTableManagement : public cSimpleModule {
 public:
     MACTableManagement(){
 

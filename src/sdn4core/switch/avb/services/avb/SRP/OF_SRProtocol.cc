@@ -18,6 +18,8 @@
 //STD
 #include <algorithm>
 //CoRE4INET
+#include <core4inet/services/avb/SRP/SRPTable.h>
+#include "core4inet/base/CoRE4INET_Defs.h"
 #include "core4inet/base/avb/AVBDefs.h"
 #include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
 #include "core4inet/base/NotifierConsts.h"
@@ -31,24 +33,6 @@ using namespace CoRE4INET;
 namespace SDN4CoRE {
 
 Define_Module(OF_SRProtocol);
-
-OF_SRProtocol::OF_SRProtocol(){
-    this->srpTable = nullptr;
-}
-
-void OF_SRProtocol::initialize(int stage)
-{
-    if(stage == inet::INITSTAGE_LAST){
-        srpTable = inet::getModuleFromPar<SRPTable>(par("srpTable"), this, true);
-        if (!srpTable)
-        {
-            throw cRuntimeError("srpTable module required for stream reservation");
-        }
-        srpTable->subscribe(NF_AVB_TALKER_REGISTERED, this);
-        srpTable->subscribe(NF_AVB_LISTENER_REGISTERED, this);
-        srpTable->subscribe(NF_AVB_LISTENER_UPDATED, this);
-    }
-}
 
 void OF_SRProtocol::handleMessage(cMessage *msg)
 {
@@ -79,9 +63,11 @@ void OF_SRProtocol::handleMessage(cMessage *msg)
                 {
                     srClass = SR_CLASS::A;
                 }
+                //only take first 3 bit and shift them to fit the uint8_t
+                uint8_t pcp = (talkerAdvertise->getPriorityAndRank() & 0xE0) >> 5;
                 srpTable->updateTalkerWithStreamId(talkerAdvertise->getStreamID(), port,
                         talkerAdvertise->getDestination_address(), srClass, talkerAdvertise->getMaxFrameSize(),
-                        talkerAdvertise->getMaxIntervalFrames(), talkerAdvertise->getVlan_identifier());
+                        talkerAdvertise->getMaxIntervalFrames(), talkerAdvertise->getVlan_identifier(), pcp);
             }
             else if (ListenerReady* listenerReady = dynamic_cast<ListenerReady*>(msg))
             {
