@@ -34,7 +34,7 @@ cleanall: checkmakefiles
 	cd src && $(MAKE) MODE=debug clean
 	rm -f src/Makefile
 
-MAKEMAKE_OPTIONS := --make-so -f --deep --no-deep-includes -I. -I$(INET_PROJ)/src/ -I$(CORE4INET_PROJ)/src/ -I$(OPENFLOW_PROJ)/src/ -L$(INET_PROJ)/src -L$(CORE4INET_PROJ)/src -L$(OPENFLOW_PROJ)/src -lCoRE4INET -lINET -lopenflow -KINET_PROJ=$(INET_PROJ) -KCORE4INET_PROJ=$(CORE4INET_PROJ) -KOPENFLOW_PROJ=$(OPENFLOW_PROJ)
+MAKEMAKE_OPTIONS := --make-so -f --deep --no-deep-includes -I. -I$(INET_PROJ)/src/ -I$(CORE4INET_PROJ)/src/ -I$(OPENFLOW_PROJ)/src/ -L$(INET_PROJ)/src -L$(CORE4INET_PROJ)/src -L$(OPENFLOW_PROJ)/src -lCoRE4INET -lINET -lOpenFlow -KINET_PROJ=$(INET_PROJ) -KCORE4INET_PROJ=$(CORE4INET_PROJ) -KOPENFLOW_PROJ=$(OPENFLOW_PROJ)
 
 makefiles:
 	cd src && opp_makemake $(MAKEMAKE_OPTIONS)
