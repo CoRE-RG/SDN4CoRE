@@ -5,7 +5,7 @@
 	<projects>
 		<project>CoRE4INET</project>
 		<project>inet</project>
-		<project>openflow</project>
+		<project>OpenFlow</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
