@@ -84,7 +84,7 @@ void ProcessingTimeSimulation::simulateProcessingTime(cMessage* msg) {
         event->setContextPointer(msg);
         scheduleAt(simTime() + _processingTime, event);
     }
-    emit(_queueSize, _msgList.size());
+    emit(_queueSize, static_cast<int>(_msgList.size()));
 }
 
 } /*end namespace SDN4CoRE*/

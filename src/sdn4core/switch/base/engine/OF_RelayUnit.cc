@@ -196,8 +196,8 @@ void OF_RelayUnit::simulateServiceTime(cMessage* msg) {
         event->setContextPointer(msg);
         scheduleAt(simTime() + serviceTime, event);
     }
-    emit(queueSize, msgList.size());
-    emit(bufferSize, buffer.size());
+    emit(queueSize, static_cast<int>(msgList.size()));
+    emit(bufferSize, static_cast<int>(buffer.size()));
 }
 
 void OF_RelayUnit::handleSelfMessage(cMessage* msg) {
