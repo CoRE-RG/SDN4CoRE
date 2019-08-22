@@ -15,9 +15,9 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-#include <sdn4core/controllerApps/avb/AVBLearningControllerApp.h>
+#include "sdn4core/controllerApps/avb/AVBLearningControllerApp.h"
 
-#include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
+#include "sdn4core/utility/dynamicmodules/DynamicModuleHandling.h"
 //STD
 #include <sstream>
 //inet
@@ -33,9 +33,9 @@
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 #include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
 //openflow
-#include <openflow/messages/openflowprotocol/OFP_Flow_Mod.h>
-#include <openflow/messages/openflowprotocol/OFP_Packet_In.h>
-#include <openflow/openflow/controller/OF_Controller.h>
+#include "openflow/messages/openflowprotocol/OFP_Flow_Mod.h"
+#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
+#include "openflow/openflow/controller/OF_Controller.h"
 #include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
 
 using namespace inet;
