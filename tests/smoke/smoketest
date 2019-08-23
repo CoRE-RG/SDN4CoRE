@@ -32,16 +32,20 @@ import time
 import unittest
 from StringIO import StringIO
 
-
-inetRoot = os.path.abspath("../..")
+inetRoot = os.path.abspath("../../../inet")
+core4inetRoot = os.path.abspath("../../../CoRE4INET")
+openflowRoot = os.path.abspath("../../../OpenFlow")
+sdn4coreRoot = os.path.abspath("../..")
 sep = ";" if sys.platform == 'win32' else ':'
-nedPath = inetRoot + "/src" + sep + inetRoot + "/examples" + sep + inetRoot + "/../inet/src" + sep + inetRoot + "/../OpenFlow/src" + sep + inetRoot + "/../CoRE4INET/src"
-inetLib = inetRoot + "/src/SDN4CoRE"
+nedPath = inetRoot + os.sep + "src" + sep + core4inetRoot + os.sep + "src" + sep + openflowRoot + os.sep + "src" \
+			+ sep + sdn4coreRoot + os.sep + "src" + sep + sdn4coreRoot + os.sep + "examples" + sep + sdn4coreRoot + os.sep + "tests" + os.sep + "smoke"
+inetLib = inetRoot + os.sep + "src" + os.sep + "INET"
+core4inetLib = core4inetRoot + os.sep + "src" + os.sep + "CoRE4INET"
+openflowLib = openflowRoot + os.sep + "src" + os.sep + "OpenFlow"
+sdn4coreLib = sdn4coreRoot + os.sep + "src" + os.sep + "SDN4CoRE"
 opp_run = "opp_run"
 cpuTimeLimit = "6s"
 logFile = "test.out"
-memcheck = False
-memcheckFailedErrorCode = 66
 
 
 class SmokeTestCaseGenerator():
@@ -175,17 +179,17 @@ class SmokeTestCase(SimulationTestCase):
         self.args = args
 
     def runTest(self):
-        global inetRoot, opp_run, nedPath, cpuTimeLimit, memcheck
-
+        global sdn4coreRoot, opp_run, nedPath, cpuTimeLimit, memcheck
+ 
+ 		# add paths of other libraries
+        os.environ['LD_LIBRARY_PATH'] = inetRoot + os.sep + "src" + sep + core4inetRoot + os.sep + "src" + sep + openflowRoot + os.sep + "src"
         # run the simulation
-        workingdir = _iif(self.wd.startswith('/'), inetRoot + "/" + self.wd, self.wd)
+        workingdir = _iif(self.wd.startswith('/'), sdn4coreRoot + "/" + self.wd, self.wd)
         resultdir = os.path.abspath(".") + "/results/";
         if not os.path.exists(resultdir):
             os.makedirs(resultdir)
-        memcheckPrefix = ""
-        if memcheck:
-            memcheckPrefix = "valgrind --leak-check=full --track-origins=yes --error-exitcode=" + str(memcheckFailedErrorCode) + " --suppressions=" + inetRoot + "/tests/smoke/valgrind.supp "
-        command = memcheckPrefix + opp_run + " -n " + nedPath + " -l " + inetLib + " -u Cmdenv " + self.args + \
+        command = opp_run + " -n " + nedPath + " -l " + inetLib + " -l " + core4inetLib + " -l " + openflowLib + " -l " + sdn4coreLib + \
+        	" -u Cmdenv " + self.args + \
             " --cpu-time-limit=" + cpuTimeLimit + \
             " --vector-recording=false --scalar-recording=false" \
             " --result-dir=" + resultdir
@@ -193,10 +197,8 @@ class SmokeTestCase(SimulationTestCase):
         # print "COMMAND: " + command + '\n'
         result = self.runSimulation(self.title, command, workingdir)
 
-        # process the result
-        if result.exitcode == memcheckFailedErrorCode:
-            assert False, "memcheck detected errors"
-        elif result.exitcode != 0:
+         # process the result
+        if result.exitcode != 0:
             assert False, result.errormsg
         elif result.simulatedTime == 0:
             assert False, "zero time simulated"
