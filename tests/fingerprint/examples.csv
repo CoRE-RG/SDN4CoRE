@@ -11,5 +11,5 @@
 /examples/IEEE8021Qbv/small_network_of,             -f omnetpp.ini -r 0,                                1s,              0553-8bd2
 /examples/IEEE8021Qbv/small_network_ofnc,           -f omnetpp.ini -r 0,                                2s,              4a2a-4dad
 /examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c General -r 0,                     10s,             3502-fd9c
-/examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c CaseStudy -r 0,                   10s,             23cc-5080
-/examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c CaseStudy_WithCT -r 0,            10s,             4628-7c7c
+/examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c CaseStudy -r 0,                   5s,              5a5e-9de3
+/examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c CaseStudy_WithCT -r 0,            5s,              1866-5e9f

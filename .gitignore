@@ -49,4 +49,7 @@ src/*/features.h
 #ignore Apple files
 .DS_Store
 
-test/smoke/test\.out
+tests/smoke/test.out
+tests/fingerprint/test.out
+
+tests/smoke/results/
