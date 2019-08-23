@@ -10,3 +10,7 @@
 /examples/IEEE8021Qbv/of_test,						-f IEEE8021Qbv_of_test.ini -r 0
 /examples/IEEE8021Qbv/small_network_of,				-f omnetpp.ini -r 0
 /examples/IEEE8021Qbv/small_network_ofnc,			-f omnetpp.ini -r 0
+/examples/papers/omnetsummit2019/configanalysis, 	-f omnetpp.ini -c General -r 0
+/examples/papers/omnetsummit2019/configanalysis, 	-f omnetpp.ini -c test -r 0
+/examples/papers/omnetsummit2019/configanalysis, 	-f omnetpp.ini -c CaseStudy -r 0
+/examples/papers/omnetsummit2019/configanalysis, 	-f omnetpp.ini -c CaseStudy_WithCT -r 0

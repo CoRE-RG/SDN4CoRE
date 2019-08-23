@@ -41,7 +41,6 @@ module AVBEthernetInterface like IWiredNic
 {
     parameters:
         @display("i=device/port");
-        @networkNode;
 
         // Forwardingdelay of the device hardware
         double hardware_delay @unit(s) = default(0us);

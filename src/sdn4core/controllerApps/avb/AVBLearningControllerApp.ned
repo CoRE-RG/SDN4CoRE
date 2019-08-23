@@ -35,7 +35,7 @@ simple AVBLearningControllerApp like AbstractControllerApp
         //idle timeout for flow entries
         int flowModIdleTimeOut = default(10);
         //path to the srp table module.
-        string srpTable = "^.srpTable";
+        string srpTable = default("^.srpTable");
         //offline configuration containing mac and srp information.
         xml configXML = default(xml("<root/>"));
 }

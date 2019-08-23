@@ -2,10 +2,11 @@
 
 package sdn4core.examples.papers.vtc2019.withSDN;
 
+import sdn4core.controller.base.OpenFlowControllerBase;
+
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 import sdn4core.nodes.avb.AVB_OpenFlowDomain;
-import openflow.openflow.controller.Open_Flow_Controller;
 import openflow.utility.OpenFlowGraphAnalyzer;
 import openflow.utility.StaticSpanningTree;
 import inet.node.ethernet.EtherSwitch;
@@ -37,7 +38,7 @@ network vtc2019_with_sdn
             parameters:
                 @display("p=198,190");
         }
-        open_flow_controller1: Open_Flow_Controller {
+        open_flow_controller1: OpenFlowControllerBase {
             @display("p=322,190");
         }
 
