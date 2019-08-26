@@ -7,9 +7,11 @@
 /examples/netconf_test/netconf_test_standardhost,	-f omnetpp.ini -c OneClientOneServerOneApp -r 0
 /examples/netconf_test/netconf_test_standardhost,	-f omnetpp.ini -c TwoClientOneServer -r 0
 /examples/netconf_test/netconf_test_standardhost,	-f omnetpp.ini -c FiveClientThreeServer -r 0
-/examples/IEEE8021Qbv/of_test,						-f IEEE8021Qbv_of_test.ini -r 0
-/examples/IEEE8021Qbv/small_network_of,				-f omnetpp.ini -r 0
-/examples/IEEE8021Qbv/small_network_ofnc,			-f omnetpp.ini -r 0
+/examples/IEEE8021Qbv/of_test,                      -f IEEE8021Qbv_of_test.ini -c General -r 0
+/examples/IEEE8021Qbv/small_network_of,             -f omnetpp.ini -c General -r 0
+/examples/IEEE8021Qbv/small_network_of,             -f omnetpp.ini -c With_Crosstraffic -r 0
+/examples/IEEE8021Qbv/small_network_ofnc,           -f omnetpp.ini -c General -r 0
+/examples/IEEE8021Qbv/small_network_ofnc,           -f omnetpp.ini -c With_Crosstraffic -r 0
 /examples/papers/omnetsummit2019/configanalysis, 	-f omnetpp.ini -c General -r 0
 /examples/papers/omnetsummit2019/configanalysis, 	-f omnetpp.ini -c test -r 0
 /examples/papers/omnetsummit2019/configanalysis, 	-f omnetpp.ini -c CaseStudy -r 0
