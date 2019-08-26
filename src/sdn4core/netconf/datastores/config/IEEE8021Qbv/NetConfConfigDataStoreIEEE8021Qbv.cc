@@ -56,7 +56,7 @@ bool NetConfConfigDataStoreIEEE8021Qbv::editConfig(int defaultOperation,
 
             NetConfConfigIEEE8021Qbv::IEEE8021QbvGateConfig_t* gateConfig = qbvConfig->getGateConfigurationForPort(controlListIter->first);
             if(gateConfig){
-                controlListIter->second->par("controlList").setStringValue(gateConfig->gateControlList);
+                controlListIter->second->setGateControlList(gateConfig->gateControlList);
                 updated = true;
             }
         }
