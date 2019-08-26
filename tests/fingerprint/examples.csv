@@ -10,8 +10,8 @@
 /examples/IEEE8021Qbv/of_test,                      -f IEEE8021Qbv_of_test.ini -c General -r 0,         1000s,           8344-5909
 /examples/IEEE8021Qbv/small_network_of,             -f omnetpp.ini -c General -r 0,                     0.5s,            dcfd-d3ad
 /examples/IEEE8021Qbv/small_network_of,             -f omnetpp.ini -c With_Crosstraffic -r 0,           0.5s,            c7e7-b643
-/examples/IEEE8021Qbv/small_network_ofnc,           -f omnetpp.ini -c General -r 0,                     0.1s,            6c2f-6fc8
-/examples/IEEE8021Qbv/small_network_ofnc,           -f omnetpp.ini -c With_Crosstraffic -r 0,           0.11s,           0362-02c8
+/examples/IEEE8021Qbv/small_network_ofnc,           -f omnetpp.ini -c General -r 0,                     0.1s,            b4f3-e83c
+/examples/IEEE8021Qbv/small_network_ofnc,           -f omnetpp.ini -c With_Crosstraffic -r 0,           0.1s,            d4d1-3b0a
 /examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c General -r 0,                     10s,             ed9c-6256
 /examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c CaseStudy -r 0,                   5s,              cd41-d2f2
 /examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c CaseStudy_WithCT -r 0,            5s,              9b62-4d69

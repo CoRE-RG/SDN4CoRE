@@ -20,7 +20,7 @@
 
 #include <omnetpp.h>
 #include <sdn4core/netconf/datastores/config/base/NetConfConfigDataStoreBase.h>
-#include <unordered_map>
+#include <map>
 //CoRE4INET
 #include "core4inet/linklayer/shaper/IEEE8021Qbv/gate/IEEE8021QbvGateControlList.h"
 
@@ -57,13 +57,13 @@ public:
      * Should be called after the creation of this module.
      * @param gateControlListModules    This gate control list modules to manage.
      */
-    void setGateControlListModules(std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>& gateControlListModules);
+    void setGateControlListModules(std::map<int, CoRE4INET::IEEE8021QbvGateControlList*>& gateControlListModules);
 
 protected:
     /**
      * Map: key port number, value IEEE8021QbvGateControlList modules in this host.
      */
-    std::unordered_map<int,CoRE4INET::IEEE8021QbvGateControlList*> _gateControlListModules;
+    std::map<int,CoRE4INET::IEEE8021QbvGateControlList*> _gateControlListModules;
 };
 
 } /* namespace SDN4CoRE */

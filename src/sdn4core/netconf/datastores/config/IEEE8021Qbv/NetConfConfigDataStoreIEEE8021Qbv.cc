@@ -30,7 +30,7 @@ NetConfConfig* NetConfConfigDataStoreIEEE8021Qbv::getConfig(
     Enter_Method("getConfig()");
     //todo add filter option
     NetConfConfigIEEE8021Qbv* config = new NetConfConfigIEEE8021Qbv();
-    for (std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
+    for (std::map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
             _gateControlListModules.begin();
             controlListIter != _gateControlListModules.end();
             ++controlListIter) {
@@ -49,7 +49,7 @@ bool NetConfConfigDataStoreIEEE8021Qbv::editConfig(int defaultOperation,
     bool updated = false;
     NetConfConfigIEEE8021Qbv* qbvConfig = dynamic_cast<NetConfConfigIEEE8021Qbv*>(config);
     if(qbvConfig){
-        for (std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
+        for (std::map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
                 _gateControlListModules.begin();
                 controlListIter != _gateControlListModules.end();
                 ++controlListIter) {
@@ -66,8 +66,8 @@ bool NetConfConfigDataStoreIEEE8021Qbv::editConfig(int defaultOperation,
 }
 
 void NetConfConfigDataStoreIEEE8021Qbv::setGateControlListModules(
-        std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>& gateControlListModules) {
-    for (std::unordered_map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
+        std::map<int, CoRE4INET::IEEE8021QbvGateControlList*>& gateControlListModules) {
+    for (std::map<int, CoRE4INET::IEEE8021QbvGateControlList*>::iterator controlListIter =
             gateControlListModules.begin();
             controlListIter != gateControlListModules.end();
             ++controlListIter) {

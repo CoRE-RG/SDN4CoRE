@@ -32,7 +32,7 @@ void NetConfDataStoreManagerIEEE8021Qbv::initializeDataStores() {
     //find number of ports
     int numPorts = getParentModule()->getSubmodule("etherMAC",0)->getVectorSize();
 
-    unordered_map<int, IEEE8021QbvGateControlList*> map;
+    map<int, IEEE8021QbvGateControlList*> map;
 
     //find IEEE8021QbvGateControlList modules of this device
     for(int i=0; i<numPorts; i++){
