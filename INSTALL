@@ -1,0 +1,65 @@
+INSTALLATION INSTRUCTIONS
+=========================
+
+PREREQUISITES
+
+You should have a working OMNeT++ installation, version 5.1.1 with the INET-Framework 3.5
+
+In INET you have to enable at least the following features:
+- Ethernet
+- IEEE 802.1d
+If you require IP and Transport (otherwise disable the feature - IP over realtime Ethernet -  in CoRE4INET):
+- IPv4
+- IPv6
+- TCP
+- UDP
+- SCTP
+
+General
+-------
+1. Make sure your OMNeT++ installation works OK (e.g. try running the samples)
+   and it is in the path (to test, try the command "which nedtool").
+
+2. Extract the downloaded tarball into a directory of your choice (usually into your
+   workspace directory, if you are using the IDE).
+
+If you are building from command line:
+--------------------------------------
+3. Change to the SDN4CoRE directory.
+
+4. Type "make makefiles". This should generate the makefiles for you automatically.
+
+5. Type "make" to build the sdn4core executable (debug version). Use "make MODE=release"
+   to build release version.
+
+6. you can run specific examples by changing into the example's directory and executing "./run"
+
+If you are using the IDE:
+-------------------------
+3. Open the OMNeT++ IDE and choose the workspace where you have extracted the SDN4CoRE directory.
+   The extracted directory must be a subdirectory of the workspace dir.
+
+4. Import the project using: File | Import | General | Existing projects into Workspace.
+   Then select the workspace dir as the root directory, and be sure NOT to check the
+   "Copy projects into workspace" box. Click Finish.
+
+5. Open the project (if not already open) and make sure it has the "inet" project marked
+   as dependency (Project->Properties->Project References). Wait until the indexer finishes.
+   Now you can build the project by pressing CTRL-B (Project | Build all)
+
+6. To run an example from the IDE open the example's directory in the Project Explorer view,
+   find the corresponding omnetpp.ini file. Right click on it and select Run As / Simulation.
+   This should create a Launch Configuration for this example.
+
+Note:
+-----
+- by default SDN4CoRE is creating a shared library (libSDN4CoRE.so etc.)
+  in the "src" directory. To use the shared library you can use the "opp_run"
+  command to load it dynamically. 
+- If you add/remove files/directories later in the src directory, you MUST
+  re-create your makefile. Run "make makefiles" again if you are building
+  from the command line. (The IDE does it for you automatically)
+
+Hit Ctrl+B to build.
+
+Run the example simulations to check everything works fine.

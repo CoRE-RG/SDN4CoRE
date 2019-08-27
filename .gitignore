@@ -19,6 +19,10 @@
 /examples/*/results/
 /examples/*/*/results/
 /examples/*/*/*/results/
+/examples/*/core
+/examples/*/*/core
+/examples/*/*/*/core
+/examples/*/*/*/*/core
 *.vci
 *.vec
 *.sca
@@ -29,6 +33,7 @@
 
 # ignore binary files
 /out
+*.out
 *.so
 *.dylib
 *.dll

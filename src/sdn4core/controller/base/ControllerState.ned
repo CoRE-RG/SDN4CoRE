@@ -20,6 +20,8 @@ package sdn4core.controller.base;
 //
 // Empty compound module to dynamically created and access submodules that contain controller state.
 //
+// @author Timo Haeckel, for HAW Hamburg
+//
 module ControllerState
 {
     @display("i=block/table2");
