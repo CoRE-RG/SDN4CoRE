@@ -37,9 +37,9 @@ Model release including programmable devices and controllers for IEEE802.1Q, IEE
 
 The build state of the master branch is monitored:
 * Building:
-<a href="https://jenkins.core-rg.de/job/SDN4CoRE/job/SDN4CoRE/lastBuild/"><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE"></a>
+<img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE">
 * Tests:
-<a href="https://jenkins.core-rg.de/job/SDN4CoRE/job/SDN4CoRE_tests/lastBuild/"><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests"></a>
+<img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests">
 
 <table>
   <tr>
@@ -49,13 +49,13 @@ The build state of the master branch is monitored:
   </tr>
   <tr>
     <td>Building</td>
-    <td><a href="https://jenkins.core-rg.de/job/SDN4CoRE/job/SDN4CoRE/Nodes=Ubuntu_18.04/lastBuild/"><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Ubuntu_18.04"></a></td>
-    <td><a href="https://jenkins.core-rg.de/job/SDN4CoRE/job/SDN4CoRE/Nodes=Windows_10/lastBuild/"><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Windows_10"></a></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Ubuntu_18.04"></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Windows_10"></td>
   </tr>
   <tr>
     <td>Tests</td>
-    <td><a href="https://jenkins.core-rg.de/job/SDN4CoRE/job/SDN4CoRE_tests/Nodes=Ubuntu_18.04/lastBuild/"><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Ubuntu_18.04"></a></td>
-    <td><a href="https://jenkins.core-rg.de/job/SDN4CoRE/job/SDN4CoRE_tests/Nodes=Windows_10/lastBuild/"><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Windows_10"></a></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Ubuntu_18.04"></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Windows_10"></td>
   </tr>
 </table>
 
