@@ -24,6 +24,7 @@ import sys
 import time
 import unittest
 import csv
+from distutils import spawn
 
 
 inetRoot = os.path.abspath("../../../inet")
@@ -40,6 +41,15 @@ sdn4coreLib = sdn4coreRoot + os.sep + "src" + os.sep + "SDN4CoRE"
 opp_run = "opp_run"
 cpuTimeLimit = "60s"
 logFile = "test.out"
+
+if spawn.find_executable("opp_run_dbg"):
+    opp_run = "opp_run_dbg"
+if spawn.find_executable("opp_run"):
+    opp_run = "opp_run"
+if spawn.find_executable("opp_run_release"):
+    opp_run = "opp_run_release"
+    
+print opp_run
 
 class FingerprintTestCaseGenerator():
     fileToSimulationsMap = {}

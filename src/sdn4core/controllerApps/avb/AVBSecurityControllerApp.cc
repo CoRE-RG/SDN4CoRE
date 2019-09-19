@@ -186,7 +186,7 @@ oxm_basic_match AVBSecurityControllerApp::createMatchFromPacketIn(
             if(AVBFrame * avbFrame = dynamic_cast<AVBFrame *>(frame)){
                 match.dl_vlan = avbFrame->getVID();
                 match.dl_vlan_pcp = avbFrame->getPcp();
-                match.dl_type = AVB_ETHERTYPE;
+                match.dl_type = 0x8100;
             } else {
                 match.dl_type = frame->getEtherType();
 #if OFP_VERSION_IN_USE == OFP_100

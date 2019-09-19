@@ -189,7 +189,7 @@ void AVBLearningControllerApp::doSRP(OFP_Packet_In* packet_in_msg) {
                 match.dl_dst = fwd->dest; // set to multicast address
                 match.dl_vlan = fwd->vlanID;
                 match.dl_vlan_pcp = fwd->pcp;
-                match.dl_type = AVB_ETHERTYPE;
+                match.dl_type = 0x8100;
                 //TODO fix wildcards for OFP151!
                 match.wildcards = 0;
 #if OFP_VERSION_IN_USE == OFP_100

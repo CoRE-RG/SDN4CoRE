@@ -259,11 +259,11 @@ ofp::oxm_basic_match AVB_OF_RelayUnit::extractMatch(
     oxm_basic_match match = OF_RelayUnit::extractMatch(frame);
     //extract AVB/VLAN specific information ifpresent
     //if(frame->getEtherType()==AVB_ETHERTYPE) {
-    if (CoRE4INET::AVBFrame* avbFrame =
-            dynamic_cast<CoRE4INET::AVBFrame*>(frame)) {
-        match.dl_type = AVB_ETHERTYPE;
-        match.dl_vlan = avbFrame->getVID();
-        match.dl_vlan_pcp = avbFrame->getPcp();
+    if(match.dl_type == 0x8100){ //we have a q frame!
+        CoRE4INET::EthernetIIFrameWithQTag* qFrame =
+            dynamic_cast<CoRE4INET::EthernetIIFrameWithQTag*>(frame);
+        match.dl_vlan = qFrame->getVID();
+        match.dl_vlan_pcp = qFrame->getPcp();
         //}
     }
     return match;
