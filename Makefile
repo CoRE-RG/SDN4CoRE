@@ -33,11 +33,25 @@ cleanall: checkmakefiles
 	cd src && $(MAKE) MODE=release clean
 	cd src && $(MAKE) MODE=debug clean
 	rm -f src/Makefile
+	
+ifeq ($(MODE), debug)
+    DBG_SUFFIX=_dbg
+else
+    DBG_SUFFIX=
+endif
 
-MAKEMAKE_OPTIONS := --make-so -f --deep --no-deep-includes -I. -I$(INET_PROJ)/src/ -I$(CORE4INET_PROJ)/src/ -I$(OPENFLOW_PROJ)/src/ -L$(INET_PROJ)/src -L$(CORE4INET_PROJ)/src -L$(OPENFLOW_PROJ)/src -lCoRE4INET -lINET -lOpenFlow -KINET_PROJ=$(INET_PROJ) -KCORE4INET_PROJ=$(CORE4INET_PROJ) -KOPENFLOW_PROJ=$(OPENFLOW_PROJ)
+MAKEMAKE_OPTIONS := -f --deep --no-deep-includes -O out -KINET_PROJ=$(INET_PROJ) -KCORE4INET_PROJ=$(CORE4INET_PROJ) -KOPENFLOW_PROJ=$(OPENFLOW_PROJ) -I. -I$(INET_PROJ)/src/ -I$(CORE4INET_PROJ)/src/ -I$(OPENFLOW_PROJ)/src/ -L$(INET_PROJ)/src -L$(CORE4INET_PROJ)/src -L$(OPENFLOW_PROJ)/src -lCoRE4INET$(DBG_SUFFIX) -lINET$(DBG_SUFFIX) -lOpenFlow$(DBG_SUFFIX)
 
-makefiles:
-	cd src && opp_makemake $(MAKEMAKE_OPTIONS)
+makefiles: makefiles-so
+
+makefiles-so:
+	@cd src && opp_makemake --make-so $(MAKEMAKE_OPTIONS)
+
+makefiles-lib:
+	@cd src && opp_makemake --make-lib $(MAKEMAKE_OPTIONS)
+
+makefiles-exe:
+	@cd src && opp_makemake $(MAKEMAKE_OPTIONS)
 
 checkmakefiles:
 	@if [ ! -f src/Makefile ]; then \
