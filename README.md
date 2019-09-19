@@ -11,11 +11,11 @@ Model release including programmable devices and controllers for IEEE802.1Q, IEE
 
 
 ## Quick Start
-1. Download OMNeT++ 5.1.1
+1. Download OMNeT++ 5.5.1
     * [https://omnetpp.org/download/old](https://omnetpp.org/download/old)
 2. Install OMNeT++
     * [https://doc.omnetpp.org/omnetpp/InstallGuide.pdf](https://doc.omnetpp.org/omnetpp/InstallGuide.pdf)
-3. Get INET framework 3.5
+3. Get INET framework 3.6.6
     * [https://inet.omnetpp.org/Download.html](https://inet.omnetpp.org/Download.html)
 4. Install CoRE plugins (optional)
     * OMNEST/OMNeT++ -> Help -> Install New Software...
@@ -36,10 +36,11 @@ Model release including programmable devices and controllers for IEEE802.1Q, IEE
 ## Continuous Integration
 
 The build state of the master branch is monitored:
-* Building:
-<img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE">
-* Tests:
-<img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests">
+* Building: 
+<a><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE"></a>
+* Tests: 
+<a><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests"></a>
+
 
 <table>
   <tr>
