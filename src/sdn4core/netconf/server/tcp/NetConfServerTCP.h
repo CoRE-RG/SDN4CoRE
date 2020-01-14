@@ -39,7 +39,7 @@ namespace SDN4CoRE {
 class NetConfServerTCP : public NetConfServerBase
 {
   protected:
-    virtual void initialize();
+    virtual void initialize() override;
 
     /**
      * Forwards the message to the protocol specific transport layer.

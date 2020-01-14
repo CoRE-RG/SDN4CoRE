@@ -47,7 +47,7 @@ public:
     OF_RelayUnit();
     ~OF_RelayUnit();
     void disablePorts(std::vector<int> ports);
-    virtual void finish();
+    virtual void finish() override;
 
 protected:
     /**

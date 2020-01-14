@@ -41,8 +41,8 @@ namespace SDN4CoRE {
 class NetConfClientTCP : public NetConfClientBase
 {
   protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage* msg);
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
 
     /**
      * Forwards the message to the protocol specific transport layer.

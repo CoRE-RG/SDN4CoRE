@@ -57,7 +57,7 @@ protected:
     /**
      * initialize the module colors.
      */
-    virtual void initialize();
+    virtual void initialize() override;
     /**
      * refresh the display string if it was updated.
      */

@@ -39,13 +39,13 @@ class AVB_OF_RelayUnit : public OF_RelayUnit
 public:
     AVB_OF_RelayUnit();
     ~AVB_OF_RelayUnit();
-    virtual void finish();
+    virtual void finish() override;
 
 protected:
     //omnetpp module funcitons
     virtual void initialize(int stage) override;
     virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
-    virtual void handleMessage(omnetpp::cMessage *msg);
+    virtual void handleMessage(omnetpp::cMessage *msg) override;
 
     virtual void processQueuedMsg(omnetpp::cMessage *data_msg) override;
     virtual ofp::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame) override;
