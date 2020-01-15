@@ -9,6 +9,10 @@ SDN4CoRE provides programmable network devices and controllers for different Eth
 ## News
 Model release including programmable devices and controllers for IEEE802.1Q, IEEE802.1Qbv, AVB/SRP via OpenFlow and NetConf.
 
+## References
+If you would like to reference this project please use the following [publication](https://doi.org/10.29007/w71t):
+
+ >Timo Häckel, Philipp Meyer, Franz Korf, and Thomas C. Schmidt. SDN4CoRE: A Simulation Model for Software-Defined Networking for Communication over Real-Time Ethernet. In: Proceedings of the 6th International OMNeT++ Community Summit 2019. Pages 24—31, Dec. 2019, EasyChair
 
 ## Quick Start
 1. Download OMNeT++ 5.5.1
