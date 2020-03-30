@@ -66,6 +66,7 @@ The build state of the master branch is monitored:
 
 
 ## Further Information
+* [CoRE simulation models overview](https://core-researchgroup.de/projects/simulation.html)
 
 ### Installation
 Please see [INSTALL](/INSTALL)
