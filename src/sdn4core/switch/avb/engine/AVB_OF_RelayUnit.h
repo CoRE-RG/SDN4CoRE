@@ -51,10 +51,16 @@ protected:
     virtual ofp::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame) override;
 
     /**
-     * Handles an SRP message and forwards it to the right modules.
+     * Handles an SRP message coming from the controller and forwards it to the right modules.
      * @param srp the message to handle
      */
-    virtual void handleSRP(omnetpp::cMessage* srp);
+    virtual void handleSRPFromController(omnetpp::cMessage* srp);
+
+    /**
+     * Handles an SRP message coming from the srp protocol module and forwards it to the right modules.
+     * @param srp the message to handle
+     */
+    virtual void handleSRPFromProtocol(omnetpp::cMessage* srp);
 
     /**
      * Forwards an SRP message to the OpenFlow controller.

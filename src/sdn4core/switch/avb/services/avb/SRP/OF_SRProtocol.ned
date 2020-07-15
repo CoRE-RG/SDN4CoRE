@@ -40,4 +40,7 @@ simple OF_SRProtocol extends SRProtocol
         
         //Path to the port array in the switch, used for talker and listener assignment
         string portModule = default("etherMAC");
+        string macModulePath = default(".phy.mac");//relative to portModule.
+        string shaperModulePath = default(".phy.shaper");//relative to portModule.
+        
 }

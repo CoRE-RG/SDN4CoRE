@@ -15,33 +15,49 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-package sdn4core.switch.avb;
+package sdn4core.switch.tsn;
+
+import sdn4core.switch.base.OpenFlowSwitch;
+import sdn4core.switch.avb.services.avb.SRP.OF_SRProtocol;
 
 //CoRE4INET
+import core4inet.scheduler.ITTEScheduler;
+import core4inet.synchronisation.base.ISync;
 import core4inet.services.avb.SRP.SRPTable;
 
-
-import sdn4core.switch.avb.services.avb.SRP.OF_SRProtocol;
-import sdn4core.switch.base.OpenFlowSwitch;
-
-
 //
-// Model of an OpenFlow Ethernet switch that supports stream reservations and AVB prioritized traffic.
+// Model of an OpenFlow Ethernet switch that supports TSN ingress and egress control (@see~CoRE4INET::TSNPHYPort).
 // It forwards packets according to the flow table entries and is connected to the OpenFlow Controller.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-module AVBOpenFlowSwitch extends OpenFlowSwitch
+module TSNOpenFlowSwitch extends OpenFlowSwitch
 {
     parameters:
-        relayUnitType = default("AVB_OF_RelayUnit");
-        ethDataPlaneType = default("AVBEthernetInterface");
+        @display("i=device/switch;i2=OpenFlow-Logo-small");
+        relayUnitType = default("TSN_OF_RelayUnit");
+        ethDataPlaneType = default("TSNEthernetInterface");
+
+        // Forwardingdelay of the device hardware
+        double hardware_delay @unit(s) = default(8us);
 
         *.srpTable = default(absPath(".srpTable"));
         *.srpProtocolModule = default(absPath(".srpProtocol"));
 
-        @display("bgb=642,289");
     submodules:
+
+        // Sync module for synchronisation of the scheduler
+        sync: <default("DummySync")> like ISync {
+            parameters:
+                @display("p=576,27");
+        }
+
+        // Scheduler for the device
+        scheduler: <default("Scheduler")> like ITTEScheduler {
+            parameters:
+                @display("p=519,27");
+        }
+
 	    // Stream Reservation Protocol table
         srpTable: SRPTable {
             @display("p=442,241");
@@ -50,8 +66,8 @@ module AVBOpenFlowSwitch extends OpenFlowSwitch
 		// Stream Reservation Protocol implementation
         srpProtocol: OF_SRProtocol {
             portModule = "etherMAC";
-            macModulePath = ".phy.mac";
-        	shaperModulePath = ".phy.shaper";
+            macModulePath = ".mac";
+        	shaperModulePath = ".shaper";
             @display("p=371,241");
         }
 

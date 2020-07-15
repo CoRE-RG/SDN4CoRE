@@ -41,9 +41,9 @@ simple AVB_OF_RelayUnit extends OF_RelayUnit
     	
    	gates:
    	    //SRP message in from SRP protocol module
-        input srpIn;
+        input srpIn @loose;
         //SRP message out to SRP protocol module
-        output srpOut;
+        output srpOut @loose;
     	    
     
 }

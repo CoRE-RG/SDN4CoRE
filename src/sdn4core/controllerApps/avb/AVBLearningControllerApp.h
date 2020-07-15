@@ -15,8 +15,8 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-#ifndef __OPENFLOW_RTETHERNETCONTROLLERAPP_H_
-#define __OPENFLOW_RTETHERNETCONTROLLERAPP_H_
+#ifndef __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_
+#define __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_
 
 #include "sdn4core/controllerApps/utility/SRPTableManagement.h"
 #include "sdn4core/controllerApps/utility/MACTableManagement.h"
@@ -154,4 +154,4 @@ public:
 
 } /*end namespace SDN4CoRE*/
 
-#endif
+#endif /* __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_ */

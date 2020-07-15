@@ -16,6 +16,8 @@
 package sdn4core.examples.tsn.small_network_of;
 
 import inet.node.ethernet.Eth100M;
+import inet.node.ethernet.Eth1G;
+import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 
 //
 // Small sample network with three hosts and one switch that shows how to 
@@ -27,29 +29,41 @@ network small_network_of
     parameters:
         @display("bgb=,,white");
     submodules:
+        configurator: IPv4NetworkConfigurator {
+            @display("p=39,19");
+        }
+
         node1: Node1 {
-            @display("p=39,70");
+            @display("p=39,107");
         }
 
         node2: Node2 {
-            @display("p=249,30");
+            @display("p=249,67");
         }
 
         node3: Node3 {
-            @display("p=249,102");
+            @display("p=249,139");
+        }
+
+        controller: Controller {
+            @display("p=147,36");
         }
 
         switch1: Switch1 {
             parameters:
-                @display("p=147,70");
+                @display("p=147,107");
             gates:
-                ethg[3];
+                gateDataPlane[3];
         }
+        
     connections:
         //
         // The example uses a simple star topology
         //
-        node1.ethg <--> Eth100M {  length = 20m; } <--> switch1.ethg[0];
-        node2.ethg <--> Eth100M {  length = 10m; } <--> switch1.ethg[1];
-        node3.ethg <--> Eth100M {  length = 5m; } <--> switch1.ethg[2];
+        node1.ethg <--> Eth100M {  length = 20m; } <--> switch1.gateDataPlane[0];
+        node2.ethg <--> Eth100M {  length = 10m; } <--> switch1.gateDataPlane[1];
+        node3.ethg <--> Eth100M {  length = 5m; } <--> switch1.gateDataPlane[2];
+
+        controller.ethg++ <--> Eth1G {  length = 10m; } <--> switch1.gateControlPlane;
+
 }

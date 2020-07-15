@@ -13,13 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.tsn.small_network_of;
+package sdn4core.switch.tsn.engine;
 
-import  sdn4core.switch.tsn.TSNOpenFlowSwitch;
+import sdn4core.switch.avb.engine.AVB_OF_RelayUnit;
 
 //
-// Switch1: configuration in switch1.ini
+// The TSN_OF_RelayUnit is the switching engine of the TSN capable OpenFlow Switch.
+// It is directly connected to the TCP module to communicate with the OF Controller.
+// It handles the forwarding of incoming packets by matching them with the OpenFlowTable 
+// (@see~IOpenFlowFlowTable) entries.
+// It adds the capability of handling the SRP protocol to the ~OF_RelayUnit module.
 //
-module Switch1 extends TSNOpenFlowSwitch
+// @author Timo Haeckel, for HAW Hamburg
+//
+simple TSN_OF_RelayUnit extends AVB_OF_RelayUnit
 {
+    parameters:
+        @class(SDN4CoRE::TSN_OF_RelayUnit);
+    
 }

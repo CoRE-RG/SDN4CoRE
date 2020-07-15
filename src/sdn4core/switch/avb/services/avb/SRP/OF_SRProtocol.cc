@@ -82,12 +82,15 @@ void OF_SRProtocol::handleMessage(cMessage *msg)
 
                 unsigned long utilizedBandwidth = srpTable->getBandwidthForModule(port);
                 //Add Higher Priority Bandwidth
-                utilizedBandwidth += static_cast<unsigned long>(port->getSubmodule("phy")->getSubmodule("shaper")->par(
-                        "AVBHigherPriorityBandwidth"));
+                if(port->getModuleByPath(par("shaperModulePath"))){
+                    utilizedBandwidth += static_cast<unsigned long>(port->getModuleByPath(par("shaperModulePath"))->par(
+                                            "AVBHigherPriorityBandwidth"));
+                }
+
                 unsigned long requiredBandwidth = srpTable->getBandwidthForStream(listenerReady->getStreamID(),
                         listenerReady->getVlan_identifier());
 
-                cGate *physOutGate = port->getSubmodule("phy")->getSubmodule("mac")->gate("phys$o");
+                cGate *physOutGate = port->getModuleByPath(par("macModulePath"))->gate("phys$o");
                 cChannel *outChannel = physOutGate->findTransmissionChannel();
 
                 unsigned long totalBandwidth = static_cast<unsigned long>(outChannel->getNominalDatarate());
@@ -189,22 +192,25 @@ void OF_SRProtocol::receiveSignal(cComponent *src, simsignal_t id, cObject *obj,
             talkerAdvertise->setMaxIntervalFrames(tentry->intervalFrames);
             talkerAdvertise->setDestination_address(tentry->address);
             talkerAdvertise->setVlan_identifier(tentry->vlan_id);
-            if (tentry->srClass == SR_CLASS::A)
-                talkerAdvertise->setPriorityAndRank(PRIOANDRANK_SRCLASSA);
-            if (tentry->srClass == SR_CLASS::B)
-                talkerAdvertise->setPriorityAndRank(PRIOANDRANK_SRCLASSB);
+//            if (tentry->srClass == SR_CLASS::A)
+//                talkerAdvertise->setPriorityAndRank(PRIOANDRANK_SRCLASSA);
+//            if (tentry->srClass == SR_CLASS::B)
+//                talkerAdvertise->setPriorityAndRank(PRIOANDRANK_SRCLASSB);
+            // set prio and rank according to pcp and not srClass. Set rank bit to 1 (see SRPFrame).
+            talkerAdvertise->setPriorityAndRank(0x10 | (tentry->pcp << 5));
 
             ExtendedIeee802Ctrl *etherctrl = new ExtendedIeee802Ctrl();
             etherctrl->setEtherType(MSRP_ETHERTYPE);
             etherctrl->setDest(SRP_ADDRESS);
             etherctrl->setSwitchPort(SWITCH_PORT_BROADCAST);
-            talkerAdvertise->setControlInfo(etherctrl);
 
             //If talker was received from phy we have to exclude the incoming port
-            if (strcmp(tentry->module->getSubmodule("phy")->getName(), "phy") == 0)
-            {
-                etherctrl->setNotSwitchPort(tentry->module->getIndex());
-            }
+            //if (strcmp(tentry->module->getSubmodule("phy")->getName(), "phy") == 0)
+            //{
+            etherctrl->setNotSwitchPort(tentry->module->getIndex());
+            //}
+
+            talkerAdvertise->setControlInfo(etherctrl);
 
             send(talkerAdvertise, gate("out"));
         }
@@ -227,20 +233,20 @@ void OF_SRProtocol::receiveSignal(cComponent *src, simsignal_t id, cObject *obj,
             }
             cModule* talker = signal_srpTable->getTalkerForStreamId(lentry->streamId, lentry->vlan_id);
             //Send listener ready only when talker is not a local application
-            if (talker && talker->getSubmodule("phy")->isName("phy"))
-            {
-                ListenerReady *listenerReady = new ListenerReady("Listener Ready", inet::IEEE802CTRL_DATA);
-                listenerReady->setStreamID(lentry->streamId);
-                listenerReady->setVlan_identifier(lentry->vlan_id);
+//            if (talker && talker->getSubmodule("phy")->isName("phy"))
+//            {
+            ListenerReady *listenerReady = new ListenerReady("Listener Ready", inet::IEEE802CTRL_DATA);
+            listenerReady->setStreamID(lentry->streamId);
+            listenerReady->setVlan_identifier(lentry->vlan_id);
 
-                ExtendedIeee802Ctrl *etherctrl = new ExtendedIeee802Ctrl();
-                etherctrl->setEtherType(MSRP_ETHERTYPE);
-                etherctrl->setDest(SRP_ADDRESS);
-                etherctrl->setSwitchPort(talker->getIndex());
-                listenerReady->setControlInfo(etherctrl);
+            ExtendedIeee802Ctrl *etherctrl = new ExtendedIeee802Ctrl();
+            etherctrl->setEtherType(MSRP_ETHERTYPE);
+            etherctrl->setDest(SRP_ADDRESS);
+            etherctrl->setSwitchPort(talker->getIndex());
+            listenerReady->setControlInfo(etherctrl);
 
-                send(listenerReady, gate("out"));
-            }
+            send(listenerReady, gate("out"));
+//            }
         }
         else
         {

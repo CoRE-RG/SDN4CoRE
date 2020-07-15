@@ -1,4 +1,6 @@
 //
+// c Timo Haeckel, for HAW Hamburg
+// 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -15,11 +17,9 @@
 
 package sdn4core.examples.tsn.small_network_of;
 
-import  sdn4core.switch.tsn.TSNOpenFlowSwitch;
 
-//
-// Switch1: configuration in switch1.ini
-//
-module Switch1 extends TSNOpenFlowSwitch
+import sdn4core.controller.base.OpenFlowControllerBase;
+
+module Controller extends OpenFlowControllerBase
 {
 }

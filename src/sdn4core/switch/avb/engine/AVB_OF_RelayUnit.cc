@@ -58,6 +58,11 @@ void AVB_OF_RelayUnit::forwardSRPtoController(cPacket* msg) {
     packetIn->setReason(OFPR_ACTION_SET);//TODO maybe add another reason for realtime streams.
 #endif
     packetIn->setByteLength(32);
+    if (inet::Ieee802Ctrl * controlInfo = dynamic_cast<inet::Ieee802Ctrl *>(msg->getControlInfo())){
+        oxm_basic_match match;
+        match.in_port = controlInfo->getSwitchPort();
+        packetIn->setMatch(match);
+    }
 
     // allways send full packet with packet-in message
     packetIn->encapsulate(msg);
@@ -143,63 +148,59 @@ void AVB_OF_RelayUnit::handleMessage(cMessage *msg)
     OF_RelayUnit::handleMessage(msg);
 }
 
-void AVB_OF_RelayUnit::handleSRP(cMessage* msg) {
+void AVB_OF_RelayUnit::handleSRPFromController(cMessage* msg) {
+    if (OFP_Packet_Out *packetOut = dynamic_cast<OFP_Packet_Out *>(msg)) {
 
+        if (CoRE4INET::SRPFrame * srpFrame =
+                dynamic_cast<CoRE4INET::SRPFrame *>(packetOut->decapsulate())) {
 
-    if (msg->arrivedOn("srpIn")) {        //from srp to encap
-        cObject* ctrlInfo = msg->removeControlInfo();
-        //check the control info and change it for the of-switch module.
-        if (CoRE4INET::ExtendedIeee802Ctrl *etherctrl =
-                dynamic_cast<CoRE4INET::ExtendedIeee802Ctrl *>(ctrlInfo)) {
+            inet::Ieee802Ctrl *etherctrl = new inet::Ieee802Ctrl();
+            etherctrl->setSwitchPort(packetOut->getIn_port());
+            //pack message
+            srpFrame->setControlInfo(etherctrl);
 
-            //check for srp message type
-            if (dynamic_cast<CoRE4INET::TalkerAdvertise *>(msg)) { //TalkerAdvertise
-                for (size_t i = 0; i < portVector.size(); ++i) {
+            //forward to port
+            send(srpFrame, "srpOut");
+
+        } else {
+            error(
+                    "SRP packet `%s' from controller received without Ieee802Ctrl",
+                    msg->getName());
+        }
+
+    }
+}
+
+void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
+
+    cObject* ctrlInfo = msg->removeControlInfo();
+    //check the control info and change it for the of-switch module.
+    if (CoRE4INET::ExtendedIeee802Ctrl *etherctrl =
+            dynamic_cast<CoRE4INET::ExtendedIeee802Ctrl *>(ctrlInfo)) {
+
+        //check for srp message type
+        if (dynamic_cast<CoRE4INET::TalkerAdvertise *>(msg)) { //TalkerAdvertise
+            for (size_t i = 0; i < portVector.size(); ++i) {
+                if(i != etherctrl->getNotSwitchPort()) {
                     //pack message
                     cMessage* copy = msg->dup();
                     copy->setControlInfo(etherctrl->dup());
                     send(copy, "dataPlaneOut", i);
                 }
-                delete etherctrl;
-            } else //check for srp message type
-            if (dynamic_cast<CoRE4INET::ListenerReady *>(msg)) {
-
-                //pack message
-                cMessage* copy = msg->dup();
-                copy->setControlInfo(etherctrl);
-                send(copy, "dataPlaneOut", etherctrl->getSwitchPort());
             }
+            delete etherctrl;
+        } else //check for srp message type
+        if (dynamic_cast<CoRE4INET::ListenerReady *>(msg)) {
 
-        } else {
-            error("packet `%s' from SRP received without ExtendedIeee802Ctrl",
-                    msg->getName());
-        }
-
-    } else if (OFP_Message *of_msg = dynamic_cast<OFP_Message *>(msg)) {// from controller -> to srp
-
-        if (OFP_Packet_Out *packetOut = dynamic_cast<OFP_Packet_Out *>(msg)) {
-
-            if (CoRE4INET::SRPFrame * srpFrame =
-                    dynamic_cast<CoRE4INET::SRPFrame *>(of_msg->decapsulate())) {
-
-                inet::Ieee802Ctrl *etherctrl = new inet::Ieee802Ctrl();
-                etherctrl->setSwitchPort(packetOut->getIn_port());
-                //pack message
-                srpFrame->setControlInfo(etherctrl);
-
-                //forward to port
-                send(srpFrame, "srpOut");
-
-            } else {
-                error(
-                        "SRP packet `%s' from controller received without Ieee802Ctrl",
-                        msg->getName());
-            }
-
+            //pack message
+            cMessage* copy = msg->dup();
+            copy->setControlInfo(etherctrl);
+            send(copy, "dataPlaneOut", etherctrl->getSwitchPort());
         }
 
     } else {
-        error("SRP packet `%s' received from wrong gate", msg->getName());
+        error("packet `%s' from SRP received without ExtendedIeee802Ctrl",
+                msg->getName());
     }
 }
 
@@ -207,16 +208,20 @@ void AVB_OF_RelayUnit::processQueuedMsg(cMessage *data_msg){
 
     bool msgHandled = false;
 
+
     if(data_msg->arrivedOn("dataPlaneIn")){
         if (isSRPMessage(data_msg)) {
             dataPlanePacket++;
             //forward to controller
             CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(data_msg->dup());
+            inet::Ieee802Ctrl * controlInfo = new inet::Ieee802Ctrl();
+            controlInfo->setSwitchPort(data_msg->getArrivalGate()->getIndex());
+            toController->setControlInfo(controlInfo);
             forwardSRPtoController(toController);
             msgHandled = true;
         }
     } else if (data_msg->arrivedOn("srpIn")) {
-        handleSRP(data_msg);
+        handleSRPFromProtocol(data_msg);
         msgHandled = true;
     } else {
        if (dynamic_cast<OFP_Message *>(data_msg) != NULL) { //msg from controller
@@ -227,7 +232,7 @@ void AVB_OF_RelayUnit::processQueuedMsg(cMessage *data_msg){
                 case OFPT_VENDOR:
                     controlPlanePacket++;
                     // TODO Add Experimenter Message Structure!
-                    handleSRP(of_msg);
+                    handleSRPFromController(of_msg);
                     msgHandled = true;
                     break;
 
@@ -235,7 +240,7 @@ void AVB_OF_RelayUnit::processQueuedMsg(cMessage *data_msg){
                 case OFPT_EXPERIMENTER:
                     controlPlanePacket++;
                     // TODO Add Experimenter Message Structure!
-                    handleSRP(of_msg);
+                    handleSRPFromController(of_msg);
                     msgHandled = true;
                     break;
 #endif

@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 //inet
-#include "inet/linklayer/ethernet/EtherMAC.h"
+#include "inet/linklayer/ethernet/EtherMACBase.h"
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
 #include "inet/transportlayer/contract/ITransportPacket.h"
@@ -90,8 +90,8 @@ void OF_RelayUnit::initialize(int stage){
         for(unsigned int i=0;i<portVector.size();i++){
             portVector[i].port_no = i+1;
             cModule *ethernetModule = gate("dataPlaneOut",i)->getNextGate()->getOwnerModule()->getSubmodule("mac");
-            if(dynamic_cast<EtherMAC *>(ethernetModule) != NULL) {
-                EtherMAC *nic = (EtherMAC *)ethernetModule;
+            if(dynamic_cast<EtherMACBase *>(ethernetModule) != NULL) {
+                EtherMACBase *nic = (EtherMACBase *)ethernetModule;
                 uint64_t tmpHw = nic->getMACAddress().getInt();
                 memcpy(portVector[i].hw_addr,&tmpHw, sizeof tmpHw);
             }

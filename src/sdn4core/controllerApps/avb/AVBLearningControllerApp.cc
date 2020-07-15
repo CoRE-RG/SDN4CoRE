@@ -118,7 +118,7 @@ void AVBLearningControllerApp::receiveSignal(cComponent* src, simsignal_t id,
 oxm_basic_match AVBLearningControllerApp::createMatchFromPacketIn(
         OFP_Packet_In* packetIn) {
     CommonHeaderFields headerFields = extractCommonHeaderFields(packetIn);
-    oxm_basic_match match = oxm_basic_match();
+    oxm_basic_match match;
     match.dl_dst = headerFields.dst_mac;
     match.dl_type = headerFields.eth_type;
     match.dl_src = headerFields.src_mac;
@@ -165,7 +165,7 @@ void AVBLearningControllerApp::doSRP(OFP_Packet_In* packet_in_msg) {
     bool updated = true;
 
     Switch_Info * swInfo = controller->findSwitchInfoFor(packet_in_msg);
-    int arrivalPort = packet_in_msg->getEncapsulatedPacket()->getArrivalGate()->getIndex();
+    int arrivalPort = packet_in_msg->getMatch().in_port;
     //get SRP Frame
     if (CoRE4INET::SRPFrame * srpFrame =
             dynamic_cast<CoRE4INET::SRPFrame *>(packet_in_msg->getEncapsulatedPacket())) {
@@ -256,7 +256,7 @@ void AVBLearningControllerApp::forwardSRPPacket(OFP_Packet_In* packet_in_msg) {
 
     CoRE4INET::SRPFrame* toSwtich = dynamic_cast<CoRE4INET::SRPFrame *>(packet->dup());
     packetOut->encapsulate(toSwtich);
-    packetOut->setIn_port(packet->getArrivalGate()->getIndex());
+    packetOut->setIn_port(packet_in_msg->getMatch().in_port);
 
     socket->send(packetOut);
 }
