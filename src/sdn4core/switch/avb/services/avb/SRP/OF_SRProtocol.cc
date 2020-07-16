@@ -51,11 +51,11 @@ void OF_SRProtocol::handleMessage(cMessage *msg)
             if (TalkerAdvertise* talkerAdvertise = dynamic_cast<TalkerAdvertise*>(msg))
             {
                 SR_CLASS srClass;
-                if (talkerAdvertise->getPriorityAndRank() == PRIOANDRANK_SRCLASSA)
+                if (talkerAdvertise->getPriorityAndRank() == this->priortyAndRankSRClassA)
                 {
                     srClass = SR_CLASS::A;
                 }
-                else if (talkerAdvertise->getPriorityAndRank() == PRIOANDRANK_SRCLASSB)
+                else if (talkerAdvertise->getPriorityAndRank() == this->priortyAndRankSRClassB)
                 {
                     srClass = SR_CLASS::B;
                 }
@@ -192,13 +192,10 @@ void OF_SRProtocol::receiveSignal(cComponent *src, simsignal_t id, cObject *obj,
             talkerAdvertise->setMaxIntervalFrames(tentry->intervalFrames);
             talkerAdvertise->setDestination_address(tentry->address);
             talkerAdvertise->setVlan_identifier(tentry->vlan_id);
-//            if (tentry->srClass == SR_CLASS::A)
-//                talkerAdvertise->setPriorityAndRank(PRIOANDRANK_SRCLASSA);
-//            if (tentry->srClass == SR_CLASS::B)
-//                talkerAdvertise->setPriorityAndRank(PRIOANDRANK_SRCLASSB);
-            // set prio and rank according to pcp and not srClass. Set rank bit to 1 (see SRPFrame).
-            talkerAdvertise->setPriorityAndRank(0x10 | (tentry->pcp << 5));
-
+            if (tentry->srClass == SR_CLASS::A)
+               talkerAdvertise->setPriorityAndRank(this->priortyAndRankSRClassA);
+           if (tentry->srClass == SR_CLASS::B)
+               talkerAdvertise->setPriorityAndRank(this->priortyAndRankSRClassB);
             ExtendedIeee802Ctrl *etherctrl = new ExtendedIeee802Ctrl();
             etherctrl->setEtherType(MSRP_ETHERTYPE);
             etherctrl->setDest(SRP_ADDRESS);
