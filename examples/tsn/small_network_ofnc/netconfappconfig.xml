@@ -1,0 +1,16 @@
+<!--
+This is an example file on how to declare remotes for an INetConfApplication.
+-->
+
+<server_connections>
+	<application client_host="controller" client_app="0">
+		<connection local_port="6123" remote_address="switch1" remote_port="830" connect_at="0.01">
+			<configure at="0.05" type="edit_config">
+			 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,o:0;C,C,C,C,C,C,C,C:0.00025"/>
+			 	<config port="1" gatecontrollist="o,o,o,o,o,o,o,o:0;C,C,C,C,C,C,C,C:0.00025"/>
+			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,o:0;C,C,C,C,C,C,C,C:0.00025"/>
+		 	</configure>
+		</connection>
+	</application>
+</server_connections>
+

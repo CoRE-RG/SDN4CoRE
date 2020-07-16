@@ -1,4 +1,4 @@
-Demonstrates a small TSN Network controlled by an OpenFlow SDN controller (only forwarding). Traffic generators send Ethernet frames directly. 
+Demonstrates a small TSN Network controlled by an OpenFlow & NetConf capable SDN controller (only forwarding). Traffic generators send Ethernet frames directly. 
 
 - The small network contains three hosts (node1, node2, node3) and a switch, which 
   connects these hosts.
@@ -13,3 +13,5 @@ Demonstrates a small TSN Network controlled by an OpenFlow SDN controller (only 
 - Switch uses IEEE 802.1 Qci per stream filtering and policing on its ports.
 
 - Controller is connected to the Switch using the OpenFlow protocol to control the forwarding.
+
+- The controller changes the configuration of the TSN egress control via NetConf at 0.05s Simtime.
