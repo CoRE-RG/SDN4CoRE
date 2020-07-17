@@ -142,6 +142,11 @@ public:
     int _hardTimeout;
 
     /**
+     * The MAC table associated with each SDN switch in the network.
+     */
+    std::map<ofp::Switch_Info *,std::map<std::string, int>> unknownMacs;
+
+    /**
      * Path to the ned module of the SRPTableManagement.
      */
     static const char SRPTABLEMANAGERMODULEPATH [];

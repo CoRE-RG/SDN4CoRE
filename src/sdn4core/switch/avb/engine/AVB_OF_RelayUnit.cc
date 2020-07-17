@@ -291,9 +291,7 @@ void AVB_OF_RelayUnit::finish() {
         for (size_t i = 0; i < _flowTables.size() ; i++){
             oss << _flowTables[i]->exportToXML();
         }
-        oss << "<srpTable>" << endl;
         oss << _srpTable->exportToXML();
-        oss << "</srpTable>" << endl;
         oss << "</switch>" << endl;
         oss << "</config>" << endl;
         cout << oss.str();

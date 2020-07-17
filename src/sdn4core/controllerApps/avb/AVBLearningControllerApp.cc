@@ -20,6 +20,7 @@
 #include "sdn4core/utility/dynamicmodules/DynamicModuleHandling.h"
 //STD
 #include <sstream>
+#include <algorithm>
 //inet
 #include "inet/common/ModuleAccess.h"
 #include "inet/linklayer/common/MACAddress.h"
@@ -150,6 +151,16 @@ void AVBLearningControllerApp::doSwitching(OFP_Packet_In* packet_in_msg) {
     //find outport or flood
     int outport = _macManager->lookup(headerFields.swInfo, headerFields.dst_mac);
     if (outport == MAC_MANAGER_OUTPORT_FLOOD) {
+        if(!headerFields.dst_mac.isBroadcast()){
+            if (unknownMacs.count(headerFields.swInfo) <= 0) {
+                unknownMacs[headerFields.swInfo] = map<string, int>();
+                unknownMacs[headerFields.swInfo][headerFields.dst_mac.str()] = headerFields.inport;
+            } else {
+                if (unknownMacs[headerFields.swInfo].count(headerFields.dst_mac.str()) <= 0) {
+                    unknownMacs[headerFields.swInfo][headerFields.dst_mac.str()] = headerFields.inport;
+                }
+            }
+        }
         floodPacket(packet_in_msg);
     } else {
         oxm_basic_match match = createMatchFromPacketIn(packet_in_msg);
@@ -264,8 +275,20 @@ void AVBLearningControllerApp::forwardSRPPacket(OFP_Packet_In* packet_in_msg) {
 void AVBLearningControllerApp::finish(){
     AbstractControllerApp::finish();
 
-    cout << stateToXML();
+    for (std::pair<Switch_Info*,map<string, int>> iter : unknownMacs){
+        cout << "Unknown Mac Addresses at Switch " << iter.first->getMacAddress() << endl;
+        for (std::pair<string, int> report : iter.second){
+            int outport = _macManager->lookup(iter.first, MACAddress(report.first.c_str()));
+            if(outport == MAC_MANAGER_OUTPORT_FLOOD) {
+                cout << "Still Unknown: ";
+            } else {
+                cout << "Discovered: Outport " << outport << ", ";
+            }
+            cout << "Inport " << to_string(report.second) << ", Dst Mac " << report.first << endl;
+        }
+    }
 
+    cout << stateToXML();
 }
 
 bool AVBLearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
@@ -327,7 +350,7 @@ std::string AVBLearningControllerApp::stateToXML() {
     ostringstream oss;
     string tab = "    ";
     oss << "<config>" << endl;
-    oss << tab << "<controllerapp type=\"RTEthernetControllerApp\">" << endl;
+    oss << tab << "<controllerapp type=\"AVBLearningControllerApp\">" << endl;
 
     //mac table
     oss << tab << tab << "<macManager>" << endl;
@@ -344,9 +367,7 @@ std::string AVBLearningControllerApp::stateToXML() {
     oss << tab << tab << "</macManager>" << endl;
 
     //srp table
-    oss << tab << tab << "<srpManager>" << endl;
     oss << _srpManager->exportToXML();
-    oss << tab << tab << "</srpManager>" << endl;
 
     oss << tab << "</controllerapp>" << endl;
     oss << "</config>" << endl;
