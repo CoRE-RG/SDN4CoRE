@@ -12,6 +12,14 @@
 /examples/IEEE8021Qbv/small_network_of,             -f omnetpp.ini -c With_Crosstraffic -r 0
 /examples/IEEE8021Qbv/small_network_ofnc,           -f omnetpp.ini -c General -r 0
 /examples/IEEE8021Qbv/small_network_ofnc,           -f omnetpp.ini -c With_Crosstraffic -r 0
+/examples/tsn/small_network_of,                     -f omnetpp.ini -c General -r 0
+/examples/tsn/small_network_of,                     -f omnetpp.ini -c With_Crosstraffic -r 0
+/examples/tsn/small_network_of,                     -f omnetpp.ini -c Without_TDMA -r 0
+/examples/tsn/small_network_of,                     -f omnetpp.ini -c With_Qci -r 0
+/examples/tsn/small_network_ofnc,                   -f omnetpp.ini -c General -r 0
+/examples/tsn/small_network_ofnc,                   -f omnetpp.ini -c With_Crosstraffic -r 0
+/examples/tsn/small_network_ofnc,                   -f omnetpp.ini -c Without_TDMA -r 0
+/examples/tsn/small_network_ofnc,                   -f omnetpp.ini -c With_Qci -r 0
 /examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c General -r 0
 /examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c test -r 0
 /examples/papers/omnetsummit2019/configanalysis,    -f omnetpp.ini -c CaseStudy -r 0
