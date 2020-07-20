@@ -52,7 +52,7 @@ void OF_RelayUnit::initialize(int stage){
 
     switch(stage){
     case INITSTAGE_LOCAL: {
-        busy = false;
+        ofBusy = false;
 
         handleParameterChange(nullptr);
 
@@ -155,7 +155,7 @@ void OF_RelayUnit::initialize(int stage){
         //schedule connection setup
        cMessage *initiateConnection = new cMessage("initiateConnection");
        initiateConnection->setKind(MSGKIND_CONNECT);
-       scheduleAt(par("connectAt"), initiateConnection);
+       scheduleAt(par("connectAt").doubleValue(), initiateConnection);
 
        //remove unused nics from ift
        IInterfaceTable* interfaceTable = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
@@ -172,69 +172,106 @@ void OF_RelayUnit::initialize(int stage){
     }
 }
 
-void OF_RelayUnit::handleMessage(cMessage *msg){
+void OF_RelayUnit::processControlPlanePacket(cMessage *msg){
+    controlPlanePacket++;
+    if (OFP_Message *of_msg = dynamic_cast<OFP_Message *>(msg)) { //msg from controller
+        switch ((ofp_type)of_msg->getHeader().type){
+            case OFPT_FEATURES_REQUEST:
+                handleFeaturesRequestMessage(of_msg);
+                break;
 
-    if (msg->isSelfMessage()){
-        handleSelfMessage(msg);
-    } else if (msg->getKind() == TCP_I_ESTABLISHED) { //fast handle for TCP Established
-            socket.processMessage(msg);
+            case OFPT_FLOW_MOD:
+                handleFlowModMessage(of_msg);
+                break;
+
+            case OFPT_PACKET_OUT:
+                handlePacketOutMessage(of_msg);
+                break;
+
+            default:
+                delete msg;
+                break;
+        }
     } else {
+        delete msg;
+    }
+}
+
+void OF_RelayUnit::processDataPlanePacket(cMessage *msg){
+    dataPlanePacket++;
+    if (EthernetIIFrame *frame = dynamic_cast<EthernetIIFrame *>(msg)) {
+        //msg from dataplane
+        processFrame(frame);
+    } else {
+        delete msg;
+    }
+}
+
+void OF_RelayUnit::scheduleNextServiceTime(){
+    //check for more waiting packets
+    if (msgList.empty()) {
+        ofBusy = false;
+    } else {
+        cMessage* msgFromList = msgList.front();
+        msgList.pop_front();
+        scheduleForServiceTime(msgFromList);
+        emit(queueSize, static_cast<unsigned int>(msgList.size()));
+        emit(bufferSize, static_cast<int>(buffer.size()));
+    }
+}
+
+void OF_RelayUnit::scheduleForServiceTime(cMessage *msg){
+    cMessage* event = new cMessage("event");
+    event->setKind(MSGKIND_SERVICETIME);
+    event->setContextPointer(msg);
+    scheduleAt(simTime() + ofServiceTime, event);
+}
+
+void OF_RelayUnit::handleMessage(cMessage *msg){
+    if (msg->isSelfMessage()){
+        if (msg->getKind() == MSGKIND_CONNECT) {
+            EV << "starting of session" << '\n';
+            connect(""); // active OPEN
+        } else if (msg->getKind() == MSGKIND_SERVICETIME) {
+            //This is message which has been scheduled due to service time
+            //Get the Original message
+            cMessage* data_msg = (cMessage*) (msg->getContextPointer());
+            emit(waitingTime,
+                    (simTime() - data_msg->getArrivalTime() - ofServiceTime));
+            delete msg;
+
+            //handle packet
+            processControlPlanePacket(data_msg);
+
+            //schedule next service time
+            scheduleNextServiceTime();
+        }
+    } else if (msg->getKind() == TCP_I_ESTABLISHED) { //fast handle for TCP Established
+        socket.processMessage(msg);
+    } else if(msg->arrivedOn("dataPlaneIn")){
+        processDataPlanePacket(msg);
+    } else if(msg->arrivedOn("controlPlaneIn")){
         simulateServiceTime(msg);
     }
 }
 
 void OF_RelayUnit::simulateServiceTime(cMessage* msg) {
     //imlement service time
-    if (busy) {
+    if(parallelProcessing || !ofBusy){
+        scheduleForServiceTime(msg);
+        ofBusy = true;
+    } else if (ofBusy) {
         msgList.push_back(msg);
-    } else {
-        if(parallelProcessing) {
-            busy = true;
-        }
-        cMessage* event = new cMessage("event");
-        event->setKind(MSGKIND_SERVICETIME);
-        event->setContextPointer(msg);
-        scheduleAt(simTime() + serviceTime, event);
+        emit(queueSize, static_cast<unsigned int>(msgList.size()));
+        emit(bufferSize, static_cast<int>(buffer.size()));
     }
-    emit(queueSize, static_cast<unsigned int>(msgList.size()));
-    emit(bufferSize, static_cast<int>(buffer.size()));
-}
-
-void OF_RelayUnit::handleSelfMessage(cMessage* msg) {
-    if (msg->getKind() == MSGKIND_CONNECT) {
-        EV << "starting session" << '\n';
-        connect(""); // active OPEN
-    } else if (msg->getKind() == MSGKIND_SERVICETIME) {
-        //This is message which has been scheduled due to service time
-        //Get the Original message
-        cMessage* data_msg = (cMessage*) (msg->getContextPointer());
-        emit(waitingTime,
-                (simTime() - data_msg->getArrivalTime() - serviceTime));
-        processQueuedMsg(data_msg);
-        //delete the processed msg
-        delete data_msg;
-        //Trigger next service time
-        if (msgList.empty()) {
-            busy = false;
-        } else {
-            cMessage* msgFromList = msgList.front();
-            msgList.pop_front();
-            cMessage* event = new cMessage("event");
-            event->setKind(MSGKIND_SERVICETIME);
-            event->setContextPointer(msgFromList);
-            scheduleAt(simTime() + serviceTime, event);
-        }
-    }
-
-    //delete the msg for efficiency
-    delete msg;
 }
 
 void OF_RelayUnit::connect(const char *addressToConnect){
     socket.renewSocket();
     const char *connectAddress;
 
-    int connectPort = par("connectPort");
+    int connectPort = par("connectPort").intValue();
 
     if(strlen(addressToConnect) == 0){
         connectAddress = par("connectAddress");
@@ -250,47 +287,6 @@ void OF_RelayUnit::connect(const char *addressToConnect){
     OFP_Hello *msg = OFMessageFactory::instance()->createHello();
 
     socket.send(msg);
-}
-
-void OF_RelayUnit::processQueuedMsg(cMessage *data_msg){
-
-     if(data_msg->arrivedOn("dataPlaneIn")){
-        dataPlanePacket++;
-        if(socket.getState() != TCPSocket::CONNECTED){
-            //not yet connected to controller
-            //drop packet by returning
-            return;
-        } else if (EthernetIIFrame *frame = dynamic_cast<EthernetIIFrame *>(data_msg)) {
-            //msg from dataplane
-            //copy the frame as the original will be deleted
-            EthernetIIFrame *copy = frame->dup();
-            processFrame(copy);
-        }
-    } else {
-        controlPlanePacket++;
-       if (dynamic_cast<OFP_Message *>(data_msg) != NULL) { //msg from controller
-            OFP_Message *of_msg = (OFP_Message *)data_msg;
-            ofp_type type = (ofp_type)of_msg->getHeader().type;
-            switch (type){
-                case OFPT_FEATURES_REQUEST:
-                    handleFeaturesRequestMessage(of_msg);
-                    break;
-
-                case OFPT_FLOW_MOD:
-                    handleFlowModMessage(of_msg);
-                    break;
-
-                case OFPT_PACKET_OUT:
-                    handlePacketOutMessage(of_msg);
-                    break;
-
-                default:
-                    break;
-                }
-        }
-
-    }
-
 }
 
 oxm_basic_match OF_RelayUnit::extractMatch(EthernetIIFrame* frame) {
@@ -413,6 +409,12 @@ void OF_RelayUnit::handleFlowModMessage(OFP_Message *of_msg){
 }
 
 void OF_RelayUnit::handleMissMatchedPacket(EthernetIIFrame *frame){
+    if(socket.getState() != TCPSocket::CONNECTED){
+        //not yet connected to controller
+        //drop packet by returning
+        return;
+    }
+
     OFP_Packet_In *packetIn;
     if (sendCompletePacket || buffer.isfull()) {
 
@@ -501,7 +503,7 @@ void OF_RelayUnit::disablePorts(vector<int> ports) {
         EV << "Port: " << i << " Value: " << portVector[i].state << '\n';
     }
 
-    if(par("highlightActivePorts")){
+    if(par("highlightActivePorts").boolValue()){
         // Highlight links that belong to spanning tree
         for (unsigned int i = 0; i < portVector.size(); ++i){
             if (!(portVector[i].state & OFPPS_BLOCKED)){
@@ -549,13 +551,13 @@ void OF_RelayUnit::finish(){
 void OF_RelayUnit::handleParameterChange(const char* parname) {
     //read ned file parameters
     if (!parname || !strcmp(parname, "serviceTime")){
-        serviceTime = par("serviceTime");
+        ofServiceTime = par("serviceTime").doubleValue();
     }
     if (!parname || !strcmp(parname, "sendCompletePacket")){
-        sendCompletePacket = par("sendCompletePacket");
+        sendCompletePacket = par("sendCompletePacket").boolValue();
     }
     if (!parname || !strcmp(parname, "parallelProcessing")){
-        parallelProcessing = par("parallelProcessing");
+        parallelProcessing = par("parallelProcessing").boolValue();
     }
 
 

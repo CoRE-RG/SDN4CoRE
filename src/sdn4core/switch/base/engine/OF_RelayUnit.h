@@ -24,8 +24,6 @@
 //inet
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 #include "inet/common/InitStages.h"
-//CoRE4INET
-#include "core4inet/services/avb/SRP/SRPTable.h"
 //openflow
 #include "openflow/openflow/switch/buffer/Buffer.h"
 #include "openflow/messages/openflowprotocol/OFP_Message.h"
@@ -55,22 +53,22 @@ protected:
      */
     double flowTimeoutPollInterval;
     /**
-     * Cached omnetpp parameter for the relay units service time in seconds
-     */
-    double serviceTime;
-    /**
      * Cached omnetpp parameter if the relay unit should forward the complete packet to the controller
      */
     bool sendCompletePacket;
     /**
-     * Cached omnetpp parameter if this switch has only a single forwarding engine per switch.
+     * Cached omnetpp parameter if this switch has only a single openflow engine per switch.
      * this will allow the switch to enter a busy status.
      */
     bool parallelProcessing;
     /**
+     * Cached omnetpp parameter for the relay units service time in seconds
+     */
+    double ofServiceTime;
+    /**
      * Indicates if the relay unit has a packet in the queue
      */
-    bool busy;
+    bool ofBusy;
 
 
     /**
@@ -125,17 +123,19 @@ protected:
     virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
     virtual void handleMessage(cMessage *msg) override;
     virtual void handleParameterChange(const char* parname) override;
-
-    /**
-     * Processes the message and controls the relay
-     * @param data_msg  the incoming message
-     */
-    virtual void processQueuedMsg(cMessage *data_msg);
     /**
      * Connects to the OpenFlow controller at the given address by sending the ofp hello message.
      * @param connectToAddress  the address of the controller
      */
     virtual void connect(const char *connectToAddress);
+    /**
+     * Processes an OpenFlow packet arriving on controlPlane interface.
+     */
+    virtual void processControlPlanePacket(omnetpp::cMessage* msg);
+    /**
+     * Processes a data frame arriving on a dataPlane interface.
+     */
+    virtual void processDataPlanePacket(omnetpp::cMessage* msg);
     /**
      * Handle the OpenFlow feature request message and creates a reply.
      * @param of_msg    the OpenFlow message
@@ -169,15 +169,18 @@ protected:
      */
     virtual void handleMissMatchedPacket(inet::EthernetIIFrame *frame);
     /**
-     * Handles the different self messages
-     * @param msg       the self message
-     */
-    virtual void handleSelfMessage(omnetpp::cMessage* msg);
-    /**
      * Similate the service time for a given message by scheduling a self message for the next processing.
      * @param msg       the message to schedule
      */
     virtual void simulateServiceTime(omnetpp::cMessage* msg);
+    /**
+     * Checks if there are messages left in the msgList and schedules the next one.
+     */
+    virtual void scheduleNextServiceTime();
+    /**
+     * Schedules a message as a servicetime message with ofServiceTime delay.
+     */
+    virtual void scheduleForServiceTime(omnetpp::cMessage* msg);
     /**
      * Extracts the information from an incoming frame to be matched against the openflow table.
      * @param frame     the frame to create a match for

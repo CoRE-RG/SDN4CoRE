@@ -45,9 +45,13 @@ module OpenFlowSwitch
         @display("i=device/switch;i2=OpenFlow-Logo-small");
 
         // Should Packet ins contain the full packet.
-        bool sendCompletePacket = default(false);
-        // service time of the relay unit
-        double serviceTime @unit("s") = default(0s);
+        bool sendCompletePacket = default(true);
+        // service time of the relay unit for openflow interactions
+        double of_service_time @unit(s) = default(0s);   
+        //hardware delay for the forwarding of packets
+        double hardware_delay @unit(s) = default(8us);
+        double egress_delay @unit(s) = default(hardware_delay/2);
+        double ingress_delay @unit(s) = default(hardware_delay/2);
         // number of flow tables in this switch
         int numFlowTables = default(1);
 
@@ -79,6 +83,11 @@ module OpenFlowSwitch
     gates:
         inout gateControlPlane @labels(ControlPlane);
         inout gateDataPlane[] @labels(DataPlane);
+
+    types:
+        channel ProcessingDelay extends ned.DelayChannel
+        {
+        }
 
     submodules:
 
@@ -118,7 +127,9 @@ module OpenFlowSwitch
 
         // OpenFlow Switching engine module
         relayUnit: <relayUnitType> like IOpenFlowRelayUnit {
-            @display("p=371,143");
+            parameters: 
+            	@display("p=371,143");
+                serviceTime = of_service_time;
             gates:
                 dataPlaneOut[sizeof(gateDataPlane)];
                 dataPlaneIn[sizeof(gateDataPlane)];
@@ -152,8 +163,8 @@ module OpenFlowSwitch
         // data plane connections
         for i=0..sizeof(gateDataPlane)-1 {
             etherMAC[i].phys <--> gateDataPlane[i];
-            etherMAC[i].upperLayerOut --> relayUnit.dataPlaneIn[i];
-            etherMAC[i].upperLayerIn <-- relayUnit.dataPlaneOut[i];
+            etherMAC[i].upperLayerOut --> ProcessingDelay {  delay = (ingress_delay); } --> relayUnit.dataPlaneIn[i];
+            etherMAC[i].upperLayerIn <-- ProcessingDelay {  delay = (egress_delay); } <-- relayUnit.dataPlaneOut[i];
         }
 
 }

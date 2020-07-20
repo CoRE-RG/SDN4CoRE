@@ -54,11 +54,11 @@ simple OF_RelayUnit like IOpenFlowRelayUnit
         
         // Modelling a realistic environment
 		double flowTimeoutPollInterval @unit("s") = default(1s);
-		double connectAt @unit("s") = default(1s);  // Simtime at which the switch connects to the controller.
-		double serviceTime @unit("s") = default(0s);		// The relay units service time, models finite processing power 
+		double connectAt @unit("s") = default(0s);  // Simtime at which the switch connects to the controller.
+		double serviceTime @unit(s) = default(0s);
 		int bufferCapacity = default(0); 	// Max. number of frames in Buffer, infinity if <= 0
 
-		bool parallelProcessing = default(true);
+		bool parallelProcessing = default(false); // only effects openflow messages
 		bool sendCompletePacket = default(true);
 		bool highlightActivePorts = default(false);
 		

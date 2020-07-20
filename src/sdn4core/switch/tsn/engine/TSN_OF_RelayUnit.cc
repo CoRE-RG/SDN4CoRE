@@ -30,14 +30,13 @@ bool TSN_OF_RelayUnit::isSRPMessage(cMessage* msg) {
     return hasEncapedSRP || AVB_OF_RelayUnit::isSRPMessage(msg);
 }
 
-void TSN_OF_RelayUnit::processQueuedMsg(cMessage *data_msg){
-
+void TSN_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
     bool msgHandled = false;
 
-    if(data_msg->arrivedOn("dataPlaneIn")){
-        if (isSRPMessage(data_msg)) {
+    if(msg->arrivedOn("dataPlaneIn")){
+        if (isSRPMessage(msg)) {
             //check for special encapsulation.
-            if(inet::EthernetIIFrame * etherframe = dynamic_cast<inet::EthernetIIFrame *>(data_msg)) {
+            if(inet::EthernetIIFrame * etherframe = dynamic_cast<inet::EthernetIIFrame *>(msg)) {
                 if (dynamic_cast<CoRE4INET::SRPFrame *>(etherframe->getEncapsulatedPacket())) {
                     CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(etherframe->decapsulate());
 
@@ -54,9 +53,8 @@ void TSN_OF_RelayUnit::processQueuedMsg(cMessage *data_msg){
 
     if(!msgHandled){
         //not handled so forward to base
-        AVB_OF_RelayUnit::processQueuedMsg(data_msg);
+        AVB_OF_RelayUnit::processDataPlanePacket(msg);
     }
-
 }
 
 void TSN_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {

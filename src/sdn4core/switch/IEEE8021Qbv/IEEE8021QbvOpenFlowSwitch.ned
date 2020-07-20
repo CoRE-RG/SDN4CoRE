@@ -37,9 +37,6 @@ module IEEE8021QbvOpenFlowSwitch extends OpenFlowSwitch
         @display("i=device/switch;i2=OpenFlow-Logo-small");
         ethDataPlaneType = default("IEEE8021QbvEthernetInterface");
 
-        // Forwardingdelay of the device hardware
-        double hardware_delay @unit(s) = default(8us);
-
         *.srpTable = default(absPath(".srpTable"));
         *.srpProtocolModule = default(absPath(".srpProtocol"));
 

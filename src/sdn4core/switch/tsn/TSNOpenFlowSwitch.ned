@@ -38,9 +38,6 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
         relayUnitType = default("TSN_OF_RelayUnit");
         ethDataPlaneType = default("TSNEthernetInterface");
 
-        // Forwardingdelay of the device hardware
-        double hardware_delay @unit(s) = default(8us);
-
         *.srpTable = default(absPath(".srpTable"));
         *.srpProtocolModule = default(absPath(".srpProtocol"));
 

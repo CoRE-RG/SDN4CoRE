@@ -36,7 +36,11 @@ class TSN_OF_RelayUnit : public AVB_OF_RelayUnit
 {
 protected:
 
-    virtual void processQueuedMsg(omnetpp::cMessage *data_msg) override;
+
+    /**
+     * Processes a data frame arriving on a dataPlane interface.
+     */
+    virtual void processDataPlanePacket(omnetpp::cMessage* msg) override;
 
     /**
      * Checks whether the given message is an SRP message.

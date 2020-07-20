@@ -144,8 +144,12 @@ void AVB_OF_RelayUnit::initialize(int stage){
 
 void AVB_OF_RelayUnit::handleMessage(cMessage *msg)
 {
-    // nothing to do here - just forward
-    OF_RelayUnit::handleMessage(msg);
+    if (msg->arrivedOn("srpIn")) {
+        handleSRPFromProtocol(msg);
+    } else {
+        // nothing to do here - just forward
+            OF_RelayUnit::handleMessage(msg);
+    }
 }
 
 void AVB_OF_RelayUnit::handleSRPFromController(cMessage* msg) {
@@ -163,9 +167,7 @@ void AVB_OF_RelayUnit::handleSRPFromController(cMessage* msg) {
             send(srpFrame, "srpOut");
 
         } else {
-            error(
-                    "SRP packet `%s' from controller received without Ieee802Ctrl",
-                    msg->getName());
+            throw cRuntimeError("SRP packet from controller received without Ieee802Ctrl");
         }
 
     }
@@ -199,63 +201,48 @@ void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
         }
 
     } else {
-        error("packet `%s' from SRP received without ExtendedIeee802Ctrl",
-                msg->getName());
+        throw cRuntimeError("Packet from SRP received without ExtendedIeee802Ctrl");
     }
 }
 
-void AVB_OF_RelayUnit::processQueuedMsg(cMessage *data_msg){
-
-    bool msgHandled = false;
-
-
-    if(data_msg->arrivedOn("dataPlaneIn")){
-        if (isSRPMessage(data_msg)) {
-            dataPlanePacket++;
-            //forward to controller
-            CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(data_msg->dup());
-            inet::Ieee802Ctrl * controlInfo = new inet::Ieee802Ctrl();
-            controlInfo->setSwitchPort(data_msg->getArrivalGate()->getIndex());
-            toController->setControlInfo(controlInfo);
-            forwardSRPtoController(toController);
-            msgHandled = true;
-        }
-    } else if (data_msg->arrivedOn("srpIn")) {
-        handleSRPFromProtocol(data_msg);
-        msgHandled = true;
+void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
+    if (isSRPMessage(msg)) {
+        dataPlanePacket++;
+        //forward to controller
+        CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(msg->dup());
+        inet::Ieee802Ctrl * controlInfo = new inet::Ieee802Ctrl();
+        controlInfo->setSwitchPort(msg->getArrivalGate()->getIndex());
+        toController->setControlInfo(controlInfo);
+        forwardSRPtoController(toController);
     } else {
-       if (dynamic_cast<OFP_Message *>(data_msg) != NULL) { //msg from controller
-            OFP_Message *of_msg = (OFP_Message *)data_msg;
-            ofp_type type = (ofp_type)of_msg->getHeader().type;
-            switch (type){
+        OF_RelayUnit::processDataPlanePacket(msg);
+    }
+}
+
+void AVB_OF_RelayUnit::processControlPlanePacket(cMessage *msg){
+    if (OFP_Message *of_msg = dynamic_cast<OFP_Message *>(msg)) { //msg from controller
+        ofp_type type = (ofp_type)of_msg->getHeader().type;
+        switch (type){
+        // TODO Add Experimenter Message Structure!
 #if OFP_VERSION_IN_USE == OFP_100
-                case OFPT_VENDOR:
-                    controlPlanePacket++;
-                    // TODO Add Experimenter Message Structure!
-                    handleSRPFromController(of_msg);
-                    msgHandled = true;
-                    break;
+        case OFPT_VENDOR:
+            controlPlanePacket++;
+            handleSRPFromController(of_msg);
+            break;
 
 #elif OFP_VERSION_IN_USE == OFP_151
-                case OFPT_EXPERIMENTER:
-                    controlPlanePacket++;
-                    // TODO Add Experimenter Message Structure!
-                    handleSRPFromController(of_msg);
-                    msgHandled = true;
-                    break;
+        case OFPT_EXPERIMENTER:
+            controlPlanePacket++;
+            handleSRPFromController(of_msg);
+            break;
 #endif
 
-                default:
-                    break;
-                }
+        default:
+            //not a special of message forward to base class.
+            OF_RelayUnit::processControlPlanePacket(msg);
+            break;
         }
     }
-
-    if(!msgHandled){
-        //not handled so forward to base
-        OF_RelayUnit::processQueuedMsg(data_msg);
-    }
-
 }
 
 ofp::oxm_basic_match AVB_OF_RelayUnit::extractMatch(

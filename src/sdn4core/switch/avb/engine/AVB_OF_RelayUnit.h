@@ -21,6 +21,8 @@
 #include <omnetpp.h>
 
 #include <sdn4core/switch/base/engine/OF_RelayUnit.h>
+//CoRE4INET
+#include "core4inet/services/avb/SRP/SRPTable.h"
 
 namespace SDN4CoRE{
 
@@ -47,7 +49,22 @@ protected:
     virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
     virtual void handleMessage(omnetpp::cMessage *msg) override;
 
-    virtual void processQueuedMsg(omnetpp::cMessage *data_msg) override;
+
+    /**
+     * Processes an OpenFlow packet arriving on controlPlane interface.
+     */
+    virtual void processControlPlanePacket(omnetpp::cMessage* msg) override;
+
+    /**
+     * Processes a data frame arriving on a dataPlane interface.
+     */
+    virtual void processDataPlanePacket(omnetpp::cMessage* msg) override;
+
+    /**
+     * Extracts the information from an incoming frame to be matched against the openflow table.
+     * @param frame     the frame to create a match for
+     * @return          the match for the frame
+     */
     virtual ofp::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame) override;
 
     /**
