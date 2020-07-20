@@ -30,13 +30,13 @@ Define_Module(NetConfDataStoreManagerIEEE8021Qbv);
 
 void NetConfDataStoreManagerIEEE8021Qbv::initializeDataStores() {
     //find number of ports
-    int numPorts = getParentModule()->getSubmodule("etherMAC",0)->getVectorSize();
+    int numPorts = getParentModule()->getParentModule()->getSubmodule("etherMAC",0)->getVectorSize();
 
     map<int, IEEE8021QbvGateControlList*> map;
 
     //find IEEE8021QbvGateControlList modules of this device
     for(int i=0; i<numPorts; i++){
-        cModule* module = getParentModule()->getSubmodule("etherMAC",i)->getSubmodule("shaper")->getSubmodule("gateControlList");
+        cModule* module = getParentModule()->getParentModule()->getSubmodule("etherMAC",i)->getSubmodule("shaper")->getSubmodule("gateControlList");
         if(module){
             if(IEEE8021QbvGateControlList* gateControlListModule = dynamic_cast<IEEE8021QbvGateControlList*>(module)){
                 map[i] = gateControlListModule;

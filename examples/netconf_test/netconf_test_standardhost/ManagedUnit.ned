@@ -1,4 +1,6 @@
 //
+// c Timo Haeckel, for HAW Hamburg
+// 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -12,42 +14,37 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
-// c Timo Haeckel, for HAW Hamburg
-// 
 
-package sdn4core.switch.IEEE8021Qbv;
+package sdn4core.examples.netconf_test.netconf_test_standardhost;
 
 import sdn4core.netconf.nodes.NetConfManagedUnit;
-import sdn4core.switch.IEEE8021Qbv.IEEE8021QbvOpenFlowSwitch;
+//INET
+import inet.node.inet.StandardHost;
 
 //
-// This module adds programmable parameters via NetConf two the original model of an OpenFlow Ethernet 
-// switch that supports IEEE 802.1Qbv priority forwarding with Time-Aware Shaping (@see~CoRE4INET::IEEE8021QbvPHYPort).
-// It forwards packets according to the flow table entries and is connected to the OpenFlow Controller.
+// An example Host for the Managed Unit using a standard inet ipv4 host.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-module IEEE8021QbvOFNCSwitch extends IEEE8021QbvOpenFlowSwitch
+module ManagedUnit extends StandardHost
 {
     parameters:
-        double nc_service_time @unit(s) = default(0s);
-        string netConfServerType = default("NetConfServerTCP");
-        string dataStoreManagerType = default("NetConfDataStoreManagerIEEE8021Qbv");
+        hasTcp = true;
+        string netConfServerType = default("");
+        string dataStoreManagerType = default("");
 
     gates:
         // no additional gates needed
 
     submodules:
-        // Netconf Server module
-        netconf : NetConfManagedUnit {
-            processingTime = nc_service_time;
+        // Netconf Client module
+        netConfServer: NetConfManagedUnit{
             netConfServerType = netConfServerType;
             dataStoreManagerType = dataStoreManagerType;
         }
-        
 
     connections:
-        netconf.transportIn <-- tcp.appOut++;
-        netconf.transportOut --> tcp.appIn++;
+        netConfServer.transportIn <-- tcp.appOut++;
+        netConfServer.transportOut --> tcp.appIn++;
 
 }

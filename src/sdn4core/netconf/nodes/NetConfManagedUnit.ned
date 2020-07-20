@@ -20,40 +20,46 @@ package sdn4core.netconf.nodes;
 import sdn4core.netconf.server.INetConfServer;
 import sdn4core.netconf.datastores.manager.INetConfDataStoreManager;
 import sdn4core.netconf.datastores.config.base.INetConfConfigDataStore;
-//INET
-import inet.node.inet.StandardHost;
 
 //
-// An example Host for the Managed Unit using a standard inet ipv4 host.
+// NetConf managed unit compound module to be included in a NetConf server host (e.g. a switch).
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-module NetConfManagedUnit extends StandardHost
+module NetConfManagedUnit
 {
     parameters:
-        hasTcp = true;
         string netConfServerType = default("");
         string dataStoreManagerType = default("");
+       	double processingTime @unit(s) = default(0s);
+        *.processingTime = processingTime;
 
     gates:
-        // no additional gates needed
+        input transportIn;
+        output transportOut;
+
+    types:
+        channel ProcessingDelay extends ned.DelayChannel
+        {
+        }
 
     submodules:
         // Netconf Client module
         netConfServer: <netConfServerType> like INetConfServer {
-            @display("p=147,219");
+            @display("p=136,70");
         }
 
         // Netconf state store modules
         dataStoreManager: <dataStoreManagerType> like INetConfDataStoreManager {
-            @display("p=149,292");
+            @display("p=234,70");
         }
-        
-        configStores[0]: <> like INetConfConfigDataStore{
+
+        configStores[0]: <> like INetConfConfigDataStore {
+            @display("p=330,70,c,50");
         }
 
     connections:
-        netConfServer.transportIn <-- tcp.appOut++;
-        netConfServer.transportOut --> tcp.appIn++;
+        netConfServer.transportIn <-- transportIn;
+        netConfServer.transportOut --> transportOut;
 
 }

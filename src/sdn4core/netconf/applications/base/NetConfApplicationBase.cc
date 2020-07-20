@@ -41,7 +41,7 @@ void NetConfApplicationBase::initialize() {
                         "client_host");
                 const char* clientAppIndex = applicationsXML[i]->getAttribute(
                         "client_app");
-                const char* realHost = getParentModule()->getFullName();
+                const char* realHost = getParentModule()->getParentModule()->getFullName();
                 if (clientAppIndex && clientAppHost
                         && (atoi(clientAppIndex) == getIndex())
                         && (strcmp(realHost, clientAppHost) == 0)) {
@@ -371,22 +371,22 @@ NetConfMessage_RPC* NetConfApplicationBase::createNetConfRPCForConfiguration(
     if (config) {
         switch (config->type) {
         case NetConfMessageType_EditConfig:
-            rpc->setName("RCP EditConfig");
+            rpc->setName("RPC EditConfig");
             rpc->encapsulate(createEditConfigOperation(config));
             break;
 
         case NetConfMessageType_GetConfig:
-            rpc->setName("RCP GetConfig");
+            rpc->setName("RPC GetConfig");
             rpc->encapsulate(createGetConfigOperation(config));
             break;
 
         case NetConfMessageType_CopyConfig:
-            rpc->setName("RCP CopyConfig");
+            rpc->setName("RPC CopyConfig");
             rpc->encapsulate(createCopyConfigOperation(config));
             break;
 
         case NetConfMessageType_DeleteConfig:
-            rpc->setName("RCP DeleteConfig");
+            rpc->setName("RPC DeleteConfig");
             rpc->encapsulate(createDeleteConfigOperation(config));
             break;
 

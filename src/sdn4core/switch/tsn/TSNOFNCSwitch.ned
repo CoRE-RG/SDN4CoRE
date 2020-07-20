@@ -16,10 +16,8 @@
 // 
 
 package sdn4core.switch.tsn;
-import sdn4core.netconf.server.INetConfServer;
-import sdn4core.netconf.datastores.manager.INetConfDataStoreManager;
 
-import sdn4core.netconf.datastores.config.base.INetConfConfigDataStore;
+import sdn4core.netconf.nodes.NetConfManagedUnit;
 
 //
 // This module adds programmable parameters via NetConf two the original model of an OpenFlow Ethernet 
@@ -31,6 +29,7 @@ import sdn4core.netconf.datastores.config.base.INetConfConfigDataStore;
 module TSNOFNCSwitch extends TSNOpenFlowSwitch
 {
     parameters:
+        double nc_service_time @unit(s) = default(0s);
         string netConfServerType = default("NetConfServerTCP");
         string dataStoreManagerType = default("NetConfDataStoreManagerIEEE8021Qbv");
 
@@ -38,22 +37,15 @@ module TSNOFNCSwitch extends TSNOpenFlowSwitch
         // no additional gates needed
 
     submodules:
-        // Netconf Client module
-        netConfServer: <netConfServerType> like INetConfServer {
-            @display("p=226,216");
-        }
-
-        // Netconf state store modules
-        dataStoreManager: <dataStoreManagerType> like INetConfDataStoreManager {
-            @display("p=226,280");
-        }
-
-        configStores[0]: <> like INetConfConfigDataStore {
-            @display("p=137,348,m,3,50,50");
+        // Netconf Server module
+        netconf : NetConfManagedUnit {
+            processingTime = nc_service_time;
+            netConfServerType = netConfServerType;
+            dataStoreManagerType = dataStoreManagerType;
         }
 
     connections:
-        netConfServer.transportIn <-- tcp.appOut++;
-        netConfServer.transportOut --> tcp.appIn++;
+        netconf.transportIn <-- tcp.appOut++;
+        netconf.transportOut --> tcp.appIn++;
 
 }

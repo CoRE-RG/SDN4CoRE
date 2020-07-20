@@ -17,9 +17,6 @@
 
 package sdn4core.examples.netconf_test.netconf_test_standardhost;
 
-import sdn4core.netconf.nodes.NetConfManagedUnit;
-import sdn4core.netconf.nodes.NetConfManagementUnit;
-
 //INET
 import inet.common.misc.ThruputMeteringChannel;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
@@ -47,11 +44,11 @@ network netconf_test_standardhost
 
         configurator: IPv4NetworkConfigurator;
         
-        managedUnit[numOfManaged]: NetConfManagedUnit {
+        managedUnit[numOfManaged]: ManagedUnit {
             @display("p=95,234,r,50");
         }
 
-        managementUnit[numOfManagers]: NetConfManagementUnit {
+        managementUnit[numOfManagers]: ManagementUnit {
             @display("p=95,68,r,50");
         }
 

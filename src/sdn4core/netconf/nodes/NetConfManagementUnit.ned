@@ -19,39 +19,42 @@ package sdn4core.netconf.nodes;
 
 import sdn4core.netconf.client.INetConfClient;
 import sdn4core.netconf.applications.INetConfApplication;
-//INET
-import inet.node.inet.StandardHost;
 
 //
-// An example Host for the Management Unit using a standard inet ipv4 host.
+// NetConf manager compound module to be included in a NetConf client host (e.g. a controller).
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-module NetConfManagementUnit extends StandardHost
+module NetConfManagementUnit
 {
     parameters:
-    	hasTcp = true;
-    	int numNetConfApps = default(0);
-    	string netConfClientType = default("");
-    
+        int numNetConfApps = default(0);
+        string netConfClientType = default("");
+
     gates:
-        // no additional gates needed
-    
+        input transportIn;
+        output transportOut;
+
+    types:
+
     submodules:
 
-		//NetConfClient applications
-		netConfApps [numNetConfApps]: <> like INetConfApplication;		        
-        
+        //NetConfClient applications
+        netConfApps[numNetConfApps]: <> like INetConfApplication {
+
+            @display("p=220,50,c,50");
+        }
         // Netconf Client module
         netConfClient: <netConfClientType> like INetConfClient {
-            
+
+            @display("p=57,50");
         }
-        
-    connections: 
-        netConfClient.transportIn <-- tcp.appOut++;
-        netConfClient.transportOut --> tcp.appIn++;
-        
-        for i=0..(numNetConfApps-1){
+
+    connections:
+        netConfClient.transportIn <-- transportIn;
+        netConfClient.transportOut --> transportOut;
+
+        for i=0..(numNetConfApps-1) {
             netConfClient.applicationIn++ <-- netConfApps[i].applicationOut;
             netConfClient.applicationOut++ --> netConfApps[i].applicationIn;
         }
