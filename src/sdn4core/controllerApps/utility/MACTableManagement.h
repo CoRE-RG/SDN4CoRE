@@ -53,7 +53,7 @@ public:
      * @param source        the source to update
      * @param in_port       the in port to update
      */
-    void update(ofp::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port);
+    void update(openflow::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port);
 
     /**
      * Lookup the output port a destination mac address at a switch.
@@ -62,14 +62,14 @@ public:
      * @return              return the port to output the packet to.
      *                      return -1 if there is no entry in the table.
      */
-    int lookup(ofp::Switch_Info* sw_info, inet::MACAddress destination);
+    int lookup(openflow::Switch_Info* sw_info, inet::MACAddress destination);
 
-    std::unordered_map<ofp::Switch_Info*, std::map<inet::MACAddress, uint32_t> >* getLookupTable() {
+    std::unordered_map<openflow::Switch_Info*, std::map<inet::MACAddress, uint32_t> >* getLookupTable() {
         return &lookupTable;
     }
 
     void setLookupTable(
-            std::unordered_map<ofp::Switch_Info*,
+            std::unordered_map<openflow::Switch_Info*,
                     std::map<inet::MACAddress, uint32_t> >& lookupTable) {
         this->lookupTable = lookupTable;
     }
@@ -78,7 +78,7 @@ private:
     /**
      * The MAC table associated with each SDN switch in the network.
      */
-    std::unordered_map<ofp::Switch_Info *,std::map<inet::MACAddress,uint32_t> > lookupTable;
+    std::unordered_map<openflow::Switch_Info *,std::map<inet::MACAddress,uint32_t> > lookupTable;
 };
 
 } /*end namespace SDN4CoRE*/

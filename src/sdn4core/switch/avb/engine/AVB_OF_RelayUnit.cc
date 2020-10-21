@@ -245,7 +245,7 @@ void AVB_OF_RelayUnit::processControlPlanePacket(cMessage *msg){
     }
 }
 
-ofp::oxm_basic_match AVB_OF_RelayUnit::extractMatch(
+openflow::oxm_basic_match AVB_OF_RelayUnit::extractMatch(
         inet::EthernetIIFrame* frame) {
 
     oxm_basic_match match = OF_RelayUnit::extractMatch(frame);

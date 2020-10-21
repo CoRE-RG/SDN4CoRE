@@ -72,7 +72,7 @@ protected:
      * @param packetIn  the OpenFlow packet in message to extract the data from
      * @return  the OpenFlow match
      */
-    virtual ofp::oxm_basic_match createMatchFromPacketIn(ofp::OFP_Packet_In* packetIn) override;
+    virtual openflow::oxm_basic_match createMatchFromPacketIn(openflow::OFP_Packet_In* packetIn) override;
 
     /**
      *
@@ -84,7 +84,7 @@ protected:
      * @param idleTimeOut   the idle timeout of the flow rule
      * @param hardTimeOut   the hard timeout of the flow rule
      */
-    virtual void sendFlowModMessage(ofp::ofp_flow_mod_command mod_com, const ofp::oxm_basic_match &match, int outport, inet::TCPSocket * socket, int idleTimeOut, int hardTimeOut) override;
+    virtual void sendFlowModMessage(openflow::ofp_flow_mod_command mod_com, const openflow::oxm_basic_match &match, int outport, inet::TCPSocket * socket, int idleTimeOut, int hardTimeOut) override;
 
     /**
      * Sends a Flow Modification message with multiple outports to the switch connected to the TCP socket using the parameter information.
@@ -95,7 +95,7 @@ protected:
      * @param idleTimeOut   the idle timeout of the flow rule
      * @param hardTimeOut   the hard timeout of the flow rule
      */
-    virtual void sendSRPFlowModMessage(ofp::ofp_flow_mod_command mod_com, const ofp::oxm_basic_match &match, std::vector<int> outports, inet::TCPSocket * socket, int idleTimeOut , int hardTimeOut) override;
+    virtual void sendSRPFlowModMessage(openflow::ofp_flow_mod_command mod_com, const openflow::oxm_basic_match &match, std::vector<int> outports, inet::TCPSocket * socket, int idleTimeOut , int hardTimeOut) override;
 
     /**
      * Creates a OpenFlow packet out message using the data of the given OpenFlow packet in message.
@@ -104,18 +104,18 @@ protected:
      * @param outport           the outport at the switch
      * @return  the OpenFlow Packet out message.
      */
-    virtual ofp::OFP_Packet_Out * createPacketOutFromPacketIn(ofp::OFP_Packet_In *packet_in_msg, uint32_t outport) override;
+    virtual openflow::OFP_Packet_Out * createPacketOutFromPacketIn(openflow::OFP_Packet_In *packet_in_msg, uint32_t outport) override;
 
     /**
      * implements the mirroring rule in a new switch and allows to insert flows on connection.
      * @param msg Incoming switch features reply
      */
-    virtual void handleNewSwitch(ofp::OFP_Message* msg);
+    virtual void handleNewSwitch(openflow::OFP_Message* msg);
     /**
      * Handle the message from a Connected NADS. And apply security counter measures.
      * @param msg
      */
-    virtual void handleNADSMessage(ofp::OFP_Packet_In* msg);
+    virtual void handleNADSMessage(openflow::OFP_Packet_In* msg);
 
     /**
      * @brief Indicates a parameter has changed.
@@ -134,7 +134,7 @@ private:
     /**
      * Checks if the Frame encapsulated in the packetIn is white listed with a flow.
      */
-    bool isWhitelisted(ofp::OFP_Packet_In* packetIn);
+    bool isWhitelisted(openflow::OFP_Packet_In* packetIn);
     void scheduleSelfMessage();
 
     /**

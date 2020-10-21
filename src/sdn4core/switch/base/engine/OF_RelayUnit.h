@@ -103,15 +103,15 @@ protected:
     /**
      * List of all connected ports
      */
-    std::vector<ofp::ofp_port> portVector;
+    std::vector<openflow::ofp_port> portVector;
     /**
      * Buffer for packets forwarded to the controller if sendCompletePacket==false
      */
-    ofp::Buffer buffer;
+    openflow::Buffer buffer;
     /**
      * The OpenFlow Flow Table containing match entries
      */
-    std::vector<ofp::OF_FlowTable*> _flowTables;
+    std::vector<openflow::OF_FlowTable*> _flowTables;
     /**
      * The TCP connection to the OpenFlow controller
      */
@@ -140,24 +140,24 @@ protected:
      * Handle the OpenFlow feature request message and creates a reply.
      * @param of_msg    the OpenFlow message
      */
-    virtual void handleFeaturesRequestMessage(ofp::OFP_Message *of_msg);
+    virtual void handleFeaturesRequestMessage(openflow::OFP_Message *of_msg);
     /**
      * Handle the OpenFlow flow mod message and initiate table modifications.
      * @param of_msg    the OpenFlow message
      */
-    virtual void handleFlowModMessage(ofp::OFP_Message *of_msg);
+    virtual void handleFlowModMessage(openflow::OFP_Message *of_msg);
     /**
      * Handle the OpenFlow packet out message by outputting the frame to the specified ports.
      * @param of_msg    the OpenFlow message
      */
-    virtual void handlePacketOutMessage(ofp::OFP_Message *of_msg);
+    virtual void handlePacketOutMessage(openflow::OFP_Message *of_msg);
     /**
      * Executes a PacketOut action(s) by sending the frame to the outports
      * @param action    the openflow output action
      * @param frame     the frame to forward
      * @param inport    the arrival port, to make sure to not flood it back to the in port.
      */
-    virtual void executePacketOutAction(ofp::ofp_action_output *action, inet::EthernetIIFrame *frame, uint32_t inport);
+    virtual void executePacketOutAction(openflow::ofp_action_output *action, inet::EthernetIIFrame *frame, uint32_t inport);
     /**
      * Processes an EthernetIIFrame by looking up a match in the table and forwarding it.
      * @param frame     the frame to process
@@ -186,7 +186,7 @@ protected:
      * @param frame     the frame to create a match for
      * @return          the match for the frame
      */
-    virtual ofp::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame);
+    virtual openflow::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame);
 
 };
 

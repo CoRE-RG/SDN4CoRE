@@ -36,7 +36,7 @@ namespace SDN4CoRE{
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class AVBLearningControllerApp : public ofp::AbstractControllerApp
+class AVBLearningControllerApp : public openflow::AbstractControllerApp
 {
 public:
     int getHardTimeout() const {
@@ -67,13 +67,13 @@ public:
      * Implements the main switching engine for best effort packets.
      * @param packet_in_msg Packet in the be switched.
      */
-    virtual void doSwitching(ofp::OFP_Packet_In *packet_in_msg);
+    virtual void doSwitching(openflow::OFP_Packet_In *packet_in_msg);
 
     /**
      * Implements how to process SRP packets.
      * @param packet_in_msg Packet with the SRP message
      */
-    void doSRP(ofp::OFP_Packet_In *packet_in_msg);
+    void doSRP(openflow::OFP_Packet_In *packet_in_msg);
 
     /**
      * Creates and sends an SRPFlowModification Message implementing a flow rule in the switch to forward AVB streams.
@@ -84,13 +84,13 @@ public:
      * @param idleTimeOut   The Idle TimeOut, default will be no timeout.
      * @param hardTimeOut   The Hard TimeOut, default will be no timeout.
      */
-    virtual void sendSRPFlowModMessage(ofp::ofp_flow_mod_command mod_com, const ofp::oxm_basic_match &match, std::vector<int> outports, inet::TCPSocket * socket, int idleTimeOut , int hardTimeOut);
+    virtual void sendSRPFlowModMessage(openflow::ofp_flow_mod_command mod_com, const openflow::oxm_basic_match &match, std::vector<int> outports, inet::TCPSocket * socket, int idleTimeOut , int hardTimeOut);
 
     /**
      * Forwards an SRP Packet to the switch to be processed.
      * @param packet_in_msg the packet in from the switch
      */
-    virtual void forwardSRPPacket(ofp::OFP_Packet_In *packet_in_msg);
+    virtual void forwardSRPPacket(openflow::OFP_Packet_In *packet_in_msg);
 
     void setHardTimeout(int hardTimeout) {
         this->_hardTimeout = hardTimeout;
@@ -106,7 +106,7 @@ public:
      * @param info  The switch to load the offline config for.
      * @return      true if a config was loaded.
      */
-    bool loadOfflineConfigFromXML(ofp::Switch_Info* info);
+    bool loadOfflineConfigFromXML(openflow::Switch_Info* info);
 
     /**
      * Exports the current state of the MAC and SRP table and creates an XML formatted string.
@@ -119,7 +119,7 @@ public:
      * @param packetIn  The packet in message to create a match for.
      * @return          The match created.
      */
-    virtual ofp::oxm_basic_match createMatchFromPacketIn(ofp::OFP_Packet_In* packetIn);
+    virtual openflow::oxm_basic_match createMatchFromPacketIn(openflow::OFP_Packet_In* packetIn);
 
     /**
      * A management module handling all SRP operations.
@@ -144,7 +144,7 @@ public:
     /**
      * The MAC table associated with each SDN switch in the network.
      */
-    std::map<ofp::Switch_Info *,std::map<std::string, int>> unknownMacs;
+    std::map<openflow::Switch_Info *,std::map<std::string, int>> unknownMacs;
 
     /**
      * Path to the ned module of the SRPTableManagement.

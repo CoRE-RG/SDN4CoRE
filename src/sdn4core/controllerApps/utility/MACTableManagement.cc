@@ -25,7 +25,7 @@ namespace SDN4CoRE{
 
 Define_Module(MACTableManagement);
 
-void MACTableManagement::update(ofp::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port) {
+void MACTableManagement::update(openflow::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port) {
     //search map for source mac address and enter
     if (lookupTable.count(sw_info) <= 0) {
         lookupTable[sw_info] = std::map<MACAddress, uint32_t>();
@@ -39,7 +39,7 @@ void MACTableManagement::update(ofp::Switch_Info* sw_info, inet::MACAddress sour
     }
 }
 
-int MACTableManagement::lookup(ofp::Switch_Info* sw_info, inet::MACAddress destination) {
+int MACTableManagement::lookup(openflow::Switch_Info* sw_info, inet::MACAddress destination) {
     long outport = MAC_MANAGER_OUTPORT_FLOOD;
     if(lookupTable.count(sw_info)>0) {
         if (lookupTable[sw_info].count(destination)>0){

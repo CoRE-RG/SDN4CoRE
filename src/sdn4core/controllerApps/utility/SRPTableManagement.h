@@ -74,7 +74,7 @@ public:
      * @param talkerAdvertise   The original talker advertise message recieved in the switch.
      * @return                  true if the talker table has been updated.
      */
-    virtual bool registerTalker(ofp::Switch_Info* swinfo, int arrivalPort,
+    virtual bool registerTalker(openflow::Switch_Info* swinfo, int arrivalPort,
             CoRE4INET::TalkerAdvertise* talkerAdvertise);
 
     /**
@@ -84,7 +84,7 @@ public:
      * @param listenerReady     The original listener ready message recieved in the switch.
      * @return                  true if the listener table has been updated.
      */
-    virtual bool registerListener(ofp::Switch_Info* swinfo, int arrivalPort,
+    virtual bool registerListener(openflow::Switch_Info* swinfo, int arrivalPort,
             CoRE4INET::ListenerReady* listenerReady);
 
     /**
@@ -95,7 +95,7 @@ public:
      * @return              SRPForwardingInfo_t containing all information to create a match.
      */
     virtual SRPForwardingInfo_t* getForwardingInfoForStreamID(
-            ofp::Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id);
+            openflow::Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id);
 
     /**
      * @brief creates an XML string with the contents of the SRP Table.
@@ -111,12 +111,12 @@ public:
      * @param xml   the xml document to import from.
      * @return  true if it was updated.
      */
-    bool importFromXML(ofp::Switch_Info* swinfo, cXMLElement* xml);
+    bool importFromXML(openflow::Switch_Info* swinfo, cXMLElement* xml);
 
     /**
      * @brief Module representing the srpTable
      */
-    std::unordered_map<ofp::Switch_Info*, CoRE4INET::SRPTable*> _srpTables;
+    std::unordered_map<openflow::Switch_Info*, CoRE4INET::SRPTable*> _srpTables;
 
 private:
     /**
@@ -124,13 +124,13 @@ private:
      * @param swinfo    The switch to create a table for.
      * @return          The table of the switch for convenience.
      */
-    CoRE4INET::SRPTable* checkOrCreateTable(ofp::Switch_Info* swinfo);
+    CoRE4INET::SRPTable* checkOrCreateTable(openflow::Switch_Info* swinfo);
     /**
      * checks if a table for the switch exists.
      * @param swinfo    The switch to check the table for.
      * @return          true if a table already exists.
      */
-    bool tableExistsForSwitch(ofp::Switch_Info* swinfo);
+    bool tableExistsForSwitch(openflow::Switch_Info* swinfo);
 
     /**
      * Path to the ned module of the SRPTable.

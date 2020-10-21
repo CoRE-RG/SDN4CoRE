@@ -75,7 +75,7 @@ bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
             talkerAdvertise->getMaxIntervalFrames(), talkerAdvertise->getVlan_identifier(), pcp, false);
 }
 
-bool SRPTableManagement::registerListener(ofp::Switch_Info* swinfo, int arrivalPort,
+bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo, int arrivalPort,
         CoRE4INET::ListenerReady* listenerReady) {
     //check if we need to create a table for this switch.
     if (!tableExistsForSwitch(swinfo)) {

@@ -65,7 +65,7 @@ protected:
      * @param frame     the frame to create a match for
      * @return          the match for the frame
      */
-    virtual ofp::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame) override;
+    virtual openflow::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame) override;
 
     /**
      * Handles an SRP message coming from the controller and forwards it to the right modules.

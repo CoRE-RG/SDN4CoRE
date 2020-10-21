@@ -27,7 +27,7 @@ import inet.node.inet.StandardHost;
 
 //
 // OpenFlow domain consisting of an OpenFlow switch and several hosts, but NO controller.
-// Previous implementation @see~ofp::Open_Flow_Domain 
+// Previous implementation @see~openflow::Open_Flow_Domain 
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
