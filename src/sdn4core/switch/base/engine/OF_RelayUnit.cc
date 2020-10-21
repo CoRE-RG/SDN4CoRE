@@ -16,18 +16,18 @@
 #include "inet/applications/pingapp/PingPayload_m.h"
 //openflow
 #include <openflow/openflow/protocol/OpenFlow.h>
-#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
-#include "openflow/messages/openflowprotocol/OFP_Message.h"
-#include "openflow/messages/openflowprotocol/OFP_Features_Reply.h"
-#include "openflow/messages/openflowprotocol/OFP_Hello.h"
-#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
-#include "openflow/messages/openflowprotocol/OFP_Packet_Out.h"
-#include "openflow/messages/openflowprotocol/OFP_Flow_Mod.h"
+#include "openflow/openflow/protocol/OFMessageFactory.h"
+#include "openflow/messages/OFP_Message.h"
+#include "openflow/messages/OFP_Features_Reply.h"
+#include "openflow/messages/OFP_Hello.h"
+#include "openflow/messages/OFP_Packet_In_m.h"
+#include "openflow/messages/OFP_Packet_Out.h"
+#include "openflow/messages/OFP_Flow_Mod_m.h"
 
 
 using namespace std;
 using namespace inet;
-using namespace ofp;
+using namespace openflow;
 
 
 namespace SDN4CoRE{

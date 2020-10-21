@@ -19,7 +19,7 @@
 #include <sdn4core/controllerApps/utility/MACTableManagement.h>
 
 using namespace inet;
-using namespace ofp;
+using namespace openflow;
 
 namespace SDN4CoRE{
 

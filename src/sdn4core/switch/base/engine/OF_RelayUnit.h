@@ -26,7 +26,7 @@
 #include "inet/common/InitStages.h"
 //openflow
 #include "openflow/openflow/switch/buffer/Buffer.h"
-#include "openflow/messages/openflowprotocol/OFP_Message.h"
+#include "openflow/messages/OFP_Message.h"
 #include "openflow/openflow/switch/flowtable/OF_FlowTable.h"
 
 namespace SDN4CoRE{

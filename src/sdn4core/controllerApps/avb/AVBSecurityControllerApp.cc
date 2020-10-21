@@ -31,14 +31,14 @@
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 #include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
 //openflow
-#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
+#include "openflow/openflow/protocol/OFMessageFactory.h"
 
 namespace SDN4CoRE {
 
 using namespace inet;
 using namespace std;
 using namespace CoRE4INET;
-using namespace ofp;
+using namespace openflow;
 
 Define_Module(AVBSecurityControllerApp);
 

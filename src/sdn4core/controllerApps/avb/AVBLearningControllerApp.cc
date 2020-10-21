@@ -34,16 +34,16 @@
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 #include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
 //openflow
-#include "openflow/messages/openflowprotocol/OFP_Flow_Mod.h"
-#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
+#include "openflow/messages/OFP_Flow_Mod_m.h"
+#include "openflow/messages/OFP_Packet_In_m.h"
 #include "openflow/openflow/controller/OF_Controller.h"
-#include "openflow/openflow/util/ofmessagefactory/OFMessageFactory.h"
+#include "openflow/openflow/protocol/OFMessageFactory.h"
 
 using namespace inet;
 using namespace CoRE4INET;
 using namespace std;
 using namespace omnetpp;
-using namespace ofp;
+using namespace openflow;
 
 namespace SDN4CoRE{
 

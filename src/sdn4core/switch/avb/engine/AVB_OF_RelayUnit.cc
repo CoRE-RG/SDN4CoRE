@@ -28,12 +28,12 @@
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 #include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
 //openflow
-#include "openflow/messages/openflowprotocol/OFP_Packet_In.h"
-#include "openflow/messages/openflowprotocol/OFP_Packet_Out.h"
+#include "openflow/messages/OFP_Packet_In_m.h"
+#include "openflow/messages/OFP_Packet_Out.h"
 
 using namespace std;
 using namespace inet;
-using namespace ofp;
+using namespace openflow;
 using namespace omnetpp;
 
 

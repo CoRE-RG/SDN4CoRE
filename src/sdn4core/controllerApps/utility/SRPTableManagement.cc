@@ -28,7 +28,7 @@
 #include "core4inet/base/avb/AVBDefs.h"
 
 using namespace std;
-using namespace ofp;
+using namespace openflow;
 using namespace CoRE4INET;
 
 namespace SDN4CoRE {
