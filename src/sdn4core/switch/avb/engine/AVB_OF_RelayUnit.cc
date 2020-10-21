@@ -29,7 +29,7 @@
 #include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
 //openflow
 #include "openflow/messages/OFP_Packet_In_m.h"
-#include "openflow/messages/OFP_Packet_Out.h"
+#include "openflow/messages/OFP_Packet_Out_m.h"
 
 using namespace std;
 using namespace inet;
@@ -60,7 +60,7 @@ void AVB_OF_RelayUnit::forwardSRPtoController(cPacket* msg) {
     packetIn->setByteLength(32);
     if (inet::Ieee802Ctrl * controlInfo = dynamic_cast<inet::Ieee802Ctrl *>(msg->getControlInfo())){
         oxm_basic_match match;
-        match.in_port = controlInfo->getSwitchPort();
+        match.OFB_IN_PORT = controlInfo->getSwitchPort();
         packetIn->setMatch(match);
     }
 
@@ -220,7 +220,7 @@ void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
 }
 
 void AVB_OF_RelayUnit::processControlPlanePacket(cMessage *msg){
-    if (OFP_Message *of_msg = dynamic_cast<OFP_Message *>(msg)) { //msg from controller
+    if (Open_Flow_Message *of_msg = dynamic_cast<Open_Flow_Message *>(msg)) { //msg from controller
         ofp_type type = (ofp_type)of_msg->getHeader().type;
         switch (type){
         // TODO Add Experimenter Message Structure!
@@ -251,11 +251,11 @@ openflow::oxm_basic_match AVB_OF_RelayUnit::extractMatch(
     oxm_basic_match match = OF_RelayUnit::extractMatch(frame);
     //extract AVB/VLAN specific information ifpresent
     //if(frame->getEtherType()==AVB_ETHERTYPE) {
-    if(match.dl_type == 0x8100){ //we have a q frame!
+    if(match.OFB_ETH_TYPE == 0x8100){ //we have a q frame!
         CoRE4INET::EthernetIIFrameWithQTag* qFrame =
             dynamic_cast<CoRE4INET::EthernetIIFrameWithQTag*>(frame);
-        match.dl_vlan = qFrame->getVID();
-        match.dl_vlan_pcp = qFrame->getPcp();
+        match.OFB_VLAN_VID = qFrame->getVID();
+        match.OFB_VLAN_PCP = qFrame->getPcp();
         //}
     }
     return match;

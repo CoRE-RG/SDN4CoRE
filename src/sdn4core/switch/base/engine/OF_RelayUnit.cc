@@ -17,11 +17,11 @@
 //openflow
 #include <openflow/openflow/protocol/OpenFlow.h>
 #include "openflow/openflow/protocol/OFMessageFactory.h"
-#include "openflow/messages/OFP_Message.h"
-#include "openflow/messages/OFP_Features_Reply.h"
-#include "openflow/messages/OFP_Hello.h"
+#include "openflow/messages/Open_Flow_Message_m.h"
+#include "openflow/messages/OFP_Features_Reply_m.h"
+#include "openflow/messages/OFP_Hello_m.h"
 #include "openflow/messages/OFP_Packet_In_m.h"
-#include "openflow/messages/OFP_Packet_Out.h"
+#include "openflow/messages/OFP_Packet_Out_m.h"
 #include "openflow/messages/OFP_Flow_Mod_m.h"
 
 
@@ -174,7 +174,7 @@ void OF_RelayUnit::initialize(int stage){
 
 void OF_RelayUnit::processControlPlanePacket(cMessage *msg){
     controlPlanePacket++;
-    if (OFP_Message *of_msg = dynamic_cast<OFP_Message *>(msg)) { //msg from controller
+    if (Open_Flow_Message *of_msg = dynamic_cast<Open_Flow_Message *>(msg)) { //msg from controller
         switch ((ofp_type)of_msg->getHeader().type){
             case OFPT_FEATURES_REQUEST:
                 handleFeaturesRequestMessage(of_msg);
@@ -293,34 +293,34 @@ oxm_basic_match OF_RelayUnit::extractMatch(EthernetIIFrame* frame) {
     oxm_basic_match match = oxm_basic_match();
 
     //extract match fields
-    match.in_port = frame->getArrivalGate()->getIndex();
-    match.dl_src = frame->getSrc();
-    match.dl_dst = frame->getDest();
-    match.dl_type = frame->getEtherType();
+    match.OFB_IN_PORT = frame->getArrivalGate()->getIndex();
+    match.OFB_ETH_SRC = frame->getSrc();
+    match.OFB_ETH_DST = frame->getDest();
+    match.OFB_ETH_TYPE = frame->getEtherType();
 
     //extract ARP specific match fields if present
     if (frame->getEtherType() == ETHERTYPE_ARP) {
         ARPPacket* arpPacket = check_and_cast<ARPPacket*>(
                 frame->getEncapsulatedPacket());
-        match.nw_proto = arpPacket->getOpcode();
-        match.nw_src = arpPacket->getSrcIPAddress();
-        match.nw_dst = arpPacket->getDestIPAddress();
+        match.OFB_IP_PROTO = arpPacket->getOpcode();
+        match.OFB_IPV4_SRC = arpPacket->getSrcIPAddress();
+        match.OFB_IPV4_DST = arpPacket->getDestIPAddress();
     }
 
     //extract IPv4 fields if present
     //if(frame->getEtherType()==IPv4Datagram) {
     if (IPv4Datagram* ipv4Datagram =
             dynamic_cast<IPv4Datagram*>(frame->getEncapsulatedPacket())) {
-        match.nw_proto = ipv4Datagram->getTransportProtocol();
-        match.nw_src = ipv4Datagram->getSourceAddress().toIPv4();
-        match.nw_dst = ipv4Datagram->getDestinationAddress().toIPv4();
+        match.OFB_IP_PROTO = ipv4Datagram->getTransportProtocol();
+        match.OFB_IPV4_SRC = ipv4Datagram->getSourceAddress().toIPv4();
+        match.OFB_IPV4_DST = ipv4Datagram->getDestinationAddress().toIPv4();
 
         //extract transport if present
         if (ITransportPacket* transport =
                 dynamic_cast<ITransportPacket*>(ipv4Datagram->getEncapsulatedPacket())) {
             // Transport packet.
-            match.tp_src = transport->getSourcePort();
-            match.tp_dst = transport->getDestinationPort();
+            match.OFB_TP_SRC = transport->getSourcePort();
+            match.OFB_TP_DST = transport->getDestinationPort();
         }
     }
 
@@ -385,7 +385,7 @@ void OF_RelayUnit::processFrame(EthernetIIFrame *frame) {
     delete frame;
 }
 
-void OF_RelayUnit::handleFeaturesRequestMessage(OFP_Message *of_msg){
+void OF_RelayUnit::handleFeaturesRequestMessage(Open_Flow_Message *of_msg){
     //prepare data
     IInterfaceTable *inet_ift = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
 
@@ -401,7 +401,7 @@ void OF_RelayUnit::handleFeaturesRequestMessage(OFP_Message *of_msg){
     socket.send(featuresReply);
 }
 
-void OF_RelayUnit::handleFlowModMessage(OFP_Message *of_msg){
+void OF_RelayUnit::handleFlowModMessage(Open_Flow_Message *of_msg){
     EV << "OFA_switch::handleFlowModMessage" << '\n';
     if(OFP_Flow_Mod *flowModMsg = dynamic_cast<OFP_Flow_Mod *> (of_msg)){
         _flowTables[flowModMsg->getTable_id()]->handleFlowMod(flowModMsg);
@@ -442,7 +442,7 @@ void OF_RelayUnit::handleMissMatchedPacket(EthernetIIFrame *frame){
     socket.send(packetIn);
 }
 
-void OF_RelayUnit::handlePacketOutMessage(OFP_Message *of_msg){
+void OF_RelayUnit::handlePacketOutMessage(Open_Flow_Message *of_msg){
     //cast message
     OFP_Packet_Out *packet_out_msg = (OFP_Packet_Out *) of_msg;
 

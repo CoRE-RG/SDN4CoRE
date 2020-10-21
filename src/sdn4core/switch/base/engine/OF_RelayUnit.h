@@ -25,8 +25,8 @@
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 #include "inet/common/InitStages.h"
 //openflow
-#include "openflow/openflow/switch/buffer/Buffer.h"
-#include "openflow/messages/OFP_Message.h"
+#include "openflow/openflow/switch/Buffer.h"
+#include "openflow/messages/Open_Flow_Message_m.h"
 #include "openflow/openflow/switch/flowtable/OF_FlowTable.h"
 
 namespace SDN4CoRE{
@@ -140,17 +140,17 @@ protected:
      * Handle the OpenFlow feature request message and creates a reply.
      * @param of_msg    the OpenFlow message
      */
-    virtual void handleFeaturesRequestMessage(openflow::OFP_Message *of_msg);
+    virtual void handleFeaturesRequestMessage(openflow::Open_Flow_Message *of_msg);
     /**
      * Handle the OpenFlow flow mod message and initiate table modifications.
      * @param of_msg    the OpenFlow message
      */
-    virtual void handleFlowModMessage(openflow::OFP_Message *of_msg);
+    virtual void handleFlowModMessage(openflow::Open_Flow_Message *of_msg);
     /**
      * Handle the OpenFlow packet out message by outputting the frame to the specified ports.
      * @param of_msg    the OpenFlow message
      */
-    virtual void handlePacketOutMessage(openflow::OFP_Message *of_msg);
+    virtual void handlePacketOutMessage(openflow::Open_Flow_Message *of_msg);
     /**
      * Executes a PacketOut action(s) by sending the frame to the outports
      * @param action    the openflow output action

@@ -109,7 +109,7 @@ void AVBLearningControllerApp::receiveSignal(cComponent* src, simsignal_t id,
             }
         }
     } else if(id == PacketFeatureReplySignalId){
-        if (OFP_Message *msg = dynamic_cast<OFP_Message *>(obj)) {
+        if (Open_Flow_Message *msg = dynamic_cast<Open_Flow_Message *>(obj)) {
             //new switch registered check if we allready got a offline config for it.
             loadOfflineConfigFromXML(controller->findSwitchInfoFor(msg));
         }
@@ -120,10 +120,10 @@ oxm_basic_match AVBLearningControllerApp::createMatchFromPacketIn(
         OFP_Packet_In* packetIn) {
     CommonHeaderFields headerFields = extractCommonHeaderFields(packetIn);
     oxm_basic_match match;
-    match.dl_dst = headerFields.dst_mac;
-    match.dl_type = headerFields.eth_type;
-    match.dl_src = headerFields.src_mac;
-    match.in_port = headerFields.inport;
+    match.OFB_ETH_DST = headerFields.dst_mac;
+    match.OFB_ETH_TYPE = headerFields.eth_type;
+    match.OFB_ETH_SRC = headerFields.src_mac;
+    match.OFB_IN_PORT = headerFields.inport;
     match.wildcards = 0;
     //TODO fix wildcards for OFP151!
 #if OFP_VERSION_IN_USE == OFP_100
@@ -176,7 +176,7 @@ void AVBLearningControllerApp::doSRP(OFP_Packet_In* packet_in_msg) {
     bool updated = true;
 
     Switch_Info * swInfo = controller->findSwitchInfoFor(packet_in_msg);
-    int arrivalPort = packet_in_msg->getMatch().in_port;
+    int arrivalPort = packet_in_msg->getMatch().OFB_IN_PORT;
     //get SRP Frame
     if (CoRE4INET::SRPFrame * srpFrame =
             dynamic_cast<CoRE4INET::SRPFrame *>(packet_in_msg->getEncapsulatedPacket())) {
@@ -196,11 +196,11 @@ void AVBLearningControllerApp::doSRP(OFP_Packet_In* packet_in_msg) {
                 SRPTableManagement::SRPForwardingInfo_t* fwd = _srpManager->getForwardingInfoForStreamID (swInfo, listenerReady->getStreamID(), listenerReady->getVlan_identifier());
                 oxm_basic_match match = oxm_basic_match();
                 // TODO implement AVB eth type.
-                match.in_port = fwd->inPort; // get talker in port.
-                match.dl_dst = fwd->dest; // set to multicast address
-                match.dl_vlan = fwd->vlanID;
-                match.dl_vlan_pcp = fwd->pcp;
-                match.dl_type = 0x8100;
+                match.OFB_IN_PORT = fwd->inPort; // get talker in port.
+                match.OFB_ETH_DST = fwd->dest; // set to multicast address
+                match.OFB_VLAN_VID = fwd->vlanID;
+                match.OFB_VLAN_PCP = fwd->pcp;
+                match.OFB_ETH_TYPE = 0x8100;
                 //TODO fix wildcards for OFP151!
                 match.wildcards = 0;
 #if OFP_VERSION_IN_USE == OFP_100
@@ -267,7 +267,7 @@ void AVBLearningControllerApp::forwardSRPPacket(OFP_Packet_In* packet_in_msg) {
 
     CoRE4INET::SRPFrame* toSwtich = dynamic_cast<CoRE4INET::SRPFrame *>(packet->dup());
     packetOut->encapsulate(toSwtich);
-    packetOut->setIn_port(packet_in_msg->getMatch().in_port);
+    packetOut->setIn_port(packet_in_msg->getMatch().OFB_IN_PORT);
 
     socket->send(packetOut);
 }

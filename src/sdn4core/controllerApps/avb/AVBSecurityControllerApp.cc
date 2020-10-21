@@ -132,7 +132,7 @@ void AVBSecurityControllerApp::receiveSignal(cComponent* src, simsignal_t id,
     if(id == PacketFeatureReplySignalId){
         //new switch is connected implement flow for NADS -> Controller, if NADS is active.
         if(_NADSPort > NADS_PORT_NONE){
-            if (OFP_Message *msg = dynamic_cast<OFP_Message *>(obj)) {
+            if (Open_Flow_Message *msg = dynamic_cast<Open_Flow_Message *>(obj)) {
                 handleNewSwitch(msg);
             }
         }
@@ -176,19 +176,19 @@ oxm_basic_match AVBSecurityControllerApp::createMatchFromPacketIn(
     if (packetIn->getBuffer_id() == OFP_NO_BUFFER){
         match.wildcards = 0;
         // we got the full packet.
-        match.in_port = packetIn->getEncapsulatedPacket()->getArrivalGate()->getIndex();
+        match.OFB_IN_PORT = packetIn->getEncapsulatedPacket()->getArrivalGate()->getIndex();
         if(EthernetIIFrame * frame = dynamic_cast<EthernetIIFrame *>(packetIn->getEncapsulatedPacket())){
 
-            match.dl_src = frame->getSrc();
-            match.dl_dst = frame->getDest();
+            match.OFB_ETH_SRC = frame->getSrc();
+            match.OFB_ETH_DST = frame->getDest();
 
             //check if the frame has Q extensions.
             if(AVBFrame * avbFrame = dynamic_cast<AVBFrame *>(frame)){
-                match.dl_vlan = avbFrame->getVID();
-                match.dl_vlan_pcp = avbFrame->getPcp();
-                match.dl_type = 0x8100;
+                match.OFB_VLAN_VID = avbFrame->getVID();
+                match.OFB_VLAN_PCP = avbFrame->getPcp();
+                match.OFB_ETH_TYPE = 0x8100;
             } else {
-                match.dl_type = frame->getEtherType();
+                match.OFB_ETH_TYPE = frame->getEtherType();
 #if OFP_VERSION_IN_USE == OFP_100
                 match.wildcards |= OFPFW_DL_VLAN;
                 match.wildcards |= OFPFW_DL_VLAN_PCP;
@@ -198,21 +198,21 @@ oxm_basic_match AVBSecurityControllerApp::createMatchFromPacketIn(
 
             if(ARPPacket *arpPacket = dynamic_cast<ARPPacket *>(frame->getEncapsulatedPacket()))
             {//ARP packet. --> frame->getEtherType() == EtherType::ETHERTYPE_ARP
-                match.nw_proto = arpPacket->getOpcode();
-                match.nw_src = arpPacket->getSrcIPAddress();
-                match.nw_dst = arpPacket->getDestIPAddress();
+                match.OFB_IP_PROTO = arpPacket->getOpcode();
+                match.OFB_IPV4_SRC = arpPacket->getSrcIPAddress();
+                match.OFB_IPV4_DST = arpPacket->getDestIPAddress();
                 match.wildcards |= OFPFW_TP_SRC;
                 match.wildcards |= OFPFW_TP_DST;
             }
             else if(IPv4Datagram * ipv4Datagram = dynamic_cast<IPv4Datagram *>(frame->getEncapsulatedPacket()))
             {//IPv4 --> frame->getEtherType() == EtherType::ETHERTYPE_IPv4
-                match.nw_proto = ipv4Datagram->getTransportProtocol();
-                match.nw_src = ipv4Datagram->getSourceAddress().toIPv4();
-                match.nw_dst = ipv4Datagram->getDestinationAddress().toIPv4();
+                match.OFB_IP_PROTO = ipv4Datagram->getTransportProtocol();
+                match.OFB_IPV4_SRC = ipv4Datagram->getSourceAddress().toIPv4();
+                match.OFB_IPV4_DST = ipv4Datagram->getDestinationAddress().toIPv4();
                 if(ITransportPacket * transport = dynamic_cast<ITransportPacket *>(ipv4Datagram->getEncapsulatedPacket()))
                 {// Transport packet.
-                    match.tp_src = transport->getSourcePort();
-                    match.tp_dst = transport->getDestinationPort();
+                    match.OFB_TP_SRC = transport->getSourcePort();
+                    match.OFB_TP_DST = transport->getDestinationPort();
                 }
                 else
                 {
@@ -238,7 +238,7 @@ oxm_basic_match AVBSecurityControllerApp::createMatchFromPacketIn(
 }
 
 void AVBSecurityControllerApp::sendFlowModMessage(ofp_flow_mod_command mod_com,
-        const oxm_basic_match& match, int outport, inet::TCPSocket* socket,
+        const oxm_basic_match& match, uint32_t outport, inet::TCPSocket* socket,
         int idleTimeOut, int hardTimeOut) {
     EV << "sendFlowModMessage" << '\n';
     numFlowMod++;
@@ -246,7 +246,7 @@ void AVBSecurityControllerApp::sendFlowModMessage(ofp_flow_mod_command mod_com,
     std::vector<int> outports;
     outports.push_back(outport);
 
-    if(match.in_port != _NADSPort && ((uint32_t)outport) != OFPP_CONTROLLER) {
+    if(match.OFB_IN_PORT != _NADSPort && ((uint32_t)outport) != OFPP_CONTROLLER) {
         checkOrAddNADSPort(&outports);
     }
 
@@ -265,7 +265,7 @@ void AVBSecurityControllerApp::sendSRPFlowModMessage(ofp_flow_mod_command mod_co
     EV << "sendFlowModMessage" << '\n';
     numFlowMod++;
 
-    if(match.in_port != _NADSPort) {
+    if(match.OFB_IN_PORT != _NADSPort) {
         checkOrAddNADSPort(&outports);
     }
 
@@ -308,17 +308,17 @@ OFP_Packet_Out * AVBSecurityControllerApp::createPacketOutFromPacketIn(OFP_Packe
             throw cRuntimeError("RTSecurityControllerApp::createPacketOutFromPacketIn: OFP_NO_BUFFER was set but no frame was provided in packet in");
         }
     } else {
-        packetOut = OFMessageFactory::instance()->createPacketOut(out, outports.size(), packet_in_msg->getMatch().in_port, packet_in_msg->getBuffer_id());
+        packetOut = OFMessageFactory::instance()->createPacketOut(out, outports.size(), packet_in_msg->getMatch().OFB_IN_PORT, packet_in_msg->getBuffer_id());
     }
 
     return packetOut;
 }
 
-void AVBSecurityControllerApp::handleNewSwitch(OFP_Message* msg) {
+void AVBSecurityControllerApp::handleNewSwitch(Open_Flow_Message* msg) {
     // create ofp match
     oxm_basic_match match;
-    match.in_port = _NADSPort;
-    match.dl_dst = _controllerMAC;
+    match.OFB_IN_PORT = _NADSPort;
+    match.OFB_ETH_DST = _controllerMAC;
     match.wildcards = 0;
             //TODO fix wildcards for OFP151!
 #if OFP_VERSION_IN_USE == OFP_100
@@ -375,14 +375,14 @@ void AVBSecurityControllerApp::handleNADSMessage(OFP_Packet_In* msg) {
     oxm_basic_match match = oxm_basic_match();
     match.wildcards = 0;
 
-    match.dl_type = 2048;
-    match.dl_dst = MACAddress("0A-00-00-00-00-03");
-    match.dl_src = MACAddress("0A-00-00-00-00-10");
-    match.nw_proto = 17;
-    match.nw_src = IPv4Address("192.168.0.1");
-    match.nw_dst = IPv4Address("192.168.0.13");
-    match.tp_src = 6666;
-    match.tp_dst = 6666;
+    match.OFB_ETH_TYPE = 2048;
+    match.OFB_ETH_DST = MACAddress("0A-00-00-00-00-03");
+    match.OFB_ETH_SRC = MACAddress("0A-00-00-00-00-10");
+    match.OFB_IP_PROTO = 17;
+    match.OFB_IPV4_SRC = IPv4Address("192.168.0.1");
+    match.OFB_IPV4_DST = IPv4Address("192.168.0.13");
+    match.OFB_TP_SRC = 6666;
+    match.OFB_TP_DST = 6666;
 
     match.wildcards |= OFPFW_IN_PORT;
     match.wildcards |= OFPFW_DL_VLAN;
