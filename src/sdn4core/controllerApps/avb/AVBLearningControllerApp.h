@@ -119,7 +119,7 @@ public:
      * @param packetIn  The packet in message to create a match for.
      * @return          The match created.
      */
-    virtual openflow::oxm_basic_match createMatchFromPacketIn(openflow::OFP_Packet_In* packetIn);
+    virtual openflow::oxm_basic_match& createMatchFromPacketIn(openflow::OFP_Packet_In* packetIn);
 
     /**
      * A management module handling all SRP operations.

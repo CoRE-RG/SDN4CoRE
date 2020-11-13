@@ -72,7 +72,7 @@ protected:
      * @param packetIn  the OpenFlow packet in message to extract the data from
      * @return  the OpenFlow match
      */
-    virtual openflow::oxm_basic_match createMatchFromPacketIn(openflow::OFP_Packet_In* packetIn) override;
+    virtual openflow::oxm_basic_match& createMatchFromPacketIn(openflow::OFP_Packet_In* packetIn) override;
 
     /**
      *

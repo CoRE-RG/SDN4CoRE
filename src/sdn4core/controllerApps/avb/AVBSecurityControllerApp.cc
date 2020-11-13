@@ -32,6 +32,7 @@
 #include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
 //openflow
 #include "openflow/openflow/protocol/OFMessageFactory.h"
+#include "openflow/openflow/protocol/OFMatchFactory.h"
 
 namespace SDN4CoRE {
 
@@ -170,65 +171,63 @@ void AVBSecurityControllerApp::refreshDisplay() const {
     }
 }
 
-oxm_basic_match AVBSecurityControllerApp::createMatchFromPacketIn(
+oxm_basic_match& AVBSecurityControllerApp::createMatchFromPacketIn(
         OFP_Packet_In* packetIn) {
-    oxm_basic_match match = oxm_basic_match();
+    oxm_basic_match match;
     if (packetIn->getBuffer_id() == OFP_NO_BUFFER){
-        match.wildcards = 0;
+        auto builder = OFMatchFactory::getBuilder();
         // we got the full packet.
-        match.OFB_IN_PORT = packetIn->getEncapsulatedPacket()->getArrivalGate()->getIndex();
+        uint16_t in_port = packetIn->getEncapsulatedPacket()->getArrivalGate()->getIndex();
+        builder->setField(OFPXMT_OFB_IN_PORT, &in_port);
         if(EthernetIIFrame * frame = dynamic_cast<EthernetIIFrame *>(packetIn->getEncapsulatedPacket())){
 
-            match.OFB_ETH_SRC = frame->getSrc();
-            match.OFB_ETH_DST = frame->getDest();
+            auto mac_src = frame->getSrc();
+            builder->setField(OFPXMT_OFB_ETH_SRC, &mac_src);
+            auto mac_dest = frame->getDest();
+            builder->setField(OFPXMT_OFB_ETH_DST, &mac_dest);
 
             //check if the frame has Q extensions.
             if(AVBFrame * avbFrame = dynamic_cast<AVBFrame *>(frame)){
-                match.OFB_VLAN_VID = avbFrame->getVID();
-                match.OFB_VLAN_PCP = avbFrame->getPcp();
-                match.OFB_ETH_TYPE = 0x8100;
+                uint16_t avb_type = 0x8100;
+                builder->setField(OFPXMT_OFB_ETH_TYPE, &avb_type);
+                auto vlan_vid = avbFrame->getVID();
+                builder->setField(OFPXMT_OFB_VLAN_VID, &vlan_vid);
+                auto vlan_pcp = avbFrame->getPcp();
+                builder->setField(OFPXMT_OFB_VLAN_PCP, &vlan_pcp);
             } else {
-                match.OFB_ETH_TYPE = frame->getEtherType();
-#if OFP_VERSION_IN_USE == OFP_100
-                match.wildcards |= OFPFW_DL_VLAN;
-                match.wildcards |= OFPFW_DL_VLAN_PCP;
-#endif
+                uint16_t eth_type = frame->getEtherType();
+                builder->setField(OFPXMT_OFB_ETH_TYPE, &eth_type);
             }
 
 
             if(ARPPacket *arpPacket = dynamic_cast<ARPPacket *>(frame->getEncapsulatedPacket()))
             {//ARP packet. --> frame->getEtherType() == EtherType::ETHERTYPE_ARP
-                match.OFB_IP_PROTO = arpPacket->getOpcode();
-                match.OFB_IPV4_SRC = arpPacket->getSrcIPAddress();
-                match.OFB_IPV4_DST = arpPacket->getDestIPAddress();
-                match.wildcards |= OFPFW_TP_SRC;
-                match.wildcards |= OFPFW_TP_DST;
+                //TODO fix --> no rules for arp!
+                uint8_t iproto = arpPacket->getOpcode();
+                builder->setField(OFPXMT_OFB_IP_PROTO, &iproto);
+                auto ip_src = arpPacket->getSrcIPAddress();
+                builder->setField(OFPXMT_OFB_IPV4_SRC, &ip_src);
+                auto ip_dst = arpPacket->getDestIPAddress();
+                builder->setField(OFPXMT_OFB_IPV4_SRC, &ip_dst);
             }
             else if(IPv4Datagram * ipv4Datagram = dynamic_cast<IPv4Datagram *>(frame->getEncapsulatedPacket()))
             {//IPv4 --> frame->getEtherType() == EtherType::ETHERTYPE_IPv4
-                match.OFB_IP_PROTO = ipv4Datagram->getTransportProtocol();
-                match.OFB_IPV4_SRC = ipv4Datagram->getSourceAddress().toIPv4();
-                match.OFB_IPV4_DST = ipv4Datagram->getDestinationAddress().toIPv4();
+                uint8_t iproto = ipv4Datagram->getTransportProtocol();
+                builder->setField(OFPXMT_OFB_IP_PROTO, &iproto);
+                auto ip_src = ipv4Datagram->getSourceAddress().toIPv4();
+                builder->setField(OFPXMT_OFB_IPV4_SRC, &ip_src);
+                auto ip_dst = ipv4Datagram->getSourceAddress().toIPv4();
+                builder->setField(OFPXMT_OFB_IPV4_SRC, &ip_dst);
                 if(ITransportPacket * transport = dynamic_cast<ITransportPacket *>(ipv4Datagram->getEncapsulatedPacket()))
                 {// Transport packet.
-                    match.OFB_TP_SRC = transport->getSourcePort();
-                    match.OFB_TP_DST = transport->getDestinationPort();
+                    auto tp_src = transport->getSourcePort();
+                    builder->setField(OFPXMT_OFB_TCP_SRC, &tp_src);
+                    auto tp_dst = transport->getDestinationPort();
+                    builder->setField(OFPXMT_OFB_TCP_DST, &tp_dst);
                 }
-                else
-                {
-                    match.wildcards |= OFPFW_TP_SRC;
-                    match.wildcards |= OFPFW_TP_DST;
-                }
-            }
-            else
-            {//other.
-                match.wildcards |= OFPFW_NW_PROTO;
-                match.wildcards |= OFPFW_NW_SRC_ALL;
-                match.wildcards |= OFPFW_NW_DST_ALL;
-                match.wildcards |= OFPFW_TP_SRC;
-                match.wildcards |= OFPFW_TP_DST;
             }
         }
+        match = builder->build();
     } else{
         // we only have match so copy it.
         match = packetIn->getMatch();
@@ -316,24 +315,11 @@ OFP_Packet_Out * AVBSecurityControllerApp::createPacketOutFromPacketIn(OFP_Packe
 
 void AVBSecurityControllerApp::handleNewSwitch(Open_Flow_Message* msg) {
     // create ofp match
-    oxm_basic_match match;
-    match.OFB_IN_PORT = _NADSPort;
-    match.OFB_ETH_DST = _controllerMAC;
-    match.wildcards = 0;
-            //TODO fix wildcards for OFP151!
-#if OFP_VERSION_IN_USE == OFP_100
-//    match.wildcards |= OFPFW_IN_PORT;
-    match.wildcards |= OFPFW_DL_TYPE;
-    match.wildcards |= OFPFW_DL_SRC;
-//    match.wildcards |= OFPFW_DL_DST;
-    match.wildcards |= OFPFW_DL_VLAN;
-    match.wildcards |=  OFPFW_DL_VLAN_PCP;
-    match.wildcards |= OFPFW_NW_PROTO;
-    match.wildcards |= OFPFW_NW_SRC_ALL;
-    match.wildcards |= OFPFW_NW_DST_ALL;
-    match.wildcards |= OFPFW_TP_SRC;
-    match.wildcards |= OFPFW_TP_DST;
-#endif
+    auto builder = OFMatchFactory::getBuilder();
+    builder->setField(OFPXMT_OFB_ETH_DST, &_controllerMAC);
+    builder->setField(OFPXMT_OFB_IN_PORT, &_NADSPort);
+    oxm_basic_match match = builder->build();
+
     // find TCP socket.
     TCPSocket * socket = controller->findSocketFor(msg);
 
@@ -372,21 +358,26 @@ void AVBSecurityControllerApp::handleNADSMessage(OFP_Packet_In* msg) {
     //stats
     TCPSocket * socket = controller->findSocketFor(msg);
     numFlowMod++;
-    oxm_basic_match match = oxm_basic_match();
-    match.wildcards = 0;
 
-    match.OFB_ETH_TYPE = 2048;
-    match.OFB_ETH_DST = MACAddress("0A-00-00-00-00-03");
-    match.OFB_ETH_SRC = MACAddress("0A-00-00-00-00-10");
-    match.OFB_IP_PROTO = 17;
-    match.OFB_IPV4_SRC = IPv4Address("192.168.0.1");
-    match.OFB_IPV4_DST = IPv4Address("192.168.0.13");
-    match.OFB_TP_SRC = 6666;
-    match.OFB_TP_DST = 6666;
+    auto eth_type = 2048;
+    auto dst_mac = MACAddress("0A-00-00-00-00-03");
+    auto src_mac = MACAddress("0A-00-00-00-00-10");
+    auto ip_proto = 17;
+    auto ip_src = IPv4Address("192.168.0.1");
+    auto ip_dst = IPv4Address("192.168.0.13");
+    auto tp_src = 6666;
+    auto tp_dst = 6666;
 
-    match.wildcards |= OFPFW_IN_PORT;
-    match.wildcards |= OFPFW_DL_VLAN;
-    match.wildcards |=  OFPFW_DL_VLAN_PCP;
+    auto builder = OFMatchFactory::getBuilder();
+    builder->setField(OFPXMT_OFB_ETH_DST, &dst_mac);
+    builder->setField(OFPXMT_OFB_ETH_TYPE, &eth_type);
+    builder->setField(OFPXMT_OFB_ETH_SRC, &src_mac);
+    builder->setField(OFPXMT_OFB_IP_PROTO, &ip_proto);
+    builder->setField(OFPXMT_OFB_IPV4_SRC, &ip_src);
+    builder->setField(OFPXMT_OFB_IPV4_SRC, &ip_dst);
+    builder->setField(OFPXMT_OFB_TCP_SRC, &tp_src);
+    builder->setField(OFPXMT_OFB_TCP_DST, &tp_dst);
+    oxm_basic_match match = builder->build();
 
     //create message and deliver
     OFP_Flow_Mod* flow_mod_msg = OFMessageFactory::instance()->createFlowModMessage(OFPFC_DELETE, match, 0, NULL, 0, 0, 0);

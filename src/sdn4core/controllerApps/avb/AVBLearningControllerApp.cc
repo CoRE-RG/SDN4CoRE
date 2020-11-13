@@ -38,6 +38,7 @@
 #include "openflow/messages/OFP_Packet_In_m.h"
 #include "openflow/openflow/controller/OF_Controller.h"
 #include "openflow/openflow/protocol/OFMessageFactory.h"
+#include "openflow/openflow/protocol/OFMatchFactory.h"
 
 using namespace inet;
 using namespace CoRE4INET;
@@ -116,29 +117,17 @@ void AVBLearningControllerApp::receiveSignal(cComponent* src, simsignal_t id,
     }
 }
 
-oxm_basic_match AVBLearningControllerApp::createMatchFromPacketIn(
+oxm_basic_match& AVBLearningControllerApp::createMatchFromPacketIn(
         OFP_Packet_In* packetIn) {
     CommonHeaderFields headerFields = extractCommonHeaderFields(packetIn);
-    oxm_basic_match match;
-    match.OFB_ETH_DST = headerFields.dst_mac;
-    match.OFB_ETH_TYPE = headerFields.eth_type;
-    match.OFB_ETH_SRC = headerFields.src_mac;
-    match.OFB_IN_PORT = headerFields.inport;
-    match.wildcards = 0;
-    //TODO fix wildcards for OFP151!
-#if OFP_VERSION_IN_USE == OFP_100
-    //        match.wildcards |= OFPFW_IN_PORT;
-    //        match.wildcards |= OFPFW_DL_TYPE;
-    //        match.wildcards |= OFPFW_DL_SRC;
-    //        match.wildcards |= OFPFW_DL_DST;
-    match.wildcards |= OFPFW_DL_VLAN;
-    match.wildcards |= OFPFW_DL_VLAN_PCP;
-    match.wildcards |= OFPFW_NW_PROTO;
-    match.wildcards |= OFPFW_NW_SRC_ALL;
-    match.wildcards |= OFPFW_NW_DST_ALL;
-    match.wildcards |= OFPFW_TP_SRC;
-    match.wildcards |= OFPFW_TP_DST;
-#endif
+
+    auto builder = OFMatchFactory::getBuilder();
+    builder->setField(OFPXMT_OFB_ETH_DST, &headerFields.dst_mac);
+    builder->setField(OFPXMT_OFB_ETH_TYPE, &headerFields.eth_type);
+    builder->setField(OFPXMT_OFB_ETH_SRC, &headerFields.src_mac);
+    builder->setField(OFPXMT_OFB_IN_PORT, &headerFields.inport);
+    oxm_basic_match match = builder->build();
+
     return match;
 }
 
@@ -194,29 +183,15 @@ void AVBLearningControllerApp::doSRP(OFP_Packet_In* packet_in_msg) {
             if (updated) {
 
                 SRPTableManagement::SRPForwardingInfo_t* fwd = _srpManager->getForwardingInfoForStreamID (swInfo, listenerReady->getStreamID(), listenerReady->getVlan_identifier());
-                oxm_basic_match match = oxm_basic_match();
-                // TODO implement AVB eth type.
-                match.OFB_IN_PORT = fwd->inPort; // get talker in port.
-                match.OFB_ETH_DST = fwd->dest; // set to multicast address
-                match.OFB_VLAN_VID = fwd->vlanID;
-                match.OFB_VLAN_PCP = fwd->pcp;
-                match.OFB_ETH_TYPE = 0x8100;
-                //TODO fix wildcards for OFP151!
-                match.wildcards = 0;
-#if OFP_VERSION_IN_USE == OFP_100
-//                match.wildcards |= OFPFW_IN_PORT;
-//                match.wildcards |= OFPFW_DL_TYPE;
-                match.wildcards |= OFPFW_DL_SRC;
-//                match.wildcards |= OFPFW_DL_DST;
-//                match.wildcards |= OFPFW_DL_VLAN;
-//                match.wildcards |=  OFPFW_DL_VLAN_PCP;
-                match.wildcards |= OFPFW_NW_PROTO;
-                match.wildcards |= OFPFW_NW_SRC_ALL;
-                match.wildcards |= OFPFW_NW_DST_ALL;
-                match.wildcards |= OFPFW_TP_SRC;
-                match.wildcards |= OFPFW_TP_DST;
-//                match.wildcards |= OFPFW_DL_AVBSID;
-#endif
+
+                auto builder = OFMatchFactory::getBuilder();
+                builder->setField(OFPXMT_OFB_IN_PORT, &fwd->inPort);
+                builder->setField(OFPXMT_OFB_ETH_DST, &fwd->dest);
+                uint16_t avb_type = 0x8100;
+                builder->setField(OFPXMT_OFB_ETH_TYPE, &avb_type);
+                builder->setField(OFPXMT_OFB_VLAN_VID, &fwd->vlanID);
+                builder->setField(OFPXMT_OFB_VLAN_PCP, &fwd->pcp);
+                oxm_basic_match match = builder->build();
 
                 TCPSocket * socket = controller->findSocketFor(packet_in_msg);
                 sendSRPFlowModMessage(OFPFC_ADD, match, fwd->outports, socket, _idleTimeout, _hardTimeout);
