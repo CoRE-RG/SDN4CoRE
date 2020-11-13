@@ -189,12 +189,10 @@ void OF_RelayUnit::processControlPlanePacket(cMessage *msg){
                 break;
 
             default:
-                delete msg;
                 break;
         }
-    } else {
-        delete msg;
     }
+    delete msg;
 }
 
 void OF_RelayUnit::processDataPlanePacket(cMessage *msg){
@@ -456,13 +454,12 @@ void OF_RelayUnit::handlePacketOutMessage(Open_Flow_Message *of_msg){
     if(bufferId != OFP_NO_BUFFER){
         frame = buffer.returnMessage(bufferId);
     } else {
-        frame = dynamic_cast<EthernetIIFrame *>(packet_out_msg->getEncapsulatedPacket());
-        frame = frame->dup();
+        frame = dynamic_cast<EthernetIIFrame *>(packet_out_msg->decapsulate());
     }
 
     //execute
     for (unsigned int i = 0; i < actions_size; ++i){
-        executePacketOutAction(&(packet_out_msg->getActions(i)), frame, inPort);
+        executePacketOutAction(&(packet_out_msg->getActions(i)), frame->dup(), inPort);
     }
     delete frame;
 }

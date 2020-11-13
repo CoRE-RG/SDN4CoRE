@@ -25,7 +25,7 @@ import inet.transportlayer.contract.ITCP;
 import inet.common.lifecycle.NodeStatus;
 //OPENFLOW
 import openflow.openflow.switch.flowtable.IOpenFlowFlowTable;
-import openflow.openflow.switch.engine.IOpenFlowRelayUnit;
+import openflow.openflow.switch.IOpenFlowRelayUnit;
 
 //
 // Model of an OpenFlow Ethernet switch.
