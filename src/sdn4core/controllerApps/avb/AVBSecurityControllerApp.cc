@@ -171,7 +171,7 @@ void AVBSecurityControllerApp::refreshDisplay() const {
     }
 }
 
-oxm_basic_match& AVBSecurityControllerApp::createMatchFromPacketIn(
+oxm_basic_match AVBSecurityControllerApp::createMatchFromPacketIn(
         OFP_Packet_In* packetIn) {
     oxm_basic_match match;
     if (packetIn->getBuffer_id() == OFP_NO_BUFFER){

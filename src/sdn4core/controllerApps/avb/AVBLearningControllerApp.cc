@@ -117,7 +117,7 @@ void AVBLearningControllerApp::receiveSignal(cComponent* src, simsignal_t id,
     }
 }
 
-oxm_basic_match& AVBLearningControllerApp::createMatchFromPacketIn(
+oxm_basic_match AVBLearningControllerApp::createMatchFromPacketIn(
         OFP_Packet_In* packetIn) {
     CommonHeaderFields headerFields = extractCommonHeaderFields(packetIn);
 
