@@ -176,6 +176,10 @@ void OF_RelayUnit::processControlPlanePacket(cMessage *msg){
     controlPlanePacket++;
     if (Open_Flow_Message *of_msg = dynamic_cast<Open_Flow_Message *>(msg)) { //msg from controller
         switch ((ofp_type)of_msg->getHeader().type){
+            case OFPT_HELLO:
+                this->hasController = true;
+                break;
+
             case OFPT_FEATURES_REQUEST:
                 handleFeaturesRequestMessage(of_msg);
                 break;
@@ -189,6 +193,7 @@ void OF_RelayUnit::processControlPlanePacket(cMessage *msg){
                 break;
 
             default:
+                //TODO Process openflow Hello...?
                 break;
         }
     }
@@ -236,7 +241,6 @@ void OF_RelayUnit::handleMessage(cMessage *msg){
             cMessage* data_msg = (cMessage*) (msg->getContextPointer());
             emit(waitingTime,
                     (simTime() - data_msg->getArrivalTime() - ofServiceTime));
-            delete msg;
 
             //handle packet
             processControlPlanePacket(data_msg);
@@ -244,6 +248,7 @@ void OF_RelayUnit::handleMessage(cMessage *msg){
             //schedule next service time
             scheduleNextServiceTime();
         }
+        delete msg;
     } else if (msg->getKind() == TCP_I_ESTABLISHED) { //fast handle for TCP Established
         socket.processMessage(msg);
     } else if(msg->arrivedOn("dataPlaneIn")){
@@ -407,7 +412,7 @@ void OF_RelayUnit::handleFlowModMessage(Open_Flow_Message *of_msg){
 }
 
 void OF_RelayUnit::handleMissMatchedPacket(EthernetIIFrame *frame){
-    if(socket.getState() != TCPSocket::CONNECTED){
+    if(socket.getState() != TCPSocket::CONNECTED || !this->hasController){
         //not yet connected to controller
         //drop packet by returning
         return;
@@ -426,14 +431,14 @@ void OF_RelayUnit::handleMissMatchedPacket(EthernetIIFrame *frame){
 
     } else {
 
+        auto buffer_id = buffer.storeMessage(frame->dup());
 #if OFP_VERSION_IN_USE == OFP_100
         packetIn = OFMessageFactory::instance()->createPacketIn(OFPR_NO_MATCH,
-                frame, buffer.storeMessage(frame), false);
+                frame, buffer_id, false);
 #elif OFP_VERSION_IN_USE == OFP_151
         packetIn = OFMessageFactory::instance()->createPacketIn(
-                OFPR_TABLE_MISS, frame, buffer.storeMessage(frame), false);
+                OFPR_TABLE_MISS, frame, buffer_id, false);
 #endif
-
     }
 
 
@@ -459,7 +464,7 @@ void OF_RelayUnit::handlePacketOutMessage(Open_Flow_Message *of_msg){
 
     //execute
     for (unsigned int i = 0; i < actions_size; ++i){
-        executePacketOutAction(&(packet_out_msg->getActions(i)), frame->dup(), inPort);
+        executePacketOutAction(&(packet_out_msg->getActions(i)), frame, inPort);
     }
     delete frame;
 }

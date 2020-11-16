@@ -117,6 +117,11 @@ protected:
      */
     inet::TCPSocket socket;
 
+    /**
+     * Indicates if the hello handshake has been finished with the SDN Controller.
+     */
+    bool hasController = false;
+
 protected:
     //omnetpp module funcitons
     virtual void initialize(int stage) override;
