@@ -46,6 +46,7 @@ void TSN_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
                     forwardSRPtoController(toController);
                     dataPlanePacket++;
                     msgHandled = true;
+                    delete msg; //= etherframe
                 }
             }
         }
@@ -84,8 +85,6 @@ void TSN_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
         frame->setEtherType(MSRP_ETHERTYPE);
         frame->encapsulate(srp->dup());
 
-        delete etherctrl;
-
         if (frame->getByteLength() < MIN_ETHERNET_FRAME_BYTES){
             frame->setByteLength(MIN_ETHERNET_FRAME_BYTES);
         }
@@ -108,6 +107,8 @@ void TSN_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
         }
 
         delete frame;
+        delete msg; // == srp
+        delete etherctrl;
 
     } else {
         cRuntimeError("packet `%s' from SRP received without ExtendedIeee802Ctrl",

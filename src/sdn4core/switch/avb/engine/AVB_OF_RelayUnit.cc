@@ -171,6 +171,7 @@ void AVB_OF_RelayUnit::handleSRPFromController(cMessage* msg) {
         }
 
     }
+    delete msg;
 }
 
 void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
@@ -190,19 +191,21 @@ void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
                     send(copy, "dataPlaneOut", i);
                 }
             }
-            delete etherctrl;
         } else //check for srp message type
         if (dynamic_cast<CoRE4INET::ListenerReady *>(msg)) {
 
             //pack message
             cMessage* copy = msg->dup();
-            copy->setControlInfo(etherctrl);
+            copy->setControlInfo(etherctrl->dup());
             send(copy, "dataPlaneOut", etherctrl->getSwitchPort());
         }
 
     } else {
         throw cRuntimeError("Packet from SRP received without ExtendedIeee802Ctrl");
     }
+
+    delete ctrlInfo;
+    delete msg;
 }
 
 void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
@@ -214,6 +217,7 @@ void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
         controlInfo->setSwitchPort(msg->getArrivalGate()->getIndex());
         toController->setControlInfo(controlInfo);
         forwardSRPtoController(toController);
+        delete msg;
     } else {
         OF_RelayUnit::processDataPlanePacket(msg);
     }

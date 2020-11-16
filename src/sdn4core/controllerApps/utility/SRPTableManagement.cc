@@ -38,7 +38,8 @@ Define_Module(SRPTableManagement);
 const char SRPTableManagement::SRPTABLEMODULEPATH[] = "core4inet.services.avb.SRP.SRPTable";
 
 SRPTableManagement::~SRPTableManagement() {
-    //delete port modules in each table, than delete table!
+    // fix undisposed objects for port modules by deleting port modules in each table
+    // --> its not that easy as there is no getter for all talker/listener entries.
 }
 
 bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
