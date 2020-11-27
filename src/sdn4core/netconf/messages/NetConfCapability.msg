@@ -19,6 +19,8 @@
 // TODO implement actual capabilities. For now only the Hello message is implemented 
 //
 
+namespace SDN4CoRE;
+
 //
 // Capabilities Exchange
 //
