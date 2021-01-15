@@ -38,4 +38,5 @@ simple AVBLearningControllerApp like AbstractControllerApp
         string srpTable = default("^.srpTable");
         //offline configuration containing mac and srp information.
         xml configXML = default(xml("<root/>"));
+        int priority = default(1);
 }
