@@ -76,7 +76,7 @@ bool AVB_OF_RelayUnit::isSRPMessage(cMessage* msg) {
 }
 
 void AVB_OF_RelayUnit::initialize(int stage){
-    OF_RelayUnit::initialize(stage);
+    LegacyOF_RelayUnit::initialize(stage);
 
     switch(stage){
         case INITSTAGE_LOCAL: {
@@ -148,7 +148,7 @@ void AVB_OF_RelayUnit::handleMessage(cMessage *msg)
         handleSRPFromProtocol(msg);
     } else {
         // nothing to do here - just forward
-            OF_RelayUnit::handleMessage(msg);
+            LegacyOF_RelayUnit::handleMessage(msg);
     }
 }
 
@@ -219,7 +219,7 @@ void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
         forwardSRPtoController(toController);
         delete msg;
     } else {
-        OF_RelayUnit::processDataPlanePacket(msg);
+        LegacyOF_RelayUnit::processDataPlanePacket(msg);
     }
 }
 
@@ -243,7 +243,7 @@ void AVB_OF_RelayUnit::processControlPlanePacket(cMessage *msg){
 
         default:
             //not a special of message forward to base class.
-            OF_RelayUnit::processControlPlanePacket(msg);
+            LegacyOF_RelayUnit::processControlPlanePacket(msg);
             break;
         }
     }
@@ -252,7 +252,7 @@ void AVB_OF_RelayUnit::processControlPlanePacket(cMessage *msg){
 openflow::oxm_basic_match AVB_OF_RelayUnit::extractMatch(
         inet::EthernetIIFrame* frame) {
 
-    oxm_basic_match match = OF_RelayUnit::extractMatch(frame);
+    oxm_basic_match match = LegacyOF_RelayUnit::extractMatch(frame);
     //extract AVB/VLAN specific information ifpresent
     //if(frame->getEtherType()==AVB_ETHERTYPE) {
     if(match.OFB_ETH_TYPE == 0x8100){ //we have a q frame!

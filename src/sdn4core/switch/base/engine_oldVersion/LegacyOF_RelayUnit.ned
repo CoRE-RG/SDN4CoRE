@@ -15,7 +15,7 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-package sdn4core.switch.base.engine;
+package sdn4core.switch.base.engine_oldVersion;
 
 //openflow
 import openflow.openflow.switch.IOpenFlowRelayUnit;
@@ -28,7 +28,7 @@ import openflow.openflow.switch.IOpenFlowRelayUnit;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple OF_RelayUnit like IOpenFlowRelayUnit
+simple LegacyOF_RelayUnit like IOpenFlowRelayUnit
 {
     parameters:
         @class(SDN4CoRE::OF_RelayUnit);

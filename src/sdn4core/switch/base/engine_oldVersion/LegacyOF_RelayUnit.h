@@ -39,11 +39,11 @@ namespace SDN4CoRE{
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class OF_RelayUnit: public cSimpleModule
+class LegacyOF_RelayUnit: public cSimpleModule
 {
 public:
-    OF_RelayUnit();
-    ~OF_RelayUnit();
+    LegacyOF_RelayUnit();
+    ~LegacyOF_RelayUnit();
     void disablePorts(std::vector<int> ports);
     virtual void finish() override;
 

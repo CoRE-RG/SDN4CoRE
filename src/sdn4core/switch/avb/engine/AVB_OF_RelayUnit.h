@@ -19,9 +19,7 @@
 #define __SDN4CORE_AVB_OF_RELAYUNIT_H_
 
 #include <omnetpp.h>
-
-#include <sdn4core/switch/base/engine/OF_RelayUnit.h>
-//CoRE4INET
+#include <sdn4core/switch/base/engine_oldVersion/LegacyOF_RelayUnit.h>
 #include "core4inet/services/avb/SRP/SRPTable.h"
 
 namespace SDN4CoRE{
@@ -36,7 +34,7 @@ namespace SDN4CoRE{
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class AVB_OF_RelayUnit : public OF_RelayUnit
+class AVB_OF_RelayUnit : public LegacyOF_RelayUnit
 {
 public:
     AVB_OF_RelayUnit();

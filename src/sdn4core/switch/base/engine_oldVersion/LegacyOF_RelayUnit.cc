@@ -1,6 +1,4 @@
-#include <sdn4core/switch/base/engine/OF_RelayUnit.h>
-
-//STD
+#include <sdn4core/switch/base/engine_oldVersion/LegacyOF_RelayUnit.h>
 #include <sstream>
 #include <string>
 //inet
@@ -32,23 +30,23 @@ using namespace openflow;
 
 namespace SDN4CoRE{
 
-Define_Module(OF_RelayUnit);
+Define_Module(LegacyOF_RelayUnit);
 
 #define MSGKIND_CONNECT                     1
 #define MSGKIND_SERVICETIME                 3
 
 
-OF_RelayUnit::OF_RelayUnit(){
+LegacyOF_RelayUnit::LegacyOF_RelayUnit(){
 }
 
-OF_RelayUnit::~OF_RelayUnit(){
+LegacyOF_RelayUnit::~LegacyOF_RelayUnit(){
     for(auto&& entry : msgList) {
       delete entry;
     }
     msgList.clear();
 }
 
-void OF_RelayUnit::initialize(int stage){
+void LegacyOF_RelayUnit::initialize(int stage){
 
     switch(stage){
     case INITSTAGE_LOCAL: {
@@ -172,7 +170,7 @@ void OF_RelayUnit::initialize(int stage){
     }
 }
 
-void OF_RelayUnit::processControlPlanePacket(cMessage *msg){
+void LegacyOF_RelayUnit::processControlPlanePacket(cMessage *msg){
     controlPlanePacket++;
     if (Open_Flow_Message *of_msg = dynamic_cast<Open_Flow_Message *>(msg)) { //msg from controller
         switch ((ofp_type)of_msg->getHeader().type){
@@ -200,7 +198,7 @@ void OF_RelayUnit::processControlPlanePacket(cMessage *msg){
     delete msg;
 }
 
-void OF_RelayUnit::processDataPlanePacket(cMessage *msg){
+void LegacyOF_RelayUnit::processDataPlanePacket(cMessage *msg){
     dataPlanePacket++;
     if (EthernetIIFrame *frame = dynamic_cast<EthernetIIFrame *>(msg)) {
         //msg from dataplane
@@ -210,7 +208,7 @@ void OF_RelayUnit::processDataPlanePacket(cMessage *msg){
     }
 }
 
-void OF_RelayUnit::scheduleNextServiceTime(){
+void LegacyOF_RelayUnit::scheduleNextServiceTime(){
     //check for more waiting packets
     if (msgList.empty()) {
         ofBusy = false;
@@ -223,14 +221,14 @@ void OF_RelayUnit::scheduleNextServiceTime(){
     }
 }
 
-void OF_RelayUnit::scheduleForServiceTime(cMessage *msg){
+void LegacyOF_RelayUnit::scheduleForServiceTime(cMessage *msg){
     cMessage* event = new cMessage("event");
     event->setKind(MSGKIND_SERVICETIME);
     event->setContextPointer(msg);
     scheduleAt(simTime() + ofServiceTime, event);
 }
 
-void OF_RelayUnit::handleMessage(cMessage *msg){
+void LegacyOF_RelayUnit::handleMessage(cMessage *msg){
     if (msg->isSelfMessage()){
         if (msg->getKind() == MSGKIND_CONNECT) {
             EV << "starting of session" << '\n';
@@ -258,7 +256,7 @@ void OF_RelayUnit::handleMessage(cMessage *msg){
     }
 }
 
-void OF_RelayUnit::simulateServiceTime(cMessage* msg) {
+void LegacyOF_RelayUnit::simulateServiceTime(cMessage* msg) {
     //imlement service time
     if(parallelProcessing || !ofBusy){
         scheduleForServiceTime(msg);
@@ -270,7 +268,7 @@ void OF_RelayUnit::simulateServiceTime(cMessage* msg) {
     }
 }
 
-void OF_RelayUnit::connect(const char *addressToConnect){
+void LegacyOF_RelayUnit::connect(const char *addressToConnect){
     socket.renewSocket();
     const char *connectAddress;
 
@@ -292,7 +290,7 @@ void OF_RelayUnit::connect(const char *addressToConnect){
     socket.send(msg);
 }
 
-oxm_basic_match OF_RelayUnit::extractMatch(EthernetIIFrame* frame) {
+oxm_basic_match LegacyOF_RelayUnit::extractMatch(EthernetIIFrame* frame) {
     oxm_basic_match match = oxm_basic_match();
 
     //extract match fields
@@ -330,7 +328,7 @@ oxm_basic_match OF_RelayUnit::extractMatch(EthernetIIFrame* frame) {
     return match;
 }
 
-void OF_RelayUnit::processFrame(EthernetIIFrame *frame) {
+void LegacyOF_RelayUnit::processFrame(EthernetIIFrame *frame) {
     //get all relevant match fiels
     oxm_basic_match match = extractMatch(frame);
 
@@ -388,7 +386,7 @@ void OF_RelayUnit::processFrame(EthernetIIFrame *frame) {
     delete frame;
 }
 
-void OF_RelayUnit::handleFeaturesRequestMessage(Open_Flow_Message *of_msg){
+void LegacyOF_RelayUnit::handleFeaturesRequestMessage(Open_Flow_Message *of_msg){
     //prepare data
     IInterfaceTable *inet_ift = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
 
@@ -404,14 +402,14 @@ void OF_RelayUnit::handleFeaturesRequestMessage(Open_Flow_Message *of_msg){
     socket.send(featuresReply);
 }
 
-void OF_RelayUnit::handleFlowModMessage(Open_Flow_Message *of_msg){
+void LegacyOF_RelayUnit::handleFlowModMessage(Open_Flow_Message *of_msg){
     EV << "OFA_switch::handleFlowModMessage" << '\n';
     if(OFP_Flow_Mod *flowModMsg = dynamic_cast<OFP_Flow_Mod *> (of_msg)){
         _flowTables[flowModMsg->getTable_id()]->handleFlowMod(flowModMsg);
     }
 }
 
-void OF_RelayUnit::handleMissMatchedPacket(EthernetIIFrame *frame){
+void LegacyOF_RelayUnit::handleMissMatchedPacket(EthernetIIFrame *frame){
     if(socket.getState() != TCPSocket::CONNECTED || !this->hasController){
         //not yet connected to controller
         //drop packet by returning
@@ -445,7 +443,7 @@ void OF_RelayUnit::handleMissMatchedPacket(EthernetIIFrame *frame){
     socket.send(packetIn);
 }
 
-void OF_RelayUnit::handlePacketOutMessage(Open_Flow_Message *of_msg){
+void LegacyOF_RelayUnit::handlePacketOutMessage(Open_Flow_Message *of_msg){
     //cast message
     OFP_Packet_Out *packet_out_msg = (OFP_Packet_Out *) of_msg;
 
@@ -471,7 +469,7 @@ void OF_RelayUnit::handlePacketOutMessage(Open_Flow_Message *of_msg){
 
 
 // packet encapsulated and not stored in buffer
-void OF_RelayUnit::executePacketOutAction(ofp_action_output *action_output, EthernetIIFrame *frame, uint32_t inport){
+void LegacyOF_RelayUnit::executePacketOutAction(ofp_action_output *action_output, EthernetIIFrame *frame, uint32_t inport){
     uint32_t outport = action_output->port;
     take(frame);
 
@@ -494,7 +492,7 @@ void OF_RelayUnit::executePacketOutAction(ofp_action_output *action_output, Ethe
 }
 
 // invoked by Spanning Tree module disable ports for broadcast packets
-void OF_RelayUnit::disablePorts(vector<int> ports) {
+void LegacyOF_RelayUnit::disablePorts(vector<int> ports) {
     EV << "disablePorts method at " << this->getParentModule()->getFullPath() << '\n';
 
     for (unsigned int i = 0; i<ports.size(); ++i){
@@ -528,7 +526,7 @@ void OF_RelayUnit::disablePorts(vector<int> ports) {
 
 }
 
-void OF_RelayUnit::finish(){
+void LegacyOF_RelayUnit::finish(){
     // record statistics
     recordScalar("packetsDataPlane", dataPlanePacket);
     recordScalar("packetsControlPlane", controlPlanePacket);
@@ -550,7 +548,7 @@ void OF_RelayUnit::finish(){
     cout << oss.str();
 }
 
-void OF_RelayUnit::handleParameterChange(const char* parname) {
+void LegacyOF_RelayUnit::handleParameterChange(const char* parname) {
     //read ned file parameters
     if (!parname || !strcmp(parname, "serviceTime")){
         ofServiceTime = par("serviceTime").doubleValue();

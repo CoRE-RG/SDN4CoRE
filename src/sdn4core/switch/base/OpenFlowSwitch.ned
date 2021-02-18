@@ -26,6 +26,9 @@ import inet.common.lifecycle.NodeStatus;
 //OPENFLOW
 import openflow.openflow.switch.flowtable.IOpenFlowFlowTable;
 import openflow.openflow.switch.IOpenFlowRelayUnit;
+//OF_SWITCHAGENT
+import sdn4core.switch.base.engine.OF_SwitchAgent;
+import sdn4core.switch.base.engine.OF_RelayUnit;
 
 //
 // Model of an OpenFlow Ethernet switch.
@@ -61,6 +64,7 @@ module OpenFlowSwitch
         string networkLayerType = default("IPv4NetworkLayer");
         string tcpType = default("TCP");
         string relayUnitType = default("OF_RelayUnit");
+        string switchAgentType = default("OF_SwitchAgent");
         string ethDataPlaneType = default("EthernetInterface");
         string ofFlowTableType = default("OF_FlowTable");
 
@@ -125,14 +129,20 @@ module OpenFlowSwitch
             @display("p=226,143");
         }
 
-        // OpenFlow Switching engine module
-        relayUnit: <relayUnitType> like IOpenFlowRelayUnit {
+        // OpenFlow RelayUnit
+        relayUnit: OF_RelayUnit {
             parameters: 
             	@display("p=371,143");
-                serviceTime = of_service_time;
             gates:
                 dataPlaneOut[sizeof(gateDataPlane)];
                 dataPlaneIn[sizeof(gateDataPlane)];
+        }
+        
+        // OpenFlow SwitchAgent
+        switchAgent: OF_SwitchAgent{
+            parameters: 
+                serviceTime = of_service_time;
+            	@display("p=371,243");
         }
 
         // Ethernet Interface modules for the data plane ports
@@ -157,8 +167,8 @@ module OpenFlowSwitch
         }
         tcp.ipOut --> networkLayer.transportIn++;
         tcp.ipIn <-- networkLayer.transportOut++;
-        tcp.appOut++ --> relayUnit.controlPlaneIn;
-        tcp.appIn++ <-- relayUnit.controlPlaneOut;
+        tcp.appOut++ --> switchAgent.controlPlaneIn;
+        tcp.appIn++ <-- switchAgent.controlPlaneOut;
 
         // data plane connections
         for i=0..sizeof(gateDataPlane)-1 {
