@@ -52,7 +52,6 @@ void OF_SwitchAgent::initialize(int stage){
 
     switch(stage){
     case INITSTAGE_LOCAL: {
-        //TODO: replace throw signals
         relayUnit = dynamic_cast<OF_RelayUnit*> (getParentModule()->getSubmodule("relayUnit"));
         ofBusy = false;
         handleParameterChange(nullptr);
@@ -61,8 +60,13 @@ void OF_SwitchAgent::initialize(int stage){
         bufferSize = registerSignal("bufferSize");
         waitingTime = registerSignal("waitingTime");
         queueSize = registerSignal("queueSize");
-        testSignal = registerSignal("testSignal");
-        subscribe(testSignal, this);
+
+        //register relay unit signals
+        forwardToConSign = registerSignal("forwardToConSign");
+        tableMissSign = registerSignal("tableMissSign");
+        getSimulation()->getSystemModule()->subscribe(forwardToConSign, this);
+        getSimulation()->getSystemModule()->subscribe(tableMissSign, this);
+
         controlPlanePacket=0l;
 
         //init helper classes
@@ -301,14 +305,19 @@ void OF_SwitchAgent::handlePacketOutMessage(Open_Flow_Message *of_msg){
 
     //execute
     for (unsigned int i = 0; i < actions_size; ++i){
-        //TODO: Send signal instead
         relayUnit->executePacketOutAction(&(packet_out_msg->getActions(i)), frame, inPort);
     }
     delete frame;
 }
 
-void OF_SwitchAgent::receiveSignal(cComponent *source, simsignal_t signalID, bool b, cObject *details){
-    cout<<"++++++++++++++ Hello World!!! +++++++++++++"<<endl;
+void OF_SwitchAgent::receiveSignal(cComponent *src, simsignal_t id, cObject *value, cObject *details){
+    Enter_Method_Silent();
+    EthernetIIFrame* tmp = check_and_cast<EthernetIIFrame*>(value->dup());
+    if(forwardToConSign == id){
+        forwardFrameToController(tmp);
+    }else if(tableMissSign == id){
+        handleMissMatchedPacket(tmp);
+    }
 }
 
 void OF_SwitchAgent::finish(){
@@ -334,8 +343,7 @@ void OF_SwitchAgent::forwardFrameToController(EthernetIIFrame* frame){
     //send it to the controller
 #if OFP_VERSION_IN_USE == OFP_100
     OFP_Packet_In *packetIn =
-            OFMessageFactory::instance()->createPacketIn(
-                    OFPR_ACTION, frame);
+            OFMessageFactory::instance()->createPacketIn(OFPR_ACTION, frame);
 #elif OFP_VERSION_IN_USE == OFP_151
     OFP_Packet_In *packetIn = OFMessageFactory::instance()->createPacketIn(OFPR_ACTION_SET, frame->dup());
 #endif

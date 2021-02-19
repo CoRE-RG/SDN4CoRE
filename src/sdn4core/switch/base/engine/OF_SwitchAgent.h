@@ -47,7 +47,7 @@ public:
     OF_SwitchAgent();
     ~OF_SwitchAgent();
     virtual void finish() override;
-    virtual void receiveSignal(cComponent *source, simsignal_t signalID, bool b, cObject *details) override;
+    virtual void receiveSignal(cComponent *src, simsignal_t id, cObject *value, cObject *details) override;
 
 protected:
     /**
@@ -76,12 +76,19 @@ protected:
      */
     long controlPlanePacket;
 
-    //stats
+    /**
+     * used initiate the forwarding of a frame to the Controller using the OF_SwitchAgent
+     */
+    simsignal_t forwardToConSign;
+    /**
+     * Signals the OF_SwitchAgent that no matching entry was found for an incoming frame
+     */
+    simsignal_t tableMissSign;
 
+    //stats
     simsignal_t bufferSize;
     simsignal_t waitingTime;
     simsignal_t queueSize;
-    simsignal_t testSignal;
 
     /**
      * The OpenFlow Flow Table containing match entries

@@ -32,7 +32,7 @@ simple OF_SwitchAgent
 {
     parameters:
         @class(SDN4CoRE::OF_SwitchAgent);
-        @signal[testSignal](type="long");
+		       
         @signal[queueSize](type="unsigned long");
         @statistic[queueSize](title="QueueSize"; record=vector?,stats; interpolationmode=none);
         @signal[bufferSize](type="long");

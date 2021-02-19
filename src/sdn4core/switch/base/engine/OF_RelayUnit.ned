@@ -32,7 +32,11 @@ simple OF_RelayUnit
 {
     parameters:
         @class(SDN4CoRE::OF_RelayUnit);
-     	@signal[testSignal](type="long");
+        
+     	@signal[forwardToController](type=inet::EthernetIIFrame);
+     	@signal[tableMissSign](type=inet::EthernetIIFrame);
+     	
+     	
         @signal[cpPingPacketHash](type="unsigned long");
         @statistic[cpPingPacketHash](title="CpPingPacketHash"; record=vector?,stats; interpolationmode=none);
         @signal[dpPingPacketHash](type="unsigned long");

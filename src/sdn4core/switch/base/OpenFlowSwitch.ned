@@ -45,12 +45,12 @@ module OpenFlowSwitch
         @networkNode();
         @OF_Switch();
         @labels(node,ethernet-node);
-        @display("i=device/switch;i2=OpenFlow-Logo-small");
+        @display("i=device/switch;i2=OpenFlow-Logo-small;bgb=628,186");
 
         // Should Packet ins contain the full packet.
         bool sendCompletePacket = default(true);
         // service time of the relay unit for openflow interactions
-        double of_service_time @unit(s) = default(0s);   
+        double of_service_time @unit(s) = default(0s);
         //hardware delay for the forwarding of packets
         double hardware_delay @unit(s) = default(8us);
         double egress_delay @unit(s) = default(hardware_delay/2);
@@ -97,23 +97,23 @@ module OpenFlowSwitch
 
         // Keeps track of the status of network node (up, down, etc.)
         status: NodeStatus {
-            @display("p=633,27;is=n");
+            @display("p=597,38;is=n");
         }
 
         // Interface Table module for all Ethernet interfaces
         interfaceTable: InterfaceTable {
-            @display("p=63,38");
+            @display("p=35,38");
         }
 
         // Routing module for the controlplane network, every inet host contains one
         routingTable: <routingTableType> like IRoutingTable if routingTableType != "" {
             parameters:
-                @display("p=158,38");
+                @display("p=137,38");
         }
 
         // Ethernet Interface module for the control plane port
         eth[sizeof(gateControlPlane)]: <ethControlPlaneType> like IWiredNic {
-            @display("p=50,143");
+            @display("p=35,143");
         }
 
         // NetworkLayer module for the control plane port
@@ -131,30 +131,30 @@ module OpenFlowSwitch
 
         // OpenFlow RelayUnit
         relayUnit: OF_RelayUnit {
-            parameters: 
-            	@display("p=371,143");
+            parameters:
+                @display("p=431,143");
             gates:
                 dataPlaneOut[sizeof(gateDataPlane)];
                 dataPlaneIn[sizeof(gateDataPlane)];
         }
-        
+
         // OpenFlow SwitchAgent
-        switchAgent: OF_SwitchAgent{
-            parameters: 
+        switchAgent: OF_SwitchAgent {
+            parameters:
                 serviceTime = of_service_time;
-            	@display("p=371,243");
+                @display("p=325,143");
         }
 
         // Ethernet Interface modules for the data plane ports
         etherMAC[sizeof(gateDataPlane)]: <ethDataPlaneType> like IWiredNic {
             parameters:
                 mac.promiscuous = true;
-                @display("p=551,143,c,50");
+                @display("p=597,143,c,50");
         }
 
 		// Flow Table module contains match entries and resulting actions
         flowTables[numFlowTables]: <ofFlowTableType> like IOpenFlowFlowTable {
-            @display("p=371,38");
+            @display("p=431,38");
         }
 
     connections allowunconnected:

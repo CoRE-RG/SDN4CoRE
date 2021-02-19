@@ -42,6 +42,16 @@ protected:
      */
     long flowTableMiss;
 
+    /**
+     * used initiate the forwarding of a frame to the Controller using the OF_SwitchAgent
+     */
+    simsignal_t forwardToConSign;
+    /**
+     * Signals the OF_SwitchAgent that no matching entry was found for an incoming frame
+     */
+    simsignal_t tableMissSign;
+
+    //stats
     simsignal_t dpPingPacketHash;
     simsignal_t cpPingPacketHash;
 

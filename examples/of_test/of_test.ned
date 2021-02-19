@@ -38,13 +38,10 @@ network of_test
         }
 
         domain[numOFDomains]: OpenFlowDomain {
-
-            @display("p=277.78,260.984");
         }
         controllerNetwork: EtherSwitch {
 
 
-            @display("p=341.088,139.53601");
         }
     connections allowunconnected:
         //interconnect the domains

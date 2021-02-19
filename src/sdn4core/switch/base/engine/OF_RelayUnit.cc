@@ -42,18 +42,18 @@ void OF_RelayUnit::initialize(int stage){
 
     switch(stage){
         case INITSTAGE_LOCAL: {
-            //get SwitchAgent
-            switchAgent = dynamic_cast<OF_SwitchAgent*> (getParentModule()->getSubmodule("switchAgent"));
             //stats
             dpPingPacketHash = registerSignal("dpPingPacketHash");
             cpPingPacketHash = registerSignal("cpPingPacketHash");
+
+            forwardToConSign = registerSignal("forwardToController");
+            tableMissSign = registerSignal("tableMissSign");
 
             dataPlanePacket=0l;
             flowTableHit=0l;
             flowTableMiss=0l;
 
             //load table modules.
-            //TODO: use same code in switchAgent to get a copy of the flow table
             int numFlowTables = getParentModule()->getSubmodule("flowTables",0)->getVectorSize();
             for (int i = 0; i < numFlowTables; i++) {
                 if(OF_FlowTable* table = dynamic_cast<OF_FlowTable*> (getParentModule()->getSubmodule("flowTables",i))){
@@ -184,8 +184,7 @@ void OF_RelayUnit::processFrame(EthernetIIFrame *frame) {
             ofp_action_output action_output = lookup->getInstructions()[i];
             uint32_t outport = action_output.port;
             if (outport == OFPP_CONTROLLER) {
-                //TODO: use signaling
-                switchAgent->forwardFrameToController(frame);
+                emit(forwardToConSign,frame->dup());
             } else {
                 //send it out the dataplane on the specific port
                 send(frame->dup(), "dataPlaneOut", outport);
@@ -195,8 +194,7 @@ void OF_RelayUnit::processFrame(EthernetIIFrame *frame) {
         // lookup failed
         flowTableMiss++;
         EV << "No Entry Found contacting controller" << '\n';
-//      TODO: send frame via signal
-//        switchAgent->handleMissMatchedPacket(frame);
+        emit(tableMissSign,frame->dup());
     }
     delete frame;
 }
@@ -241,6 +239,7 @@ oxm_basic_match OF_RelayUnit::extractMatch(EthernetIIFrame* frame) {
 
 // packet encapsulated and not stored in buffer
 void OF_RelayUnit::executePacketOutAction(ofp_action_output *action_output, EthernetIIFrame *frame, uint32_t inport){
+    Enter_Method("executePacketOutAction");
     uint32_t outport = action_output->port;
     take(frame);
 
@@ -263,8 +262,6 @@ void OF_RelayUnit::executePacketOutAction(ofp_action_output *action_output, Ethe
 }
 
 void OF_RelayUnit::handleMessage(cMessage *msg){
-//    simsignal_t testSignal = registerSignal("testSignal");
-//    emit(testSignal, 42);
     if(msg->arrivedOn("dataPlaneIn")){
         processDataPlanePacket(msg);
     }
