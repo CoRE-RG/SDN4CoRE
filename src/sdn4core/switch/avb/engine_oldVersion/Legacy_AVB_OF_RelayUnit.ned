@@ -15,7 +15,7 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-package sdn4core.switch.avb.engine;
+package sdn4core.switch.avb.engine_oldVersion;
 
 import sdn4core.switch.base.engine.OF_RelayUnit;
 
@@ -32,5 +32,18 @@ simple AVB_OF_RelayUnit extends OF_RelayUnit
 {
     parameters:
         @class(SDN4CoRE::AVB_OF_RelayUnit);
-        @signal[forwardSRPtoCon](type=CoRE4INET::SRPFrame);
+    	
+    	// Path to the SRP protocol module
+    	string srpProtocolModule = default("^.srpProtocol");
+    	
+        //SRP Table module, default name is srpTable
+        string srpTable = default("^.^.srpTable");
+    	
+   	gates:
+   	    //SRP message in from SRP protocol module
+        input srpIn @loose;
+        //SRP message out to SRP protocol module
+        output srpOut @loose;
+    	    
+    
 }

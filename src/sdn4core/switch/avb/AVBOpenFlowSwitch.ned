@@ -35,6 +35,7 @@ module AVBOpenFlowSwitch extends OpenFlowSwitch
 {
     parameters:
         relayUnitType = default("AVB_OF_RelayUnit");
+        switchAgentType = default("AVB_OF_SwitchAgent");
         ethDataPlaneType = default("AVBEthernetInterface");
 
         *.srpTable = default(absPath(".srpTable"));

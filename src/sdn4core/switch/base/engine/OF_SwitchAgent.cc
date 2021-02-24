@@ -64,8 +64,8 @@ void OF_SwitchAgent::initialize(int stage){
         //register relay unit signals
         forwardToConSign = registerSignal("forwardToConSign");
         tableMissSign = registerSignal("tableMissSign");
-        getSimulation()->getSystemModule()->subscribe(forwardToConSign, this);
-        getSimulation()->getSystemModule()->subscribe(tableMissSign, this);
+        relayUnit->subscribe(forwardToConSign, this);
+        relayUnit->subscribe(tableMissSign, this);
 
         controlPlanePacket=0l;
 

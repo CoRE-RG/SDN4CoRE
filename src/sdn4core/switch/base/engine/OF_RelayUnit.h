@@ -17,8 +17,6 @@
 
 namespace SDN4CoRE{
 
-class OF_SwitchAgent;
-
 class OF_RelayUnit: public cSimpleModule
 {
 public:
@@ -64,10 +62,6 @@ protected:
      */
     std::vector<openflow::ofp_port> portVector;
 
-    /**
-     * Reference to SwitchAgent and forward declaration to resolve circular dependencies
-     */
-    OF_SwitchAgent* switchAgent;
 
 protected:
     virtual void initialize(int stage) override;

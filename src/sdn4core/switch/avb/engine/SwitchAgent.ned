@@ -17,7 +17,7 @@
 
 package sdn4core.switch.avb.engine;
 
-import sdn4core.switch.base.engine.OF_RelayUnit;
+import sdn4core.switch.base.engine.OF_SwitchAgent;
 
 //
 // The AVBOpenFlowRelay is the switching engine of the AVB capable OpenFlow Switch.
@@ -28,9 +28,22 @@ import sdn4core.switch.base.engine.OF_RelayUnit;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple AVB_OF_RelayUnit extends OF_RelayUnit
+simple AVB_OF_SwitchAgent extends OF_SwitchAgent
 {
     parameters:
-        @class(SDN4CoRE::AVB_OF_RelayUnit);
-        @signal[forwardSRPtoCon](type=CoRE4INET::SRPFrame);
+        @class(SDN4CoRE::AVB_OF_SwitchAgent);
+    	
+    	// Path to the SRP protocol module
+    	string srpProtocolModule = default("^.srpProtocol");
+    	
+        //SRP Table module, default name is srpTable
+        string srpTable = default("^.^.srpTable");
+    	
+   	gates:
+   	    //SRP message in from SRP protocol module
+        input srpIn @loose;
+        //SRP message out to SRP protocol module
+        output srpOut @loose;
+    	    
+    
 }

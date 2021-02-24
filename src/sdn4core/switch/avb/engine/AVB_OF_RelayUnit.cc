@@ -41,69 +41,26 @@ namespace SDN4CoRE{
 
 Define_Module(AVB_OF_RelayUnit);
 
-AVB_OF_RelayUnit::AVB_OF_RelayUnit() {
-}
-
-AVB_OF_RelayUnit::~AVB_OF_RelayUnit() {
-}
-
-void AVB_OF_RelayUnit::forwardSRPtoController(cPacket* msg) {
-    //TODO use experimenter Message for srp forwarding. Maybe add a custom reason.
-    OFP_Packet_In *packetIn = new OFP_Packet_In("packetIn");
-    packetIn->getHeader().version = OFP_VERSION;
-    packetIn->getHeader().type = OFPT_PACKET_IN;
-#if OFP_VERSION_IN_USE == OFP_100
-    packetIn->setReason(OFPR_NO_MATCH);//TODO maybe add another reason for realtime streams.
-#elif OFP_VERSION_IN_USE == OFP_151
-    packetIn->setReason(OFPR_ACTION_SET);//TODO maybe add another reason for realtime streams.
-#endif
-    packetIn->setByteLength(32);
-    if (inet::Ieee802Ctrl * controlInfo = dynamic_cast<inet::Ieee802Ctrl *>(msg->getControlInfo())){
-        oxm_basic_match match;
-        match.OFB_IN_PORT = controlInfo->getSwitchPort();
-        packetIn->setMatch(match);
-    }
-
-    // allways send full packet with packet-in message
-    packetIn->encapsulate(msg);
-    packetIn->setBuffer_id(OFP_NO_BUFFER);
-
-    socket.send(packetIn);
-}
-
-bool AVB_OF_RelayUnit::isSRPMessage(cMessage* msg) {
-    return msg->arrivedOn("srpIn") || dynamic_cast<CoRE4INET::SRPFrame *>(msg);
-}
+AVB_OF_RelayUnit::AVB_OF_RelayUnit() {}
+AVB_OF_RelayUnit::~AVB_OF_RelayUnit() {}
 
 void AVB_OF_RelayUnit::initialize(int stage){
-    LegacyOF_RelayUnit::initialize(stage);
+    OF_RelayUnit::initialize(stage);
 
     switch(stage){
         case INITSTAGE_LOCAL: {
 
+            //register siganls
+            forwardSRPtoConSig = registerSignal("forwardSRPtoConSig");
+
             //load srp table module
             _srpTable = dynamic_cast<CoRE4INET::SRPTable*> (getModuleByPath(par("srpTable")));
             if(!_srpTable){
-                throw cRuntimeError(("AVB_OF_RelayUnit: Could not init as no SRP Table could be found at " + par("srpTable").str()).c_str());
+                throw cRuntimeError(("AVB_OF_SwitchAgent: Could not init as no SRP Table could be found at " + par("srpTable").str()).c_str());
             }
 
             break;
         }
-        //    case INITSTAGE_PHYSICAL_ENVIRONMENT:
-        //    case INITSTAGE_PHYSICAL_ENVIRONMENT_2:
-        //    case INITSTAGE_PHYSICAL_LAYER:
-        //    case INITSTAGE_LINK_LAYER:
-        //    case INITSTAGE_LINK_LAYER_2:
-        case INITSTAGE_NETWORK_LAYER: {
-            break;
-        }
-        //    case INITSTAGE_NETWORK_LAYER_2:
-        //    case INITSTAGE_NETWORK_LAYER_3:
-        case INITSTAGE_TRANSPORT_LAYER: {
-            break;
-        }
-    //    case INITSTAGE_TRANSPORT_LAYER_2:
-    //    case INITSTAGE_ROUTING_PROTOCOLS:
         case INITSTAGE_APPLICATION_LAYER: {
             //load XML config if specified.
             cXMLElement* xmlDoc = par("configXML").xmlValue();
@@ -123,55 +80,26 @@ void AVB_OF_RelayUnit::initialize(int stage){
             }
             break;
         }
-        case INITSTAGE_LAST: {
-            // connect the gates to the SRPProtocol Module.
-            // find the srp protocol module
-            OF_SRProtocol* srpProtocol = dynamic_cast<OF_SRProtocol*> (getModuleByPath(par("srpProtocolModule")));
-            if(!srpProtocol){
-                throw cRuntimeError(("AVB_OF_RelayUnit: Could not init as no SRP Protocol Module could be found at " + par("srpProtocolModule").str()).c_str());
-            }
-            //srpProtocol.out --> relayUnit.srpIn;
-            srpProtocol->gate("out")->connectTo(this->gate("srpIn"));
-            //srpProtocol.in <-- relayUnit.srpOut;
-            this->gate("srpOut")->connectTo(srpProtocol->gate("in"));
-
-            break;
-         }
          default:
              break;
          }
 }
 
-void AVB_OF_RelayUnit::handleMessage(cMessage *msg)
-{
-    if (msg->arrivedOn("srpIn")) {
-        handleSRPFromProtocol(msg);
+void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
+    if (isSRPMessage(msg)) {
+        dataPlanePacket++;
+
+        //forward to controller
+        CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(msg->dup());
+        inet::Ieee802Ctrl * controlInfo = new inet::Ieee802Ctrl();
+        controlInfo->setSwitchPort(msg->getArrivalGate()->getIndex());
+        toController->setControlInfo(controlInfo);
+
+        emit(forwardSRPtoConSig,toController->dup());
+        delete msg;
     } else {
-        // nothing to do here - just forward
-            LegacyOF_RelayUnit::handleMessage(msg);
+       OF_RelayUnit::processDataPlanePacket(msg);
     }
-}
-
-void AVB_OF_RelayUnit::handleSRPFromController(cMessage* msg) {
-    if (OFP_Packet_Out *packetOut = dynamic_cast<OFP_Packet_Out *>(msg)) {
-
-        if (CoRE4INET::SRPFrame * srpFrame =
-                dynamic_cast<CoRE4INET::SRPFrame *>(packetOut->decapsulate())) {
-
-            inet::Ieee802Ctrl *etherctrl = new inet::Ieee802Ctrl();
-            etherctrl->setSwitchPort(packetOut->getIn_port());
-            //pack message
-            srpFrame->setControlInfo(etherctrl);
-
-            //forward to port
-            send(srpFrame, "srpOut");
-
-        } else {
-            throw cRuntimeError("SRP packet from controller received without Ieee802Ctrl");
-        }
-
-    }
-    delete msg;
 }
 
 void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
@@ -208,67 +136,13 @@ void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
     delete msg;
 }
 
-void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
-    if (isSRPMessage(msg)) {
-        dataPlanePacket++;
-        //forward to controller
-        CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(msg->dup());
-        inet::Ieee802Ctrl * controlInfo = new inet::Ieee802Ctrl();
-        controlInfo->setSwitchPort(msg->getArrivalGate()->getIndex());
-        toController->setControlInfo(controlInfo);
-        forwardSRPtoController(toController);
-        delete msg;
-    } else {
-        LegacyOF_RelayUnit::processDataPlanePacket(msg);
-    }
-}
-
-void AVB_OF_RelayUnit::processControlPlanePacket(cMessage *msg){
-    if (Open_Flow_Message *of_msg = dynamic_cast<Open_Flow_Message *>(msg)) { //msg from controller
-        ofp_type type = (ofp_type)of_msg->getHeader().type;
-        switch (type){
-        // TODO Add Experimenter Message Structure!
-#if OFP_VERSION_IN_USE == OFP_100
-        case OFPT_VENDOR:
-            controlPlanePacket++;
-            handleSRPFromController(of_msg);
-            break;
-
-#elif OFP_VERSION_IN_USE == OFP_151
-        case OFPT_EXPERIMENTER:
-            controlPlanePacket++;
-            handleSRPFromController(of_msg);
-            break;
-#endif
-
-        default:
-            //not a special of message forward to base class.
-            LegacyOF_RelayUnit::processControlPlanePacket(msg);
-            break;
-        }
-    }
-}
-
-openflow::oxm_basic_match AVB_OF_RelayUnit::extractMatch(
-        inet::EthernetIIFrame* frame) {
-
-    oxm_basic_match match = LegacyOF_RelayUnit::extractMatch(frame);
-    //extract AVB/VLAN specific information ifpresent
-    //if(frame->getEtherType()==AVB_ETHERTYPE) {
-    if(match.OFB_ETH_TYPE == 0x8100){ //we have a q frame!
-        CoRE4INET::EthernetIIFrameWithQTag* qFrame =
-            dynamic_cast<CoRE4INET::EthernetIIFrameWithQTag*>(frame);
-        match.OFB_VLAN_VID = qFrame->getVID();
-        match.OFB_VLAN_PCP = qFrame->getPcp();
-        //}
-    }
-    return match;
+bool AVB_OF_RelayUnit::isSRPMessage(cMessage* msg) {
+    return msg->arrivedOn("srpIn") || dynamic_cast<CoRE4INET::SRPFrame *>(msg);
 }
 
 void AVB_OF_RelayUnit::finish() {
     // record statistics
         recordScalar("packetsDataPlane", dataPlanePacket);
-        recordScalar("packetsControlPlane", controlPlanePacket);
         recordScalar("flowTableHit", flowTableHit);
         recordScalar("flowTableMiss", flowTableMiss);
 
@@ -287,6 +161,5 @@ void AVB_OF_RelayUnit::finish() {
         oss << "</config>" << endl;
         cout << oss.str();
 }
-
 
 } /*end namespace SDN4CoRE*/

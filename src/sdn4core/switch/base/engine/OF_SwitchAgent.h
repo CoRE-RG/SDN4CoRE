@@ -28,10 +28,10 @@
 #include "openflow/openflow/switch/Buffer.h"
 #include "openflow/messages/Open_Flow_Message_m.h"
 #include "openflow/openflow/switch/flowtable/OF_FlowTable.h"
-
+//relayUnit
+#include <sdn4core/switch/base/engine/OF_RelayUnit.h>
 namespace SDN4CoRE{
 
-class OF_RelayUnit;
 
 /**
  * The OF_RelayUnit implements the switching engine of an OpenFlow switch.

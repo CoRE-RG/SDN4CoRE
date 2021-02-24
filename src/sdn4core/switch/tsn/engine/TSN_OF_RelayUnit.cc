@@ -43,7 +43,7 @@ void TSN_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
                     inet::Ieee802Ctrl * controlInfo = new inet::Ieee802Ctrl();
                     controlInfo->setSwitchPort(etherframe->getArrivalGate()->getIndex());
                     toController->setControlInfo(controlInfo);
-                    forwardSRPtoController(toController);
+//                    forwardSRPtoController(toController);
                     dataPlanePacket++;
                     msgHandled = true;
                     delete msg; //= etherframe

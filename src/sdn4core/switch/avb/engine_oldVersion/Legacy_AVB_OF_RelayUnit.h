@@ -19,7 +19,7 @@
 #define __SDN4CORE_AVB_OF_RELAYUNIT_H_
 
 #include <omnetpp.h>
-#include <sdn4core/switch/base/engine/OF_RelayUnit.h>
+#include <sdn4core/switch/base/engine_oldVersion/LegacyOF_RelayUnit.h>
 #include "core4inet/services/avb/SRP/SRPTable.h"
 
 namespace SDN4CoRE{
@@ -34,28 +34,54 @@ namespace SDN4CoRE{
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class AVB_OF_RelayUnit : public OF_RelayUnit
+class LegacyAVB_OF_RelayUnit : public LegacyOF_RelayUnit
 {
 public:
-    AVB_OF_RelayUnit();
-    ~AVB_OF_RelayUnit();
+    LegacyAVB_OF_RelayUnit();
+    ~LegacyAVB_OF_RelayUnit();
     virtual void finish() override;
+
+protected:
+    //omnetpp module funcitons
+    virtual void initialize(int stage) override;
+    virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
+    virtual void handleMessage(omnetpp::cMessage *msg) override;
+
+
+    /**
+     * Processes an OpenFlow packet arriving on controlPlane interface.
+     */
+    virtual void processControlPlanePacket(omnetpp::cMessage* msg) override;
+
+    /**
+     * Processes a data frame arriving on a dataPlane interface.
+     */
+    virtual void processDataPlanePacket(omnetpp::cMessage* msg) override;
+
+    /**
+     * Extracts the information from an incoming frame to be matched against the openflow table.
+     * @param frame     the frame to create a match for
+     * @return          the match for the frame
+     */
+    virtual openflow::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame) override;
+
+    /**
+     * Handles an SRP message coming from the controller and forwards it to the right modules.
+     * @param srp the message to handle
+     */
+    virtual void handleSRPFromController(omnetpp::cMessage* srp);
+
     /**
      * Handles an SRP message coming from the srp protocol module and forwards it to the right modules.
      * @param srp the message to handle
      */
     virtual void handleSRPFromProtocol(omnetpp::cMessage* srp);
 
-
-protected:
-    //omnetpp module funcitons
-    virtual void initialize(int stage) override;
-    virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
-
     /**
-     * Processes a data frame arriving on a dataPlane interface.
+     * Forwards an SRP message to the OpenFlow controller.
+     * @param msg srp the message to forward
      */
-    virtual void processDataPlanePacket(omnetpp::cMessage* msg) override;
+    virtual void forwardSRPtoController(omnetpp::cPacket* msg);
 
     /**
      * Checks whether the given message is an SRP message.
@@ -69,10 +95,6 @@ protected:
      * Reference to the SRP Table module.
      */
     CoRE4INET::SRPTable* _srpTable;
-    /**
-     * used initiate the forwarding of a srpFrame to the Controller using the AVB_OF_SwitchAgent
-     */
-    simsignal_t forwardSRPtoConSig;
 };
 
 } /*end namespace SDN4CoRE*/
