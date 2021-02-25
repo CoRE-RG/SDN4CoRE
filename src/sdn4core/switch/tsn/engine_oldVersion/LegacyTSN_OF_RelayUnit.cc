@@ -13,16 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "sdn4core/switch/tsn/engine/TSN_OF_RelayUnit.h"
+#include "sdn4core/switch/tsn/engine_oldVersion/LegacyTSN_OF_RelayUnit.h"
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 #include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
 #include "inet/linklayer/ethernet/EtherMACBase.h"
 
 namespace SDN4CoRE{
 
-Define_Module(TSN_OF_RelayUnit);
+Define_Module(LegacyTSN_OF_RelayUnit);
 
-bool TSN_OF_RelayUnit::isSRPMessage(cMessage* msg) {
+bool LegacyTSN_OF_RelayUnit::isSRPMessage(cMessage* msg) {
     bool hasEncapedSRP = false;
     if(inet::EthernetIIFrame * etherframe = dynamic_cast<inet::EthernetIIFrame *>(msg)) {
         hasEncapedSRP = AVB_OF_RelayUnit::isSRPMessage(etherframe->getEncapsulatedPacket());
@@ -30,7 +30,7 @@ bool TSN_OF_RelayUnit::isSRPMessage(cMessage* msg) {
     return hasEncapedSRP || AVB_OF_RelayUnit::isSRPMessage(msg);
 }
 
-void TSN_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
+void LegacyTSN_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
     bool msgHandled = false;
 
     if(msg->arrivedOn("dataPlaneIn")){
@@ -43,7 +43,7 @@ void TSN_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
                     inet::Ieee802Ctrl * controlInfo = new inet::Ieee802Ctrl();
                     controlInfo->setSwitchPort(etherframe->getArrivalGate()->getIndex());
                     toController->setControlInfo(controlInfo);
-                    emit(forwardSRPtoConSig,toController->dup());
+//                    forwardSRPtoController(toController);
                     dataPlanePacket++;
                     msgHandled = true;
                     delete msg; //= etherframe
@@ -58,7 +58,7 @@ void TSN_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
     }
 }
 
-void TSN_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
+void LegacyTSN_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
     if(CoRE4INET::SRPFrame * srp = dynamic_cast<CoRE4INET::SRPFrame *>(msg)){
 
         CoRE4INET::ExtendedIeee802Ctrl * etherctrl = dynamic_cast<CoRE4INET::ExtendedIeee802Ctrl *>(srp->removeControlInfo());

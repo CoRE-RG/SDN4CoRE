@@ -12,15 +12,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
-// c Timo Haeckel, for HAW Hamburg
-// 
 
-package sdn4core.switch.avb.engine_oldVersion;
+package sdn4core.switch.tsn.engine_oldVersion;
 
-import sdn4core.switch.base.engine_oldVersion.LegacyOF_RelayUnit;
+import sdn4core.switch.avb.engine.AVB_OF_RelayUnit;
 
 //
-// The AVBOpenFlowRelay is the switching engine of the AVB capable OpenFlow Switch.
+// The TSN_OF_RelayUnit is the switching engine of the TSN capable OpenFlow Switch.
 // It is directly connected to the TCP module to communicate with the OF Controller.
 // It handles the forwarding of incoming packets by matching them with the OpenFlowTable 
 // (@see~IOpenFlowFlowTable) entries.
@@ -28,22 +26,9 @@ import sdn4core.switch.base.engine_oldVersion.LegacyOF_RelayUnit;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple LegacyAVB_OF_RelayUnit extends LegacyOF_RelayUnit
+simple LegacyTSN_OF_RelayUnit extends AVB_OF_RelayUnit
 {
     parameters:
-        @class(SDN4CoRE::LegacyAVB_OF_RelayUnit);
-    	
-    	// Path to the SRP protocol module
-    	string srpProtocolModule = default("^.srpProtocol");
-    	
-        //SRP Table module, default name is srpTable
-        string srpTable = default("^.^.srpTable");
-    	
-   	gates:
-   	    //SRP message in from SRP protocol module
-        input srpIn @loose;
-        //SRP message out to SRP protocol module
-        output srpOut @loose;
-    	    
+        @class(SDN4CoRE::LegacyTSN_OF_RelayUnit);
     
 }

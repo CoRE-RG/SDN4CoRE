@@ -1,6 +1,6 @@
 # workingdir,                        args,                                          simtimelimit,    fingerprint
 /examples/of_test,                   -f of_test.ini -c General -r 0,                1000s,           23c0-ebba
-/examples/avb_of_test,               -f avb_of_test.ini -c General -r 0,            1s,              bac3-145c
+/examples/avb_of_test,               -f avb_of_test.ini -c General -r 0,            1s,              7328-cd23
 /examples/papers/vtc2019/withoutSDN, -f omnetpp.ini -c General -r 0,                1s,              4f70-f999
 /examples/papers/vtc2019/withSDN,    -f vtc2019_with_sdn.ini -c General -r 0,       1s,              913b-d026
 /examples/netconf_test/netconf_test_standardhost, -f omnetpp.ini -c General -r 0,                10s,             8fef-67a8
