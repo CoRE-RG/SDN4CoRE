@@ -283,6 +283,7 @@ void OF_SwitchAgent::handleMissMatchedPacket(EthernetIIFrame *frame){
 #endif
     }
     socket.send(packetIn);
+    delete frame;
 }
 
 
@@ -312,7 +313,7 @@ void OF_SwitchAgent::handlePacketOutMessage(Open_Flow_Message *of_msg){
 
 void OF_SwitchAgent::receiveSignal(cComponent *src, simsignal_t id, cObject *value, cObject *details){
     Enter_Method_Silent();
-    EthernetIIFrame* tmp = check_and_cast<EthernetIIFrame*>(value->dup());
+    EthernetIIFrame* tmp = check_and_cast<EthernetIIFrame*>(value);
     if(forwardToConSign == id){
         forwardFrameToController(tmp);
     }else if(tableMissSign == id){
@@ -349,6 +350,7 @@ void OF_SwitchAgent::forwardFrameToController(EthernetIIFrame* frame){
 #endif
 
     socket.send(packetIn);
+    delete frame;
 }
 
 } /*end namespace SDN4CoRE*/

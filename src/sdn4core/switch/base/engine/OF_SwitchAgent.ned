@@ -18,7 +18,7 @@
 package sdn4core.switch.base.engine;
 
 //openflow
-import openflow.openflow.switch.IOpenFlowRelayUnit;
+import sdn4core.switch.IOF_SwitchAgent;
 
 //
 // The OF_RelayUnit implements the switching engine of an OpenFlow Switch.
@@ -28,7 +28,7 @@ import openflow.openflow.switch.IOpenFlowRelayUnit;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple OF_SwitchAgent
+simple OF_SwitchAgent like IOF_SwitchAgent
 {
     parameters:
         @class(SDN4CoRE::OF_SwitchAgent);
@@ -56,6 +56,8 @@ simple OF_SwitchAgent
 		bool parallelProcessing = default(false); // only effects openflow messages
 		bool sendCompletePacket = default(true);
 		
+		//Path of the switch configuration xml file
+    	xml configXML = default(xml("<root/>"));
 
     gates:
         input controlPlaneIn @labels(TCPCommand/up);

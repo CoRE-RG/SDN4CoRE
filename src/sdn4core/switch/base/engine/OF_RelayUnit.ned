@@ -18,7 +18,7 @@
 package sdn4core.switch.base.engine;
 
 //openflow
-import openflow.openflow.switch.IOpenFlowRelayUnit;
+import sdn4core.switch.IOF_RelayUnit;
 
 //
 // The OF_RelayUnit implements the switching engine of an OpenFlow Switch.
@@ -28,7 +28,7 @@ import openflow.openflow.switch.IOpenFlowRelayUnit;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple OF_RelayUnit
+simple OF_RelayUnit like IOF_RelayUnit
 {
     parameters:
         @class(SDN4CoRE::OF_RelayUnit);

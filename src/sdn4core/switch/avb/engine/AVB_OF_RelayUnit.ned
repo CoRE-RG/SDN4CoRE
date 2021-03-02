@@ -32,5 +32,11 @@ simple AVB_OF_RelayUnit extends OF_RelayUnit
 {
     parameters:
         @class(SDN4CoRE::AVB_OF_RelayUnit);
-        @signal[forwardSRPtoCon](type=CoRE4INET::SRPFrame);
+        @signal[forwardSRPtoConSig](type=CoRE4INET::SRPFrame);
+        
+        // Path to the SRP protocol module
+    	string srpProtocolModule = default("^.srpProtocol");
+    	
+        //SRP Table module, default name is srpTable
+        string srpTable = default("^.^.srpTable");
 }

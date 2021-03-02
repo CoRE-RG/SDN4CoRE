@@ -62,10 +62,11 @@ void AVB_OF_SwitchAgent::forwardSRPtoController(cPacket* msg) {
     }
 
     // allways send full packet with packet-in message
-    packetIn->encapsulate(msg);
+    packetIn->encapsulate(msg->dup());
     packetIn->setBuffer_id(OFP_NO_BUFFER);
 
     socket.send(packetIn);
+    delete msg;
 }
 
 
@@ -77,6 +78,7 @@ void AVB_OF_SwitchAgent::initialize(int stage){
 
             //register siganls
             forwardSRPtoConSig = registerSignal("forwardSRPtoConSig");
+            relayUnit->subscribe(forwardSRPtoConSig, this);
             //load srp table module
             _srpTable = dynamic_cast<CoRE4INET::SRPTable*> (getModuleByPath(par("srpTable")));
             if(!_srpTable){
@@ -125,7 +127,12 @@ void AVB_OF_SwitchAgent::initialize(int stage){
 
 void AVB_OF_SwitchAgent::handleMessage(cMessage *msg)
 {
-    ((AVB_OF_RelayUnit*)relayUnit)->handleSRPFromProtocol(msg);
+    if (msg->arrivedOn("srpIn")) {
+        ((AVB_OF_RelayUnit*)relayUnit)->handleSRPFromProtocol(msg);
+    } else {
+        // nothing to do here - just forward
+       OF_SwitchAgent::handleMessage(msg);
+    }
 }
 
 void AVB_OF_SwitchAgent::handleSRPFromController(cMessage* msg) {
@@ -177,18 +184,12 @@ void AVB_OF_SwitchAgent::processControlPlanePacket(cMessage *msg){
 }
 
 void AVB_OF_SwitchAgent::receiveSignal(cComponent *src, simsignal_t id, cObject *value, cObject *details){
-    Enter_Method_Silent();
-
     if(id == forwardSRPtoConSig){
-        CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(value->dup());
+        Enter_Method_Silent();
+        CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(value);
         forwardSRPtoController(toController);
     }else{
-        EthernetIIFrame* tmp = check_and_cast<EthernetIIFrame*>(value->dup());
-        if(forwardToConSign == id){
-            forwardFrameToController(tmp);
-        }else if(tableMissSign == id){
-            handleMissMatchedPacket(tmp);
-        }
+        OF_SwitchAgent::receiveSignal(src, id, value, details);
     }
 }
 

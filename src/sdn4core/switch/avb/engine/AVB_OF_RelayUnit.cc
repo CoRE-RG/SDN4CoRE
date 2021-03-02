@@ -95,15 +95,32 @@ void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
         controlInfo->setSwitchPort(msg->getArrivalGate()->getIndex());
         toController->setControlInfo(controlInfo);
 
-        emit(forwardSRPtoConSig,toController->dup());
+        emit(forwardSRPtoConSig,toController);
         delete msg;
     } else {
        OF_RelayUnit::processDataPlanePacket(msg);
     }
 }
 
-void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
+openflow::oxm_basic_match AVB_OF_RelayUnit::extractMatch(
+        inet::EthernetIIFrame* frame) {
 
+    oxm_basic_match match = OF_RelayUnit::extractMatch(frame);
+    //extract AVB/VLAN specific information ifpresent
+    //if(frame->getEtherType()==AVB_ETHERTYPE) {
+    if(match.OFB_ETH_TYPE == 0x8100){ //we have a q frame!
+        CoRE4INET::EthernetIIFrameWithQTag* qFrame =
+            dynamic_cast<CoRE4INET::EthernetIIFrameWithQTag*>(frame);
+        match.OFB_VLAN_VID = qFrame->getVID();
+        match.OFB_VLAN_PCP = qFrame->getPcp();
+        //}
+    }
+    return match;
+}
+
+
+void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
+    Enter_Method("handleSRPFromProtocol");
     cObject* ctrlInfo = msg->removeControlInfo();
     //check the control info and change it for the of-switch module.
     if (CoRE4INET::ExtendedIeee802Ctrl *etherctrl =

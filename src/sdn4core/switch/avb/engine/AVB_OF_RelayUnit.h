@@ -64,6 +64,13 @@ protected:
      */
     virtual bool isSRPMessage(omnetpp::cMessage* msg);
 
+    /**
+     * Extracts the information from an incoming frame to be matched against the openflow table.
+     * @param frame     the frame to create a match for
+     * @return          the match for the frame
+     */
+    virtual openflow::oxm_basic_match extractMatch(inet::EthernetIIFrame* frame) override;
+
 protected:
     /**
      * Reference to the SRP Table module.

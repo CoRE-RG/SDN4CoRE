@@ -25,7 +25,8 @@ import inet.transportlayer.contract.ITCP;
 import inet.common.lifecycle.NodeStatus;
 //OPENFLOW
 import openflow.openflow.switch.flowtable.IOpenFlowFlowTable;
-import openflow.openflow.switch.IOpenFlowRelayUnit;
+import sdn4core.switch.IOF_RelayUnit;
+import sdn4core.switch.IOF_SwitchAgent;
 //OF_SWITCHAGENT
 import sdn4core.switch.base.engine.OF_SwitchAgent;
 import sdn4core.switch.base.engine.OF_RelayUnit;
@@ -130,7 +131,7 @@ module OpenFlowSwitch
         }
 
         // OpenFlow RelayUnit
-        relayUnit: OF_RelayUnit {
+        relayUnit: <relayUnitType> like IOF_RelayUnit{
             parameters:
                 @display("p=431,143");
             gates:
@@ -139,7 +140,7 @@ module OpenFlowSwitch
         }
 
         // OpenFlow SwitchAgent
-        switchAgent: OF_SwitchAgent {
+        switchAgent: <switchAgentType> like IOF_SwitchAgent {
             parameters:
                 serviceTime = of_service_time;
                 @display("p=325,143");
