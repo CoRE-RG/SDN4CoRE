@@ -43,7 +43,7 @@ void TSN_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
                     inet::Ieee802Ctrl * controlInfo = new inet::Ieee802Ctrl();
                     controlInfo->setSwitchPort(etherframe->getArrivalGate()->getIndex());
                     toController->setControlInfo(controlInfo);
-                    emit(forwardSRPtoConSig,toController->dup());
+                    emit(forwardSRPtoConSig,toController);
                     dataPlanePacket++;
                     msgHandled = true;
                     delete msg; //= etherframe
@@ -59,6 +59,7 @@ void TSN_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
 }
 
 void TSN_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
+    Enter_Method("handleSRPFromProtocol");
     if(CoRE4INET::SRPFrame * srp = dynamic_cast<CoRE4INET::SRPFrame *>(msg)){
 
         CoRE4INET::ExtendedIeee802Ctrl * etherctrl = dynamic_cast<CoRE4INET::ExtendedIeee802Ctrl *>(srp->removeControlInfo());
