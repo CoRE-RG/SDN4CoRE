@@ -184,12 +184,14 @@ void AVB_OF_SwitchAgent::processControlPlanePacket(cMessage *msg){
 }
 
 void AVB_OF_SwitchAgent::receiveSignal(cComponent *src, simsignal_t id, cObject *value, cObject *details){
-    if(id == forwardSRPtoConSig){
-        Enter_Method_Silent();
-        CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(value);
-        forwardSRPtoController(toController);
-    }else{
-        OF_SwitchAgent::receiveSignal(src, id, value, details);
+    if(this->isConnectedToController()){
+        if(id == forwardSRPtoConSig){
+            Enter_Method_Silent();
+            CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(value);
+            forwardSRPtoController(toController);
+        }else{
+            OF_SwitchAgent::receiveSignal(src, id, value, details);
+        }
     }
 }
 

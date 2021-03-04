@@ -254,12 +254,6 @@ void OF_SwitchAgent::handleFlowModMessage(Open_Flow_Message *of_msg){
  * is no need to move it to the data plane
  */
 void OF_SwitchAgent::handleMissMatchedPacket(EthernetIIFrame *frame){
-    if(socket.getState() != TCPSocket::CONNECTED || !this->hasController){
-        //not yet connected to controller
-        //drop packet by returning
-        return;
-    }
-
     OFP_Packet_In *packetIn;
     if (sendCompletePacket || buffer.isfull()) {
 
@@ -312,13 +306,19 @@ void OF_SwitchAgent::handlePacketOutMessage(Open_Flow_Message *of_msg){
 }
 
 void OF_SwitchAgent::receiveSignal(cComponent *src, simsignal_t id, cObject *value, cObject *details){
-    Enter_Method_Silent();
-    EthernetIIFrame* tmp = check_and_cast<EthernetIIFrame*>(value);
-    if(forwardToConSign == id){
-        forwardFrameToController(tmp);
-    }else if(tableMissSign == id){
-        handleMissMatchedPacket(tmp);
+    if(isConnectedToController()){
+        Enter_Method_Silent();
+        EthernetIIFrame* tmp = check_and_cast<EthernetIIFrame*>(value);
+        if(forwardToConSign == id){
+            forwardFrameToController(tmp);
+        }else if(tableMissSign == id){
+            handleMissMatchedPacket(tmp);
+        }
     }
+}
+
+bool OF_SwitchAgent::isConnectedToController(void){
+    return (socket.getState() == TCPSocket::CONNECTED) && (this->hasController);
 }
 
 void OF_SwitchAgent::finish(){

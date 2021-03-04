@@ -264,8 +264,6 @@ void OF_RelayUnit::executePacketOutAction(ofp_action_output *action_output, Ethe
 void OF_RelayUnit::handleMessage(cMessage *msg){
     if(msg->arrivedOn("dataPlaneIn")){
         processDataPlanePacket(msg);
-    }else{
-        printf("Hello\n");
     }
 }
 

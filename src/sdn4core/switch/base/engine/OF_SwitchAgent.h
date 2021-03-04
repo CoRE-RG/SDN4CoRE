@@ -160,6 +160,10 @@ protected:
      */
     virtual void scheduleForServiceTime(omnetpp::cMessage* msg);
 
+    /**
+     * returns true if a controller is connected
+     */
+    virtual bool isConnectedToController(void);
 public:
     /**
      * Handles a packet that has not matched any rule in the OpenFlow tables.
