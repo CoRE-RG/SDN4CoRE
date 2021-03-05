@@ -34,12 +34,12 @@ namespace SDN4CoRE{
 
 
 /**
- * The OF_RelayUnit implements the switching engine of an OpenFlow switch.
- * It is directly connected to the TCP module to communicate with the controller (@see~OF_Controller).
- * It handles the forwarding of incoming packets by matching them with the OpenFlowTable
- * (@see~IOpenFlowFlowTable) entries.
+ * The OF_SwitchAgent is part of the switching engine of an OpenFlow switch.
+ * It is directly connected to the TCP module to communicate with the controller (@see~OF_Controller)
+ * using the open flow protocol. Additionally it communicates with the OF_RleayUnit and translates the
+ * commands from the controller into the necessary instructions to send to the RelayUnit.
  *
- * @author Timo Haeckel, for HAW Hamburg
+ * @author Timo Haeckel, Tobias Haugg, for HAW Hamburg
  */
 class OF_SwitchAgent: public cSimpleModule,  public cListener
 {

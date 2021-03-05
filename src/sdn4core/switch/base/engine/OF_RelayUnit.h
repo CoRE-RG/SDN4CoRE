@@ -14,9 +14,16 @@
 #include "openflow/openflow/switch/flowtable/OF_FlowTable.h"
 
 
-
 namespace SDN4CoRE{
 
+/**
+ * The OF_RelayUnit is part of the switching engine of an OpenFlow switch.
+ * It handles the forwarding of incoming packets by matching them with the OpenFlowTable
+ * (@see~IOpenFlowFlowTable) entries. Additionally it may send packets to the OF_SwitchAgent
+ * for further handling.
+ *
+ * @author Timo Haeckel, Tobias Haugg, for HAW Hamburg
+ */
 class OF_RelayUnit: public cSimpleModule
 {
 public:

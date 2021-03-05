@@ -26,13 +26,13 @@ namespace SDN4CoRE{
 
 
 /**
- * The AVBOpenFlowRelay is the switching engine of the AVB capable OpenFlow switch.
- * It is directly connected to the TCP module to communicate with the controller (@see~OF_Controller).
+ * The OF_RelayUnit is part of the switching engine of an OpenFlow switch.
  * It handles the forwarding of incoming packets by matching them with the OpenFlowTable
- * (@see~IOpenFlowFlowTable) entries.
+ * (@see~IOpenFlowFlowTable) entries. Additionally it may send packets to the OF_SwitchAgent
+ * for further handling.
  * It adds the capability of handling the SRP protocol to the @see~OF_RelayUnit module.
  *
- * @author Timo Haeckel, for HAW Hamburg
+ * @author Timo Haeckel, Tobias Haugg, for HAW Hamburg
  */
 class AVB_OF_RelayUnit : public OF_RelayUnit
 {
