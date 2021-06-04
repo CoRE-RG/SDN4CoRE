@@ -16,10 +16,10 @@
 /examples/tsn/small_network_of,      -f omnetpp.ini -c With_Crosstraffic -r 0,      0.5s,            af80-d74a
 /examples/tsn/small_network_of,      -f omnetpp.ini -c Without_TDMA -r 0,           0.5s,            2e12-496e
 /examples/tsn/small_network_of,      -f omnetpp.ini -c With_Qci -r 0,               0.5s,            405b-d6be
-/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c General -r 0,                0.5s,            4c57-05fa
-/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c With_Crosstraffic -r 0,      0.5s,            989b-5734
-/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c Without_TDMA -r 0,           0.5s,            cc5c-bf86
-/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c With_Qci -r 0,               0.5s,            fd18-2e03
-/examples/papers/omnetsummit2019/configanalysis, -f omnetpp.ini -c General -r 0,                10s,             c243-3f82
-/examples/papers/omnetsummit2019/configanalysis, -f omnetpp.ini -c CaseStudy -r 0,              5s,              dae8-5474
-/examples/papers/omnetsummit2019/configanalysis, -f omnetpp.ini -c CaseStudy_WithCT -r 0,       5s,              9ad2-b9a7
+/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c General -r 0,                0.5s,            0eab-c35c
+/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c With_Crosstraffic -r 0,      0.5s,            d5ec-c446
+/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c Without_TDMA -r 0,           0.5s,            34ec-af35
+/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c With_Qci -r 0,               0.5s,            9662-3d3e
+/examples/papers/omnetsummit2019/configanalysis, -f omnetpp.ini -c General -r 0,                10s,             7695-7fb4
+/examples/papers/omnetsummit2019/configanalysis, -f omnetpp.ini -c CaseStudy -r 0,              5s,              9ec5-4cbe
+/examples/papers/omnetsummit2019/configanalysis, -f omnetpp.ini -c CaseStudy_WithCT -r 0,       5s,              99aa-eafd
