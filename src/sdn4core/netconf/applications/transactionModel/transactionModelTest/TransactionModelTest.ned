@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.applications.time_synchronous_transaction_model.TransactionModelTest;
+package sdn4core.netconf.applications.transactionModel.transactionModelTest;
 
 //
 // Contains the Finite State Machine of Transaction Model for Testing.

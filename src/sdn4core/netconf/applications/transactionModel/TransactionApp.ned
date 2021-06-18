@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.applications.time_synchronous_transaction_model;
+package sdn4core.netconf.applications.transactionModel;
 
 import sdn4core.netconf.applications.base.NetConfApplicationBase;
 //
@@ -28,10 +28,6 @@ simple TransactionApp extends NetConfApplicationBase
         @class(SDN4CoRE::TransactionApp);
         @signal[transactionResult](type="bool");
         @statistic[transactionResult](title="Result of Transaction";record=vector?;interpolationmode=none);
-        @signal[numSentMsgs]();
-        @statistic[numSentMsgs](title="Number of sent messages";record=vector?;interpolationmode=none);
-        @signal[numReceivedMsgs]();
-        @statistic[numReceivedMsgs](title="Number of received messages";record=vector?;interpolationmode=none);
         @signal[transactionDuration](type="bool");
         @statistic[transactionDuration](title="Duration of transaction";record=vector?;interpolationmode=none);
         @signal[lockPhase]();
@@ -42,14 +38,7 @@ simple TransactionApp extends NetConfApplicationBase
         @statistic[confirmationPhase](title="Duration of confirmation phase";record=vector?;interpolationmode=none);
         @signal[unlockPhase]();
         @statistic[unlockPhase](title="Duration of unlock phase";record=vector?;interpolationmode=none);
-        // Distances and hops to switches to be programmed
-        // positions in the both lists need to match for the switches.
-        string distanceAndHopsToSwitches; // "l,h;l,h" sets distances for 2 switches / with "l,h" all distances are assumed to be equal
-        double bitRate @unit(bps) = default(1Gbps); // bitrate of the controlplane network in bits per second ,
-        double switchDelay @unit(s); // the switch delay in seconds
-        double signalDelay @unit(mps); // the signal delay in meter per second 
         double controllerProcessingTime @unit(s); // the processing time of a controller
-        double switchProcessingTime @unit(s); // the processing time of a switch
         double startHelloHandshake @unit(s) = default(0s); // the begin of NetConf Hello Handshake
         double startTransaction @unit(s) = default(0s); // the begin of the transaction
 }
