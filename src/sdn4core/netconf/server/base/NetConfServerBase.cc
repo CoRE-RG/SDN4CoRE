@@ -58,7 +58,7 @@ NetConfMessage_RPCReply* NetConfServerBase::createRPCReply(
     // create NetConf reply message
     NetConfMessage_RPCReply* reply = new NetConfMessage_RPCReply("RPC Reply");
     reply->setMessage_id(ctrl->getMessage_id());
-    reply->setByteLength(sizeof(ctrl->getMessage_id()));
+    reply->addByteLength(sizeof(ctrl->getMessage_id()));
     reply->encapsulate(element);
     // reattach control info and forward it.
     reply->setControlInfo(ctrl);
@@ -134,7 +134,6 @@ void NetConfServerBase::handleHello(cMessage* msg) {
         // create hello
         NetConfHello* reply = new NetConfHello("NetConfHello");
         reply->setSession_id(sessionInfo->getSessionId());
-        reply->setByteLength(4);
         //create and attach control info
         NetConfCtrlInfo* info = new NetConfCtrlInfo();
         info->setSession_id(sessionInfo->getSessionId());
@@ -177,13 +176,12 @@ NetConf_RPCReplyElement* NetConfServerBase::createRPCReplyElement_Error(
     errorReply->setError_tag(error_tag);
     errorReply->setError_severity(error_severity);
     errorReply->setError_app_tag(error_app_tag);
-    errorReply->setByteLength(std::strlen(error_tag) + sizeof(error_type) + sizeof(error_severity) + std::strlen(error_app_tag));
+    errorReply->addByteLength(std::strlen(error_tag) + std::strlen(error_app_tag));
     return dynamic_cast<NetConf_RPCReplyElement*>(errorReply);
 }
 
 NetConf_RPCReplyElement* NetConfServerBase::createRPCReplyElement_Ok() {
     NetConf_RPCReplyElement_Ok* okReply = new NetConf_RPCReplyElement_Ok();
-    okReply->setByteLength(4);
     return dynamic_cast<NetConf_RPCReplyElement*>(okReply);
 }
 

@@ -24,6 +24,7 @@ import sdn4core.switch.avb.services.avb.SRP.OF_SRProtocol;
 import core4inet.scheduler.ITTEScheduler;
 import core4inet.synchronisation.base.ISync;
 import core4inet.services.avb.SRP.SRPTable;
+import core4inet.services.avb.SRP.SRProtocol;
 
 //
 // Model of an OpenFlow Ethernet switch that supports TSN ingress and egress control (@see~CoRE4INET::TSNPHYPort).
@@ -38,9 +39,20 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
         relayUnitType = default("TSN_OF_RelayUnit");
         switchAgentType = default("AVB_OF_SwitchAgent");
         ethDataPlaneType = default("TSNEthernetInterface");
+        ethControlPlaneType = default("TSNEtherNic");
+        networkLayerType = default("RTNetworkLayer");
 
-        *.srpTable = default(absPath(".srpTable"));
-        *.srpProtocolModule = default(absPath(".srpProtocol"));
+        string ofSrpProtocolModule = default(absPath(".ofSrpProtocol"));
+        string ofSrpTableModule = default(absPath(".ofSrpTable"));
+        string srpProtocolModule = default(absPath(".srpProtocol"));
+        string srpTableModule = default(absPath(".srpTable"));
+
+        eth[0].**.srpTable = srpTableModule;
+        etherMAC[*].**.srpTable = ofSrpTableModule;
+        switchAgent.srpProtocolModule = ofSrpProtocolModule;
+        switchAgent.srpTable = ofSrpTableModule;
+        relayUnit.srpTable = ofSrpTableModule;
+
 
     submodules:
 
@@ -57,20 +69,34 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
         }
 
 	    // Stream Reservation Protocol table
-        srpTable: SRPTable {
-            @display("p=442,241");
+        ofSrpTable: SRPTable {
+            @display("p=431,240");
         }
 
-		// Stream Reservation Protocol implementation
-        srpProtocol: OF_SRProtocol {
+		// Dataplane Stream Reservation Protocol implementation tunneled via openflow
+        ofSrpProtocol: OF_SRProtocol {
+            srpTable = ofSrpTableModule;
             portModule = "etherMAC";
             macModulePath = ".mac";
-        	shaperModulePath = ".shaper";
-            @display("p=371,241");
+            shaperModulePath = ".shaper";
+            @display("p=324.9,240.34999");
+        }
+
+		// Control Plane Stream Reservation Protocol implementation
+        srpProtocol: SRProtocol {
+            srpTable = srpTableModule;
+            @display("p=34.199997,240.34999");
+        }
+
+	    // Stream Reservation Protocol table
+        srpTable: SRPTable {
+            @display("p=137,240");
         }
 
     connections allowunconnected:
-	    //AVB SRP connections will be made in RTOF Switch as it is of different submodule interface.
-        //srpProtocol.out --> relayUnit.srpIn;
-        //srpProtocol.in <-- relayUnit.srpOut;
+        //this only throws an error in the IDE but works in the current omnet version!
+        ofSrpProtocol.out --> switchAgent.srpIn;
+        ofSrpProtocol.in <-- switchAgent.srpOut;
+        srpProtocol.out --> eth[0].srpIn;
+        srpProtocol.in <-- eth[0].srpOut;
 }

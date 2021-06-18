@@ -19,11 +19,14 @@
 #define __SDN4CORE_NETCONFDATASTOREMANAGERBASE_H_
 
 #include <omnetpp.h>
-#include <sdn4core/netconf/datastores/config/base/NetConfConfigDataStoreBase.h>
+#include <sdn4core/netconf/datastores/store/running/NetConfRunningDataStore.h>
+#include <sdn4core/netconf/datastores/store/candidate/NetConfCandidateDataStore.h>
+#include <sdn4core/netconf/datastructures/transactionModel/NetConfConfigCommitTimestamp.h>
 #include <string>
 #include <unordered_map>
 
-#include "sdn4core/netconf/datastores/state/base/NetConfStateDataStore.h"
+#include "core4inet/scheduler/period/Period.h"
+
 //AUTO-GENERATED MESSAGES
 #include "sdn4core/netconf/messages/NetConfMessage_m.h"
 #include "sdn4core/netconf/messages/NetConfOperation_m.h"
@@ -48,18 +51,13 @@ class NetConfServerBase;
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class NetConfDataStoreManagerBase : public cSimpleModule
+class NetConfDataStoreManagerBase : public cSimpleModule , public cListener
 {
   protected:
-    virtual void initialize();
-    virtual void handleParameterChange(const char* parname);
-    virtual void handleMessage(cMessage *msg);
-
-    /**
-     * Initializes the initial config and state data stores on startup.
-     * This function must also set the _activeConfigName to the running config name.
-     */
-    virtual void initializeDataStores() = 0;
+    virtual void initialize() override;
+    virtual void handleParameterChange(const char* parname) override;
+    virtual void handleMessage(cMessage *msg) override;
+    virtual void receiveSignal(cComponent *source, simsignal_t signalID, long l, cObject *details) override;
 
     /**
      * Creates an rpc reply element containing the data.
@@ -131,29 +129,77 @@ class NetConfDataStoreManagerBase : public cSimpleModule
     virtual NetConf_RPCReplyElement* handleGet(NetConfOperation* operation);
 
     /**
-     * Adds a new config data store to the _configStores by copying the active
-     * config store and adding it to the map using the name as a key.
-     * If the store already exists it is NOT replaced.
-     * @param target    the name of the config store to create
-     * @return          true if a new store was created
+     * Handles a NetConfOperation_Lock message, forwards it to the data
+     * store and creates a reply.
+     * @param operation     the NetConfOperation_Lock message
+     * @return              a NetConf_RPCReplyElement
      */
-    virtual bool createConfigStore (std::string target);
+    virtual NetConf_RPCReplyElement* handleLock(NetConfOperation* operation);
 
     /**
-     * Creates/replaces the target config data store by copying the source
-     * config store. If a new store is created it has to be inserted into _configStores.
-     * @param target    the name of the config store to create/replace
-     * @param source    the name of the config store to copy from
+     * Handles a NetConfOperation_Unlock message, forwards it to the data
+     * store and creates a reply.
+     * @param operation     the NetConfOperation_Unlock message
+     * @return              a NetConf_RPCReplyElement
      */
-    virtual bool createOrReplaceConfigStore (std::string target, std::string source);
+    virtual NetConf_RPCReplyElement* handleUnlock(NetConfOperation* operation);
 
     /**
-     * Deletes the target config data store and removes it from _configStores.
-     * BE CAREFUL this function will also delete the running config _activeConfigName!
-     * @param target    the name of the config store to delete
-     * @return          true if the config store was actually removed
+     * Handles a NetConfOperation_Commit message, forwards it to the data
+     * store and creates a reply.
+     * @param operation     the NetConfOperation_Commit message
+     * @return              a NetConf_RPCReplyElement
      */
-    virtual bool deleteConfigStore(const std::string& target);
+    virtual NetConf_RPCReplyElement* handleCommit(NetConfOperation* operation);
+
+    /**
+     * verifies the lock by the given sessionId
+     * @param datastore the given config data store
+     * @param operation the NetConf operation which has the sessionId
+     * @return true if the data store is locked by the given sessionId or unlocked, else false
+     */
+    bool verifyLock(NetConfDataStoreBase* datastore, NetConfOperation* operation);
+
+    /**
+     * Schedules the timed commit
+     */
+    virtual void scheduleTimedCommit();
+
+    /**
+     * Executes the commit
+     */
+    virtual void executeCommit();
+
+    /**
+     * checks if it is a valid commit timestamp
+     * @return true, if it is valid, else false
+     */
+    bool hasCommitTimestamp();
+
+    /**
+     * sets the commitOperation and deletes the old commitOperation
+     * @param commitOperation   the NetConf operation
+     */
+    void setCommitOperation(NetConfOperation_Commit* commitOperation);
+
+    /**
+     * the commit operation
+     */
+    NetConfOperation_Commit* _commitOperation = nullptr;
+    /**
+     * the commit timestamp
+     */
+    NetConfConfigCommitTimestamp::CommitTimestamp_t _commitTimestamp;
+
+    /**
+     * the period of the scheduler
+     */
+    std::vector<CoRE4INET::Period*> _periods;
+
+    /**
+     * the new cycle signal which is to subscribe
+     */
+    simsignal_t _newCycleSignal;
 
     /**
      * Cached reference to the NetConf server.
@@ -166,25 +212,14 @@ class NetConfDataStoreManagerBase : public cSimpleModule
     bool _displayStatus;
 
     /**
-     * Cached parameter for the maximum number of data stores.
+     * Running configuration data store
      */
-    int _numMaxDataStores;
+    NetConfRunningDataStore* _runningStore;
 
     /**
-     * Configuration data stores mapped to there name
+     * Candidate configuration data store
      */
-    std::unordered_map<std::string, NetConfConfigDataStoreBase*> _configStores;
-
-    /**
-     * Name of the running config. "running" by default"
-     */
-    std::string _activeConfigName = "running";
-
-    /**
-     * State data store
-     */
-    NetConfStateDataStore* _stateStore;
-
+    NetConfCandidateDataStore* _candidateStore;
     /**
      * Gate name (@directIn) for request inputs in data stores
      */
@@ -193,6 +228,10 @@ class NetConfDataStoreManagerBase : public cSimpleModule
      * Gate name (@directIn) for response inputs to NetConf server
      */
     static const char RESPONSE_OUT_GATE_NAME []; // = "responseIn";
+
+    static simsignal_t commitExecutionSignal;
+
+    static simsignal_t editConfigSignal;
 
   private:
 };

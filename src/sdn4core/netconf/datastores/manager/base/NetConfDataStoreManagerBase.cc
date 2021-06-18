@@ -18,15 +18,22 @@
 #include <sdn4core/netconf/datastores/manager/base/NetConfDataStoreManagerBase.h>
 #include <sdn4core/netconf/server/base/NetConfServerBase.h>
 #include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
+#include "sdn4core/netconf/messages/NetConfCtrlInfo_m.h"
 //INET
 #include "inet/common/ModuleAccess.h"
+#include "sdn4core/netconf/NetConfDefines.h"
 
 using namespace std;
 
 namespace SDN4CoRE {
 
+Register_Class(NetConfDataStoreManagerBase);
+
 const char NetConfDataStoreManagerBase::REQUEST_IN_GATE_NAME[] = "requestIn";
 const char NetConfDataStoreManagerBase::RESPONSE_OUT_GATE_NAME[] = "responseIn";
+
+simsignal_t NetConfDataStoreManagerBase::commitExecutionSignal = registerSignal("commitExecution");
+simsignal_t NetConfDataStoreManagerBase::editConfigSignal = registerSignal("editConfig");
 
 void NetConfDataStoreManagerBase::initialize() {
     handleParameterChange(nullptr);
@@ -39,78 +46,32 @@ void NetConfDataStoreManagerBase::initialize() {
         msg += par("pathToNetConfServer").stdstringValue();
         throw cRuntimeError(msg.c_str());
     }
-    initializeDataStores();
-    if (_configStores.empty()) {
+    _runningStore = dynamic_cast<NetConfRunningDataStore*>(this->getParentModule()->getSubmodule("running"));
+    if (!_runningStore) {
         throw cRuntimeError(
-                "No initial NetConf config data store created on startup");
+                "No NetConf running config data store found ");
     }
-    if (!_stateStore) {
+    _candidateStore = dynamic_cast<NetConfCandidateDataStore*>(this->getParentModule()->getSubmodule("candidate"));
+    if (!_candidateStore) {
         throw cRuntimeError(
-                "No initial NetConf state data store created on startup");
+                "No NetConf candidate config data store found ");
     }
-    // TODO implement XML configuration.
+    // TODO implement XML startup configuration.
+
+    auto scheduler = this->getParentModule()->getParentModule()->getSubmodule("scheduler");
+    if(scheduler){
+        _newCycleSignal = registerSignal("newCycle");
+        int numOfPeriods = scheduler->getSubmodule("period", 0)->getVectorSize();
+        for(int i = 0; i < numOfPeriods; i++){
+        _periods.push_back(dynamic_cast<CoRE4INET::Period*>(scheduler->getSubmodule("period", i)));
+        }
+    }
 }
 
 void NetConfDataStoreManagerBase::handleParameterChange(const char* parname) {
     if (!parname || !strcmp(parname, "displayStatus")) {
         _displayStatus = par("displayStatus");
     }
-    if (!parname || !strcmp(parname, "numMaxDataStores")) {
-        _numMaxDataStores = par("numMaxDataStores");
-    }
-}
-
-bool NetConfDataStoreManagerBase::createConfigStore(string target) {
-    if (_configStores.count(target)) {
-        // store already exists.
-        return false;
-    }
-    return createOrReplaceConfigStore(target, _activeConfigName);
-}
-
-bool NetConfDataStoreManagerBase::createOrReplaceConfigStore(string target,
-        string source) {
-    // check if the source it valid
-    if (!_configStores.count(source)) {
-        // source store does not exists.
-        return false;
-    }
-    //get the original
-    NetConfConfigDataStoreBase* original = _configStores[source];
-
-    //check if the target already exists
-    if (!_configStores.count(target)) {
-        //if not create a new module.
-        NetConfConfigDataStoreBase* copy = dynamic_cast<NetConfConfigDataStoreBase*> (
-                        createFinalizeAndScheduleDynamicModule(original->getModuleType()->getFullName(),
-                    "configStores", this->getParentModule(), true));
-        if(copy){
-            _configStores[target] = copy;
-        } else {
-            throw cRuntimeError("Could not create a copy of the config store.");
-        }
-    }
-
-    //now we can copy
-    NetConfFilter filter;
-    _configStores[target]->editConfig(NetConfOperation_Operation::NETCONFOPERATION_OPERATION_REPLACE,
-            NetConfOperation_ErrorOption::NETCONFOPERATION_ERROROPTION_CONTINUEONERROR,
-            _configStores[source]->getConfig(filter));
-
-    return true;
-}
-
-bool NetConfDataStoreManagerBase::deleteConfigStore(const string& target) {
-    // delete target store first
-    if (_configStores.count(target)) {
-        // target exists so delete it.
-        NetConfConfigDataStoreBase* temp = _configStores[target];
-        _configStores.erase(target);
-        temp->callFinish();
-        temp->deleteModule();
-        return true;
-    }
-    return false;
 }
 
 NetConf_RPCReplyElement* NetConfDataStoreManagerBase::createRPCReplyElement_Data(
@@ -135,22 +96,20 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::createRPCReplyElement_Erro
     errorReply->setError_tag(error_tag);
     errorReply->setError_severity(error_severity);
     errorReply->setError_app_tag(error_app_tag);
-    errorReply->setByteLength(std::strlen(error_tag) + sizeof(error_type) + sizeof(error_severity) + std::strlen(error_app_tag));
+    errorReply->addByteLength(std::strlen(error_tag) + std::strlen(error_app_tag));
     return dynamic_cast<NetConf_RPCReplyElement*>(errorReply);
 }
 
 NetConf_RPCReplyElement* NetConfDataStoreManagerBase::createRPCReplyElement_Ok() {
     NetConf_RPCReplyElement_Ok* okReply = new NetConf_RPCReplyElement_Ok();
-    okReply->setByteLength(4);
     return dynamic_cast<NetConf_RPCReplyElement*>(okReply);
 }
 
 void NetConfDataStoreManagerBase::handleMessage(cMessage *msg) {
+    // the reply element to transmit after handling operation.
+    NetConf_RPCReplyElement* reply = nullptr;
 
     if (NetConfOperation* operation = dynamic_cast<NetConfOperation*>(msg)) {
-
-        // the reply element to transmit after handling operation.
-        NetConf_RPCReplyElement* reply = nullptr;
 
         // check if it is of type get config operation
         if (dynamic_cast<NetConfOperation_GetConfig*>(operation)) {
@@ -172,6 +131,23 @@ void NetConfDataStoreManagerBase::handleMessage(cMessage *msg) {
         else if (dynamic_cast<NetConfOperation_Get*>(operation)) {
             reply = handleGet(operation);
         }
+        // check if it is of type lock operation
+        else if (dynamic_cast<NetConfOperation_Lock*>(operation)){
+            reply = handleLock(operation);
+        }
+        // check if it is of type unlock operation
+        else if(dynamic_cast<NetConfOperation_Unlock*>(operation)){
+            reply = handleUnlock(operation);
+        }
+        // check if it is of type commit operation
+        else if(dynamic_cast<NetConfOperation_Commit*>(operation)){
+            reply = handleCommit(operation);
+            if(reply == nullptr) {
+                // this is a timed commit... so the reply is sent asynchronously
+                return;
+            }
+        }
+
         // this operation is not known.
         else {
             // create error
@@ -191,7 +167,19 @@ void NetConfDataStoreManagerBase::handleMessage(cMessage *msg) {
                     "Received an operation that did not result in a reply, this should never happen!");
         }
 
-    } else {
+    }
+    else if(msg->isSelfMessage()){
+        if(msg->isName("FINISHED_TIMED_COMMIT")){
+            _periods[_commitTimestamp.period]->unsubscribe(_newCycleSignal, this);
+            reply = createRPCReplyElement_Ok();
+            reply->setControlInfo(_commitOperation->removeControlInfo());
+            sendDirect(reply,_netConfServer->gate(RESPONSE_OUT_GATE_NAME));
+            setCommitOperation(nullptr);
+            _commitTimestamp.cycle = 0;
+            _commitTimestamp.period = 0;
+        }
+    }
+    else {
         throw cRuntimeError("Received message the is not a netconf operation.");
     }
     delete msg;
@@ -204,25 +192,27 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleGetConfig(
     // check if it is of type get config operation
     if (NetConfOperation_GetConfig* getConfig =
             dynamic_cast<NetConfOperation_GetConfig*>(operation)) {
-        if (_configStores.count(getConfig->getSource())) {
-            NetConfConfig* config =
-                    _configStores[getConfig->getSource()]->getConfig(
-                            getConfig->getFilter());
-            if (config) {
-                // create response
-                reply = createRPCReplyElement_Data(config);
-            } else {
-                // create error
-                reply = createRPCReplyElement_Error(
-                        NETCONF_REPLY_ERROR_TYPE_APPLICATION,
-                        "Failed to retrieve the data requested.",
-                        NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
-            }
+        NetConfConfig* config = nullptr;
+        if(strcmp(getConfig->getSource(), NETCONF_CONFIG_RUNNING) == 0) {
+            config = _runningStore->getConfig(getConfig->getFilter());
+        } else if (strcmp(getConfig->getSource(), NETCONF_CONFIG_CANDIDATE) == 0) {
+            config = _candidateStore->getConfig(getConfig->getFilter());
+        } else {
+            // create error
+            return createRPCReplyElement_Error(
+                    NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                    "The Config store does not exist.",
+                    NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+        }
+
+        if (config) {
+            // create response
+            reply = createRPCReplyElement_Data(config);
         } else {
             // create error
             reply = createRPCReplyElement_Error(
                     NETCONF_REPLY_ERROR_TYPE_APPLICATION,
-                    "The Config store does not exist.",
+                    "Failed to retrieve the data requested.",
                     NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
         }
     }
@@ -237,21 +227,52 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleEditConfig(
     // check if it is of type edit config operation
     if (NetConfOperation_EditConfig* editConfig =
             dynamic_cast<NetConfOperation_EditConfig*>(operation)) {
-        bool success = true;
-        if (!_configStores.count(editConfig->getTarget())) {
-            // if config store doesnt exist, create it.
-            success = createConfigStore(editConfig->getTarget());
-        }
-        // pass on the edit config
-        if (success) {
-            if(NetConfConfig* config = dynamic_cast<NetConfConfig*>(editConfig->decapsulate())){
-                success = _configStores[editConfig->getTarget()]->editConfig(
-                                    editConfig->getDefaultOperation(),
-                                    editConfig->getErrorOption(), config);
+        bool success = false;
+        auto encap = editConfig->decapsulate();
+        NetConfDataStoreBase* storeToEdit = nullptr;
+        if(NetConfConfig* config = dynamic_cast<NetConfConfig*>(encap)){
+            if(strcmp(editConfig->getTarget(), NETCONF_CONFIG_RUNNING) == 0) {
+                storeToEdit = _runningStore;
+            } else if (strcmp(editConfig->getTarget(), NETCONF_CONFIG_CANDIDATE) == 0) {
+                storeToEdit = _candidateStore;
             } else {
-                success = false;
+                // create error
+                return createRPCReplyElement_Error(
+                        NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                        "The Config store does not exist.",
+                        NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
             }
+            if (!verifyLock(storeToEdit, operation)) {
+                return createRPCReplyElement_Error(
+                                NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                                "Store Locked",
+                                NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+            }
+
+            if(NetConfConfigCommitTimestamp* commitTimestamp = dynamic_cast<NetConfConfigCommitTimestamp*>(encap)){
+                NetConfConfigCommitTimestamp::CommitTimestamp_t commitTimestamp2 = commitTimestamp->getCommitTimestamp();
+                CoRE4INET::Period* period = _periods[commitTimestamp2.period];
+                uint32_t currentCycle = period->getCycles();
+                if(commitTimestamp2.cycle > currentCycle){
+                    _commitTimestamp = commitTimestamp->getCommitTimestamp();
+                    success = true;
+                }
+                else{
+                    return createRPCReplyElement_Error(
+                            NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                            "Cycle will be exceeded.",
+                            NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+                }
+            } else {
+                success = storeToEdit->editConfig(editConfig->getDefaultOperation(),
+                            editConfig->getErrorOption(), config);
+                emit(editConfigSignal,1L);
+            }
+        } else {
+            throw cRuntimeError("Edit config does not contain a configuration");
         }
+
+        delete encap;
 
         if (success) {
             // create response
@@ -271,25 +292,40 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleEditConfig(
 NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleCopyConfig(
         NetConfOperation* operation) {
     NetConf_RPCReplyElement* reply = nullptr;
-
     // check if it is of type copy config operation
     if (NetConfOperation_CopyConfig* copyConfig =
             dynamic_cast<NetConfOperation_CopyConfig*>(operation)) {
-        // if config store doesnt exist create it, else replace it
-        bool success = createOrReplaceConfigStore(copyConfig->getTarget(),
-                copyConfig->getSource());
-        if (success) {
-            // create response
+        bool success = false;
+        if (!verifyLock(_runningStore, operation) || !verifyLock(_candidateStore, operation)) {
+            return createRPCReplyElement_Error(
+                            NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                            "Store Locked",
+                            NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+        }
+        if( (strcmp(copyConfig->getSource(), NETCONF_CONFIG_CANDIDATE) == 0) &&
+                (strcmp(copyConfig->getTarget(), NETCONF_CONFIG_RUNNING) == 0) ) {
+            success = _candidateStore->applyTo(_runningStore);
+            if (success) {
+                // create response
+                reply = createRPCReplyElement_Ok();
+            } else {
+                // create error
+                reply = createRPCReplyElement_Error(
+                        NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                        "Failed to copy config.",
+                        NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+            }
+        } else if ( (strcmp(copyConfig->getSource(), NETCONF_CONFIG_RUNNING) == 0) &&
+                (strcmp(copyConfig->getTarget(), NETCONF_CONFIG_CANDIDATE) == 0) ) {
+            _candidateStore->clear();
             reply = createRPCReplyElement_Ok();
         } else {
-            // create error
             reply = createRPCReplyElement_Error(
                     NETCONF_REPLY_ERROR_TYPE_APPLICATION,
-                    "Failed to copy config.",
+                    "Target or Source is unknown",
                     NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
         }
     }
-
     return reply;
 }
 
@@ -300,28 +336,30 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleDeleteConfig(
     // check if it is of type delete config operation
     if (NetConfOperation_DeleteConfig* deleteConfig =
             dynamic_cast<NetConfOperation_DeleteConfig*>(operation)) {
-        if (strcmp(deleteConfig->getTarget(), _activeConfigName.c_str())) {
-            // delete the store
-            bool success = deleteConfigStore(deleteConfig->getTarget());
-            if (success) {
-                // create response
-                reply = createRPCReplyElement_Ok();
-            } else {
-                // create error
-                reply = createRPCReplyElement_Error(
-                        NETCONF_REPLY_ERROR_TYPE_APPLICATION,
-                        "Failed to delete config.",
-                        NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
-            }
-        } else {
-            // create error
+        if(strcmp(deleteConfig->getTarget(), NETCONF_CONFIG_RUNNING) == 0){
             reply = createRPCReplyElement_Error(
                     NETCONF_REPLY_ERROR_TYPE_APPLICATION,
                     "The running config must not be deleted.",
                     NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
         }
+        else if(strcmp(deleteConfig->getTarget(), NETCONF_CONFIG_CANDIDATE) == 0){
+            if (!verifyLock(_candidateStore, operation)) {
+                return createRPCReplyElement_Error(
+                                NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                                "Store Locked",
+                                NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+            }
+            _candidateStore->clear();
+            _candidateStore->unlock();
+            reply = createRPCReplyElement_Ok();
+        }
+        else{
+            reply = createRPCReplyElement_Error(
+                    NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                    "Target is unknown.",
+                    NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+        }
     }
-
     return reply;
 }
 
@@ -332,7 +370,7 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleGet(
     // check if it is of type get operation
     if (NetConfOperation_Get* get =
             dynamic_cast<NetConfOperation_Get*>(operation)) {
-        NetConfConfig* config = _stateStore->get(get->getFilter());
+        NetConfConfig* config = new NetConfConfig();
         if (config) {
             // create response
             reply = createRPCReplyElement_Data(config);
@@ -346,6 +384,174 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleGet(
     }
 
     return reply;
+}
+
+NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleLock(
+        NetConfOperation* operation){
+    NetConf_RPCReplyElement* reply = nullptr;
+
+    // check if it is of type lock operation
+    if(NetConfOperation_Lock* lock =
+            dynamic_cast<NetConfOperation_Lock*>(operation)){
+        NetConfDataStoreBase* configStoreToLock = nullptr;
+        if(strcmp(lock->getTarget(), NETCONF_CONFIG_RUNNING) == 0) {
+            configStoreToLock = _runningStore;
+        } else if (strcmp(lock->getTarget(), NETCONF_CONFIG_CANDIDATE) == 0) {
+            configStoreToLock = _candidateStore;
+        } else {
+            // create error
+            return createRPCReplyElement_Error(
+                    NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                    "The Config store does not exist.",
+                    NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+        }
+
+        if(NetConfCtrlInfo* controlInfo =
+                dynamic_cast<NetConfCtrlInfo*> (lock->getControlInfo())){
+
+            if(configStoreToLock->checkAndLock(controlInfo->getSession_id())){
+                reply = createRPCReplyElement_Ok();
+            }else{
+                const char* errorInfo = to_string(configStoreToLock->getLockOwner()).c_str();
+                reply = createRPCReplyElement_Error(
+                        NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                        "lock-denied",// error-tag is "lock-denied"
+                        NETCONF_REPLY_ERROR_SEVIRITY_ERROR,
+                        errorInfo//error-info is the session-id of the lock-owner, if the lock is held by a non-netconf entity it is 0
+                );
+            }
+        }
+    }
+    return reply;
+}
+
+bool NetConfDataStoreManagerBase::verifyLock(NetConfDataStoreBase* datastore, NetConfOperation* operation){
+    NetConfCtrlInfo* controlInfo = dynamic_cast<NetConfCtrlInfo*> (operation->getControlInfo());
+    int sessionId = controlInfo->getSession_id();
+    if(datastore->isLocked()){
+        if(!datastore->isLockedBy(sessionId)){
+            return false;
+        }
+    }
+    return true;
+}
+
+NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleUnlock(
+        NetConfOperation* operation){
+    NetConf_RPCReplyElement* reply = nullptr;
+
+    // check if it is of type unlock operation
+    if(NetConfOperation_Unlock* unlock =
+            dynamic_cast<NetConfOperation_Unlock*>(operation)){
+        NetConfDataStoreBase* configStoreToUnlock = nullptr;
+        if(strcmp(unlock->getTarget(), NETCONF_CONFIG_RUNNING) == 0) {
+            configStoreToUnlock = _runningStore;
+        } else if (strcmp(unlock->getTarget(), NETCONF_CONFIG_CANDIDATE) == 0) {
+            configStoreToUnlock = _candidateStore;
+        } else {
+            // create error
+            return createRPCReplyElement_Error(
+                    NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                    "The Config store does not exist.",
+                    NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+        }
+
+        if(NetConfCtrlInfo* controlInfo =
+                dynamic_cast<NetConfCtrlInfo*> (unlock->getControlInfo())){
+
+            if (!configStoreToUnlock->isLocked()) {
+                reply = createRPCReplyElement_Error(
+                        NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                        "lock is not active", //error because lock is currently not active
+                        NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+            }
+            else if(configStoreToUnlock->isLockedBy(controlInfo->getSession_id())){
+                configStoreToUnlock->unlock(); //success can be unlocked
+                reply = createRPCReplyElement_Ok();
+            }else{
+                reply = createRPCReplyElement_Error(
+                        NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                        "Cannot unlock config because session Id differs from lock owner", // locked but the current session is not the lock owner
+                        NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+            }
+        }
+    }
+    return reply;
+}
+
+NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleCommit(
+        NetConfOperation* operation){
+    NetConf_RPCReplyElement* reply = nullptr;
+
+    // check if it is of type commit operation
+    if(NetConfOperation_Commit* commit =
+            dynamic_cast<NetConfOperation_Commit*>(operation)){
+        if(_runningStore != nullptr){
+            if (verifyLock(_runningStore, operation)) {
+                //valid commit
+                if(hasCommitTimestamp()){
+                    scheduleTimedCommit();
+                    setCommitOperation(commit);
+                } else {
+                    executeCommit();
+                    reply = createRPCReplyElement_Ok();
+                }
+            }
+            else{
+                reply = createRPCReplyElement_Error(
+                        NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                        "Cannot unlock config because session Id differs from lock owner", // locked but the current session is not the lock owner
+                        NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+            }
+        }
+    }
+    return reply;
+}
+
+bool NetConfDataStoreManagerBase::hasCommitTimestamp(){
+    bool isCommitTimestamp = true;
+    if(_periods[_commitTimestamp.cycle] == 0
+            && _periods[_commitTimestamp.period] == 0){
+        isCommitTimestamp = false;
+    }
+    return isCommitTimestamp;
+}
+
+void NetConfDataStoreManagerBase::scheduleTimedCommit(){
+    //subscribe period cycles signal and wait for correct cycle to execute
+    _periods[_commitTimestamp.period]->subscribe(_newCycleSignal, this);
+}
+
+void NetConfDataStoreManagerBase::executeCommit(){
+    //apply config from candidate to running
+    _candidateStore->applyTo(_runningStore);
+    emit(commitExecutionSignal,1L);
+}
+
+void NetConfDataStoreManagerBase::setCommitOperation(NetConfOperation_Commit* commitOperation){
+    if(_commitOperation != nullptr){
+        delete _commitOperation;
+    }
+    _commitOperation = commitOperation;
+}
+
+void NetConfDataStoreManagerBase::receiveSignal(cComponent *source, simsignal_t signalID, long l, cObject *details){
+    Enter_Method_Silent();
+    // check if signalID is equal to signal event
+    if(signalID == _newCycleSignal){
+        // check if source is the period on which is planned
+        if(dynamic_cast<CoRE4INET::Period*>(source) == _periods[_commitTimestamp.period]){
+            // check if the desired cycle has been reached
+            if(_periods[_commitTimestamp.period]->getCycles() == _commitTimestamp.cycle){
+                executeCommit();
+                scheduleAt(simTime(), new cMessage("FINISHED_TIMED_COMMIT"));
+            }
+            else if(_periods[_commitTimestamp.period]->getCycles() > _commitTimestamp.cycle){
+                throw cRuntimeError("The commit cycle timestamp was missed!");
+            }
+            //else wait until desired cycle is reached
+        }
+    }
 }
 
 }  // namespace SDN4CoRE

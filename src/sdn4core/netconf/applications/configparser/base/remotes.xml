@@ -1,0 +1,24 @@
+<!--
+This is an example file on how to declare remotes for an INetConfApplication.
+-->
+
+<server_connections>
+	<application client_host="managementUnit[0]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+			<configure at="1.5" type="edit_config" target="running" module="IEEE8021Qbv">
+			 	<config ..../>
+			 	<config ..../>
+		 	</configure>
+		 	<configure at="0.1" type="copy_config" source="running" target="candidate">		
+		 	<configure at="0.2" type="delete_config" target="candidate">		 		
+		 	</configure>		 	
+	 	</connection>
+		<connection local_port="6124" remote_address="managedUnit[0]" remote_port="830" connect_at="2"/>
+	</application>
+	<application client_host="managementUnit[0]" client_app="1">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+	</application>
+	<application client_host="managementUnit[1]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+	</application>
+</server_connections>

@@ -32,7 +32,10 @@ module IEEE8021QbvOFNCSwitch extends IEEE8021QbvOpenFlowSwitch
     parameters:
         double nc_service_time @unit(s) = default(0s);
         string netConfServerType = default("NetConfServerTCP");
-        string dataStoreManagerType = default("NetConfDataStoreManagerIEEE8021Qbv");
+       	
+       	int numConfigurators = default (2);
+		string of_configuratorType = default("NetConfDataConfiguratorFlowTable");	
+		string qbv_configuratorType = default("NetConfDataConfiguratorIEEE8021Qbv");
 
     gates:
         // no additional gates needed
@@ -42,7 +45,9 @@ module IEEE8021QbvOFNCSwitch extends IEEE8021QbvOpenFlowSwitch
         netconf : NetConfManagedUnit {
             processingTime = nc_service_time;
             netConfServerType = netConfServerType;
-            dataStoreManagerType = dataStoreManagerType;
+            numConfigurators = numConfigurators;	
+            configurators[0].typename = of_configuratorType;
+            configurators[1].typename = qbv_configuratorType;
         }
         
 

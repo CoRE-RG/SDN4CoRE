@@ -45,19 +45,19 @@ module AVBOpenFlowSwitch extends OpenFlowSwitch
     submodules:
 	    // Stream Reservation Protocol table
         srpTable: SRPTable {
-            @display("p=442,241");
+            @display("p=431,241");
         }
 
 		// Stream Reservation Protocol implementation
         srpProtocol: OF_SRProtocol {
             portModule = "etherMAC";
             macModulePath = ".phy.mac";
-        	shaperModulePath = ".phy.shaper";
-            @display("p=371,241");
+            shaperModulePath = ".phy.shaper";
+            @display("p=325,241");
         }
 
     connections allowunconnected:
-	    //AVB SRP connections will be made in RTOF Switch as it is of different submodule interface.
-        //srpProtocol.out --> relayUnit.srpIn;
-        //srpProtocol.in <-- relayUnit.srpOut;
+	    //this only throws an error in the IDE but works in the current omnet version!
+        srpProtocol.out --> switchAgent.srpIn;
+        srpProtocol.in <-- switchAgent.srpOut;
 }

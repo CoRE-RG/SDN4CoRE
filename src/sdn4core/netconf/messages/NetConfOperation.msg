@@ -16,7 +16,7 @@
 //  
 
 //
-// TODO implement other operations: lock, unlock, kill-session 
+// TODO implement other operations: kill-session 
 //
 
 
@@ -78,8 +78,9 @@ packet NetConfOperation {
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConfOperation_GetConfig extends NetConfOperation{
-    string source;
-    NetConfFilter filter;    
+    string source;//dont forget to add string size to length
+    NetConfFilter filter;//dont forget to add filter size to length
+    byteLength = 133;//<get-config><source></></source><filter type="subtree"><top xmlns="http://example.com/schema/1.2/config"></top></filter></get-config>  
 }
 
 //
@@ -239,9 +240,28 @@ enum NetConfOperation_ErrorOption {
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConfOperation_EditConfig extends NetConfOperation{
-    string target;
+    string target;//dont forget to add string size to length
     int defaultOperation @enum(NetConfOperation_Operation);
     int errorOption @enum(NetConfOperation_ErrorOption);
+    byteLength = 119;//<edit-config><target></></target><defaultOperation>1</defaultOperation><errorOperation>1</errorOperation></edit-config>
+}
+
+//
+// Configuration element used in both edit_config and get_config 
+// has to be extended by specific configurators.
+//
+//    operation:  Selects the operation (@see ~NetConfOperation_Operation)
+//       for this configuration in an edit_config request.  
+//	     If this is not set the default value from the <default-operation> 
+//		 parameter in @see ~NetConfOperation_EditConfig.
+//       The <operation> parameter is optional, but if provided,
+//       it has one of the values in @see ~NetConfOperation_Operation.
+//
+// @author Timo Haeckel, for HAW Hamburg
+//
+packet NetConfConfig {
+    @customize(true);
+    int operation @enum(NetConfOperation_Operation);
 }
 
 //
@@ -270,8 +290,9 @@ packet NetConfOperation_EditConfig extends NetConfOperation{
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConfOperation_CopyConfig extends NetConfOperation{
-    string source;
-    string target;
+    string source;//dont forget to add string size to length
+    string target;//dont forget to add string size to length
+    byteLength = 67;//<copy-config><target></></target><source></></source></copy-config>
 }
 
 //
@@ -293,7 +314,8 @@ packet NetConfOperation_CopyConfig extends NetConfOperation{
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConfOperation_DeleteConfig extends NetConfOperation{
-    string target;
+    string target;//dont forget to add string size to length
+    byteLength = 51;//<delete-config><target></></target></delete-config>
 }
 
 //
@@ -318,7 +340,8 @@ packet NetConfOperation_DeleteConfig extends NetConfOperation{
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConfOperation_Get extends NetConfOperation{
-    NetConfFilter filter;    
+    NetConfFilter filter;//dont forget to add filter size to length
+    byteLength = 99;//<get><filter type="subtree"><top xmlns="http://example.com/schema/1.2/config"></top></filter></get>    
 }
 
 //
@@ -341,6 +364,172 @@ packet NetConfOperation_Get extends NetConfOperation{
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConfOperation_CloseSession extends NetConfOperation{
+    byteLength = 16;//<close-session/>
 }
 
+//
+// <lock>
+//
+//	The <lock> operation allows the client to lock the
+//	entire configuration datastore system of a device.  Such locks are
+//	intended to be short-lived and allow a client to make a change
+//	without fear of interaction with other NETCONF clients, non-
+//	NETCONF clients (e.g., SNMP and command line interface (CLI)
+//	scripts), and human users.
+//
+//	An attempt to lock the configuration datastore MUST fail if an
+//	existing session or other entity holds a lock on any portion of
+//	the lock target.
+//
+//	When the lock is acquired, the server MUST prevent any changes to
+//	the locked resource other than those requested by this session.
+//	SNMP and CLI requests to modify the resource MUST fail with an
+//	appropriate error.
+//
+//	The duration of the lock is defined as beginning when the lock is
+//	acquired and lasting until either the lock is released or the
+//	NETCONF session closes.  The session closure can be explicitly
+//	performed by the client, or implicitly performed by the server
+//	based on criteria such as failure of the underlying transport,
+//	simple inactivity timeout, or detection of abusive behavior on the
+//	part of the client.  These criteria are dependent on the
+//	implementation and the underlying transport.
+//
+//	The <lock> operation takes a mandatory parameter, <target>.  The
+//	<target> parameter names the configuration datastore that will be
+//	locked.  When a lock is active, using the <edit-config> operation
+//	on the locked configuration datastore and using the locked
+//	configuration as a target of the <copy-config> operation will be
+//	disallowed by any other NETCONF session.  Additionally, the system
+//	will ensure that these locked configuration resources will not be
+//	modified by other non-NETCONF management operations such as SNMP
+//	and CLI.  The <kill-session> operation can be used to force the
+//	release of a lock owned by another NETCONF session.  It is beyond
+//	the scope of this document to define how to break locks held by
+//	other entities.
+//
+//	A lock MUST NOT be granted if any of the following conditions is
+//	true:
+//
+//	*	A lock is already held by any NETCONF session or another
+//		entity.
+//	*	The target configuration is <candidate>, it has already been
+//		modified, and these changes have not been committed or rolled
+//		back.
+//	*	The target configuration is <running>, and another NETCONF
+//		session has an ongoing confirmed commit (Section 8.4).
+//	
+//		The server MUST respond with either an <ok> element or an
+//		<rpc-error>.
+//
+//		A lock will be released by the system if the session holding the
+//		lock is terminated for any reason.
+//
+//	Parameters:
+//	target:  Name of the configuration datastore to lock.
+//
+//	Positive Response:  If the device was able to satisfy the request, an
+//	<rpc-reply> is sent that contains an <ok> element.
+//
+//	Negative Response:  An <rpc-error> element is included in the
+//	<rpc-reply> if the request cannot be completed for any reason.
+//
+//	If the lock is already held, the <error-tag> element will be
+//	"lock-denied" and the <error-info> element will include the
+//	<session-id> of the lock owner.  If the lock is held by a non-
+//	NETCONF entity, a <session-id> of 0 (zero) is included.  Note that
+//	any other entity performing a lock on even a partial piece of a
+//	target will prevent a NETCONF lock (which is global) from being
+//	obtained on that target.
+//
+//
+packet NetConfOperation_Lock extends NetConfOperation{
+    string target;//dont forget to add string size to length
+    byteLength = 33;//<lock><target></></target></lock>
+}
 
+//
+// <unlock>
+//
+//	The <unlock> operation is used to release a
+//	configuration lock, previously obtained with the <lock> operation.
+//
+//	An <unlock> operation will not succeed if either of the following
+//	conditions is true:
+//    
+//    * The specified lock is not currently active.
+//    * The session issuing the <unlock> operation is not the same
+//    session that obtained the lock.
+//    
+//    The server MUST respond with either an <ok> element or an
+//    <rpc-error>.
+//    
+//    Parameters:
+//    
+//    target:  Name of the configuration datastore to unlock.
+//    
+//    A NETCONF client is not permitted to unlock a configuration
+//    datastore that it did not lock.
+//    	
+//    Positive Response:  If the device was able to satisfy the request, an
+//    <rpc-reply> is sent that contains an <ok> element.
+//    
+//    Negative Response:  An <rpc-error> element is included in the
+//    <rpc-reply> if the request cannot be completed for any reason.
+//
+//
+packet NetConfOperation_Unlock extends NetConfOperation{
+    string target;//dont forget to add string size to length
+    byteLength = 37;//<unlock><target></></target></unlock>
+}
+
+//	<commit>
+//    When the candidate configuration's content is complete, the
+//    configuration data can be committed, publishing the data set to
+//    the rest of the device and requesting the device to conform to
+//    the behavior described in the new configuration.
+//    
+//    To commit the candidate configuration as the device's new
+//    current configuration, use the <commit> operation.
+//    
+//    The <commit> operation instructs the device to implement the
+//    configuration data contained in the candidate configuration.
+//    If the device is unable to commit all of the changes in the
+//    candidate configuration datastore, then the running
+//    configuration MUST remain unchanged.  If the device does
+//    succeed in committing, the running configuration MUST be
+//    updated with the contents of the candidate configuration.
+//    
+//    If the running or candidate configuration is currently locked
+//    by a different session, the <commit> operation MUST fail with
+//    an <error-tag> value of "in-use".
+//    
+//    If the system does not have the :candidate capability, the
+//    <commit> operation is not available.
+//    
+//    Positive Response:
+//    If the device was able to satisfy the request, an <rpc-reply>
+//    is sent that contains an <ok> element.
+//    
+//    Negative Response:
+//    An <rpc-error> element is included in the <rpc-reply> if the
+//    request cannot be completed for any reason.
+//
+//
+packet NetConfOperation_Commit extends NetConfOperation{
+    byteLength=9;//<commit/>
+}
+
+//
+//	<discard-changes>
+// If the client decides that the candidate configuration is not to be
+// committed, the <discard-changes> operation can be used to revert the
+// candidate configuration to the current running configuration.
+//
+// This operation discards any uncommitted changes by resetting the
+// candidate configuration with the content of the running configuration.
+//
+//
+packet NetConfOperation_Discard_Changes extends NetConfOperation{
+    byteLength=18;//<discard-changes/>
+}

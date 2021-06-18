@@ -46,7 +46,7 @@ module OpenFlowSwitch
         @networkNode();
         @OF_Switch();
         @labels(node,ethernet-node);
-        @display("i=device/switch;i2=OpenFlow-Logo-small;bgb=628,186");
+        @display("i=device/switch;i2=OpenFlow-Logo-small");
 
         // Should Packet ins contain the full packet.
         bool sendCompletePacket = default(true);

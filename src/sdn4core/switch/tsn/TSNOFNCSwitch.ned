@@ -31,17 +31,26 @@ module TSNOFNCSwitch extends TSNOpenFlowSwitch
     parameters:
         double nc_service_time @unit(s) = default(0s);
         string netConfServerType = default("NetConfServerTCP");
-        string dataStoreManagerType = default("NetConfDataStoreManagerIEEE8021Qbv");
+		
+		int numConfigurators = default (3);
+		string of_configuratorType = default("NetConfDataConfiguratorFlowTable");	
+		string qbv_configuratorType = default("NetConfDataConfiguratorIEEE8021Qbv");
+		string srp_configuratorType = default("NetConfDataConfiguratorSRP");
+		
 
     gates:
         // no additional gates needed
 
     submodules:
         // Netconf Server module
-        netconf : NetConfManagedUnit {
+        netconf: NetConfManagedUnit {
             processingTime = nc_service_time;
             netConfServerType = netConfServerType;
-            dataStoreManagerType = dataStoreManagerType;
+            numConfigurators = numConfigurators;
+            configurators[0].typename = of_configuratorType;
+            configurators[1].typename = qbv_configuratorType;
+            configurators[2].typename = srp_configuratorType;
+            @display("p=225.15,240.34999");
         }
 
     connections:

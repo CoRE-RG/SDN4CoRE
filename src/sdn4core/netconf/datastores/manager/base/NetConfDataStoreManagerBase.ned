@@ -29,13 +29,19 @@ import sdn4core.netconf.datastores.manager.INetConfDataStoreManager;
 simple NetConfDataStoreManagerBase like INetConfDataStoreManager
 {
     parameters:
+        @class(SDN4CoRE::NetConfDataStoreManagerBase);
+        
+        @signal[commitExecution]();
+        @statistic[commitExecution](title="commit execution";record=vector?;interpolationmode=none);
+        
+        @signal[editConfig]();
+        @statistic[editConfig](title="execution of edit config";record=vector?;interpolationmode=none);
+        
         @display("i=block/buffer2");
         // if true this module will create a display string for status messages
         bool displayStatus = default(true);
         // the path to the INetConfServer module
         string pathToNetConfServer = default("^.netConfServer");
-        // maximum number of config data stores 
-        int numMaxDataStores = default(1);
         // xml file for a startup configuration of the device.
     	xml startupConfigXML = default(xml("<root/>"));
         

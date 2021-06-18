@@ -43,6 +43,7 @@ namespace SDN4CoRE;
 //
 packet NetConfHello {
     int session_id;
+    byteLength = 40;//<hello><session-id>1</session-id></hello>
 }
    
    

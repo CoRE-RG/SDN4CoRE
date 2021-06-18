@@ -30,6 +30,9 @@
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 //openflow
 #include "openflow/openflow/controller/Switch_Info.h"
+//SDN4CoRe
+#include "sdn4core/controllerApps/utility/PortModule.h"
+
 
 namespace SDN4CoRE {
 
@@ -56,16 +59,11 @@ public:
         std::vector<int> outports;
     };
 
-    class PortModule : public virtual cSimpleModule {
-    public:
-        int port;
-    };
-
-
     SRPTableManagement() {
 
     }
-    virtual ~SRPTableManagement();
+
+    virtual ~SRPTableManagement(){};
 
     /**
      * Register a talker for a switch and inport.
@@ -133,9 +131,23 @@ private:
     bool tableExistsForSwitch(openflow::Switch_Info* swinfo);
 
     /**
+     * checks if the port already exists for a given switch
+     * @param swinfo switch info
+     * @param port
+     * @returns PortModule* the portModule to check for
+     */
+    PortModule* checkOrCreatePortModule(openflow::Switch_Info* swinfo, int port);
+
+    /**
      * Path to the ned module of the SRPTable.
      */
     static const char SRPTABLEMODULEPATH [];
+
+    /**
+     * Path to the ned module of the PortModule.
+     */
+    static const char PORTMODULEPATH [];
+
 };
 
 } /*end namespace SDN4CoRE*/

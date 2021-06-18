@@ -45,6 +45,11 @@ void ProcessingTimeSimulation::handleParameterChange(const char* parname) {
     }
 }
 
+double ProcessingTimeSimulation::getProcessingTime(){
+    handleParameterChange("processingTime");
+    return _processingTime;
+}
+
 void ProcessingTimeSimulation::triggerNextProcessingTime() {
     //Trigger next service time
     if (_msgList.empty()) {
@@ -55,7 +60,7 @@ void ProcessingTimeSimulation::triggerNextProcessingTime() {
         cMessage* event = new cMessage("event");
         event->setKind(MSGKIND_SERVICETIME);
         event->setContextPointer(msgFromList);
-        scheduleAt(simTime() + _processingTime, event);
+        scheduleAt(simTime() + getProcessingTime(), event);
     }
 }
 
@@ -64,7 +69,7 @@ void ProcessingTimeSimulation::handleMessage(cMessage *msg)
     if (msg->isSelfMessage() && msg->getKind() == MSGKIND_SERVICETIME) {
         // processing delay introduced now handle the message
         cMessage* data_msg = (cMessage*) (msg->getContextPointer());
-        emit(_waitingTime, (simTime() - data_msg->getArrivalTime() - _processingTime));
+        emit(_waitingTime, (simTime() - data_msg->getArrivalTime()));
         processScheduledMessage(data_msg);
         //Trigger next service time
         triggerNextProcessingTime();
@@ -82,7 +87,7 @@ void ProcessingTimeSimulation::simulateProcessingTime(cMessage* msg) {
         cMessage* event = new cMessage("event");
         event->setKind(MSGKIND_SERVICETIME);
         event->setContextPointer(msg);
-        scheduleAt(simTime() + _processingTime, event);
+        scheduleAt(simTime() + getProcessingTime(), event);
     }
     emit(_queueSize, static_cast<unsigned int>(_msgList.size()));
 }

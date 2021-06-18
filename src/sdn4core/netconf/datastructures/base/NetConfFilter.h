@@ -23,6 +23,8 @@ namespace SDN4CoRE {
 class NetConfFilter {
 public:
     NetConfFilter();
+
+    NetConfFilter(const NetConfFilter& old){}
     virtual ~NetConfFilter();
 
     /**

@@ -58,3 +58,4 @@ tests/smoke/test.out
 tests/fingerprint/test.out
 
 tests/smoke/results/
+/.computed/
