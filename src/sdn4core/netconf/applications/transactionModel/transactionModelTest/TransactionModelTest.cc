@@ -15,7 +15,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#include <sdn4core/netconf/applications/time_synchronous_transaction_model/TransactionModelTest/TransactionModelTest.h>
+#include <sdn4core/netconf/applications/transactionModel/transactionModelTest/TransactionModelTest.h>
 
 namespace SDN4CoRE{
 
@@ -80,11 +80,11 @@ void TransactionModelTest::initConnections(){
     NetConfApplicationBase::Connection_t con2 = initConnectionTwo();
     connections.push_back(con1);
     connections.push_back(con2);
-    _transactionApp->setConnnections(connections);
+    _timeSynchronousTransactionApp->setConnnections(connections);
 }
 
 void TransactionModelTest::initialize(){
-    _transactionApp = dynamic_cast<TransactionApp*>(this->getParentModule()->getSubmodule("controller")->getSubmodule("netconf")->getSubmodule("transactionApp"));
+    _timeSynchronousTransactionApp = dynamic_cast<TimeSynchronousTransactionApp*>(this->getParentModule()->getSubmodule("controller")->getSubmodule("netconf")->getSubmodule("timeSynchronousTransactionApp"));
     scheduleAt(simTime(), new cMessage("Reset FSM"));
     _partTwoMessage = new cMessage("PartTwo");
     _testCase = this->par("testCaseNumber");
@@ -92,7 +92,7 @@ void TransactionModelTest::initialize(){
 
 void TransactionModelTest::resetFSM(){
     initConnections();
-    _transactionApp->scheduleTransactionStart();
+    _timeSynchronousTransactionApp->scheduleTransactionStart();
 }
 
 void TransactionModelTest::handleMessage(omnetpp::cMessage* msg){
@@ -127,7 +127,7 @@ void TransactionModelTest::handleMessage(omnetpp::cMessage* msg){
             finish = true;
             break;
         case 4:
-            success = transitionCoverageAlreadyLocked2();
+            success = transitionCoverageAlreadyLockedNext();
             if(success){
                 std::cout << "Success | transitionCoverageAlreadyLocked2()" << std::endl;
             }
@@ -239,49 +239,49 @@ NetConfMessage_RPCReply* TransactionModelTest::getReplyErrorMsg(std::string msgI
 bool TransactionModelTest::stateAndTransitionCoverageFailure(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyErrorMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::ErrorState){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::ErrorState){
         std::cout << "Failure | Transaction State has to be in ErrorState" << std::endl;
         return false;
     }
-    _transactionApp->finiteStateMachine(_transactionApp->LAMBDA_EVENT);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(_timeSynchronousTransactionApp->LAMBDA_EVENT);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
@@ -292,183 +292,183 @@ bool TransactionModelTest::stateAndTransitionCoverageFailure(){
 bool TransactionModelTest::stateAndTransitionCoverageSuccesful(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID+1), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(TIMESTAMP_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnTimestampConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(TIMESTAMP_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCommit_Execution){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCommitExecution){
         std::cout << "Failure | Transaction State has to be in WaitOnTimestampConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COMMIT_APPROVED_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCommit_Execution){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCommitExecution){
         std::cout << "Failure | Transaction State has to be in WaitOnCommit_Execution" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COMMIT_APPROVED_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteOldConfiguration){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteOldConfiguration){
         std::cout << "Failure | Transaction State has to be in WaitOnCommit_Execution" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_OLD_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteOldConfiguration){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteOldConfiguration){
         std::cout << "Failure | Transaction State has to be in WaitOnCommit_Execution" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_OLD_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnCommit_Execution" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnCommit_Execution" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in WaitOnCommit_Execution" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageAlreadyLocked(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyErrorMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
-bool TransactionModelTest::transitionCoverageAlreadyLocked2(){
+bool TransactionModelTest::transitionCoverageAlreadyLockedNext(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyErrorMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageAllCandidatesFailed(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyErrorMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyErrorMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageLastCandidateFailed(){
@@ -478,628 +478,628 @@ bool TransactionModelTest::transitionCoverageLastCandidateFailed(){
 bool TransactionModelTest::transitionCoverageFirstCandidateFailed(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyErrorMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::ErrorState){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::ErrorState){
         std::cout << "Failure | Transaction State has to be in ErrorState" << std::endl;
         return false;
     }
-    _transactionApp->finiteStateMachine(_transactionApp->LAMBDA_EVENT);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(_timeSynchronousTransactionApp->LAMBDA_EVENT);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageFirstChangeFails(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyErrorMsg(std::to_string(CHANGE_MSG_ID), "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID+1), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::ErrorState){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::ErrorState){
         std::cout << "Failure | Transaction State has to be in ErrorState" << std::endl;
         return false;
     }
-    _transactionApp->finiteStateMachine(_transactionApp->LAMBDA_EVENT);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(_timeSynchronousTransactionApp->LAMBDA_EVENT);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageNextChangeFails(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyErrorMsg(std::to_string(CHANGE_MSG_ID), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::ErrorState){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::ErrorState){
         std::cout << "Failure | Transaction State has to be in ErrorState" << std::endl;
         return false;
     }
-    _transactionApp->finiteStateMachine(_transactionApp->LAMBDA_EVENT);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(_timeSynchronousTransactionApp->LAMBDA_EVENT);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageFirstTimestampFail(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID+1), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyErrorMsg(TIMESTAMP_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnTimestampConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(TIMESTAMP_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::ErrorState){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::ErrorState){
         std::cout << "Failure | Transaction State has to be in ErrorState" << std::endl;
         return false;
     }
-    _transactionApp->finiteStateMachine(_transactionApp->LAMBDA_EVENT);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(_timeSynchronousTransactionApp->LAMBDA_EVENT);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageLastTimestampFail(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID+1), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(TIMESTAMP_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnTimestampConfirmation" << std::endl;
         return false;
     }
     msg = getReplyErrorMsg(TIMESTAMP_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::ErrorState){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::ErrorState){
         std::cout << "Failure | Transaction State has to be in ErrorState" << std::endl;
         return false;
     }
-    _transactionApp->finiteStateMachine(_transactionApp->LAMBDA_EVENT);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(_timeSynchronousTransactionApp->LAMBDA_EVENT);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageCommitReleaseFailed(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID+1), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(TIMESTAMP_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnTimestampConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(TIMESTAMP_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::ErrorState){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::ErrorState){
         std::cout << "Failure | Transaction State has to be in ErrorState" << std::endl;
         return false;
     }
-    _transactionApp->finiteStateMachine(_transactionApp->LAMBDA_EVENT);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(_timeSynchronousTransactionApp->LAMBDA_EVENT);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageCommitReleasePartOne(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(LOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(COPY_CONFIG_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnCandidateLockResponse){
         std::cout << "Failure | Transaction State has to be in WaitOnCandidateLockResponse" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(LOCK_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID), "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnChangeConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnChangeConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(std::to_string(CHANGE_MSG_ID+1), "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnChangeConfirmation" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(TIMESTAMP_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnTimestampConfirmation){
         std::cout << "Failure | Transaction State has to be in WaitOnTimestampConfirmation" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 bool TransactionModelTest::transitionCoverageCommitReleasePartTwo(){
     NetConfMessage_RPCReply* msg;
     msg = getReplyOkMsg(TIMESTAMP_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::ErrorState){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::ErrorState){
         std::cout << "Failure | Transaction State has to be in ErrorState" << std::endl;
         return false;
     }
-    _transactionApp->finiteStateMachine(_transactionApp->LAMBDA_EVENT);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(_timeSynchronousTransactionApp->LAMBDA_EVENT);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnDeleteCandidate){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnDeleteCandidate){
         std::cout << "Failure | Transaction State has to be in WaitOnDeleteCandidate" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(DELETE_CANDIDATE_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "0", 1);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::WaitOnUnlock){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::WaitOnUnlock){
         std::cout << "Failure | Transaction State has to be in WaitOnUnlock" << std::endl;
         return false;
     }
     msg = getReplyOkMsg(UNLOCK_MSG_ID, "1", 2);
-    _transactionApp->finiteStateMachine(msg);
-    if(_transactionApp->transactionState != TransactionApp::TransactionAppState::EndOfTransaction){
+    _timeSynchronousTransactionApp->finiteStateMachine(msg);
+    if(_timeSynchronousTransactionApp->transactionState != TimeSynchronousTransactionApp::TransactionAppState::EndOfTransaction){
         std::cout << "Failure | Transaction State has to be in EndOfTransaction" << std::endl;
         return false;
     }
-    return _transactionApp->result;
+    return _timeSynchronousTransactionApp->result;
 }
 
 } // namespace SDN4CoRE

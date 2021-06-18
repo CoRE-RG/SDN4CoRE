@@ -30,6 +30,8 @@ public:
          */
         uint32_t cycle;
         size_t period;
+        double time;
+        bool executeAtStartOfPeriod;
     }CommitTimestamp_t;
 public:
     NetConfConfigCommitTimestamp();

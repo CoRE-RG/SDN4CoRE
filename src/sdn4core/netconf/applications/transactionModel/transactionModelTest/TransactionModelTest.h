@@ -20,7 +20,7 @@
 
 #include <omnetpp.h>
 #include <sdn4core/netconf/applications/configparser/base/Configuration_t.h>
-#include <sdn4core/netconf/applications/time_synchronous_transaction_model/TransactionApp.h>
+#include <sdn4core/netconf/applications/transactionModel/TimeSynchronousTransactionApp.h>
 #include "sdn4core/netconf/applications/base/NetConfApplicationBase.h"
 #include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
 #include "sdn4core/netconf/datastructures/base/NetConfFilter.h"
@@ -37,13 +37,22 @@ namespace SDN4CoRE{
  */
 class TransactionModelTest : public omnetpp::cSimpleModule{
 private:
-    TransactionApp* _transactionApp;
+    /**
+     * timesynchronous transaction app
+     */
+    TimeSynchronousTransactionApp* _timeSynchronousTransactionApp;
+
+    /**
+     * test case number
+     */
     int _testCase;
+
+    /**
+     * second message to schedule second test case of commit release
+     */
     cMessage* _partTwoMessage;
 
-
 protected:
-
     /**
      * initializes the first connection with the well-defined configurations
      * @return the connection with configurations
@@ -75,94 +84,98 @@ protected:
     /**
      * State-based test method for the following state and transition coverage:
      * transitionCoverageLastCandidateFailed
-     * @return
+     * @return true if last candidate fails else false
      */
     bool stateAndTransitionCoverageFailure();
 
     /**
      * State-based test method for the following state and transition coverage:
      * transaction routine and all transitions to do a transaction
-     * @return true, if it was successfull else false
-     * @return
+     * @return true if it was successfull else false
      */
     bool stateAndTransitionCoverageSuccesful();
 
     /**
      * State-based test method for the following transition coverage:
      * first switch is already locked
-     * @return
+     * @return true if switch is already locked else false
      */
     bool transitionCoverageAlreadyLocked();
 
     /**
      * State-based test method for the following transition coverage:
      * next switch is already locked
-     * @return
+     * @return true if next switch is locked else false
      */
-    bool transitionCoverageAlreadyLocked2();
+    bool transitionCoverageAlreadyLockedNext();
 
     /**
      * State-based test method for the following transition coverage:
      * all switches relpy that their copy config failed
-     * @return
+     * @return true if all copy config fails else false
      */
     bool transitionCoverageAllCandidatesFailed();
 
     /**
      * State-based test method for the following transition coverage:
      * first switch sends error-reply that copy config failed
-     * @return
+     * @return true if first switch sends error-reply that copy config fails else false
      */
     bool transitionCoverageFirstCandidateFailed();
 
     /**
      * State-based test method for the following transition coverage:
      * last switch sends error-reply that copy config failed
-     * @return
+     * @return true if last switch sends error-reply that copy config fails else false
      */
     bool transitionCoverageLastCandidateFailed();
 
     /**
      * State-based test method for the following transition coverage:
      * first change of a switch fails
-     * @return
+     * @return true if first change of a switch fails else false
      */
     bool transitionCoverageFirstChangeFails();
 
     /**
      * State-based test method for the following transition coverage:
      * the next change of a switch fails
-     * @return
+     * @return true if next change of a switch fails else false
      */
     bool transitionCoverageNextChangeFails();
 
     /**
      * State-based test method for the following transition coverage:
      * first switch reply is Timestamp-fail
-     * @return
+     * @return true if first switch reply is Timestamp-fail else false
      */
     bool transitionCoverageFirstTimestampFail();
 
     /**
      * State-based test method for the following transition coverage:
      * last switch reply is Timestamp-fail
+     * @return true if last switch reply is Timestamp-fail else false
      */
     bool transitionCoverageLastTimestampFail();
 
     /**
      * State-based test method for the following transition coverage:
      * commit release failed
-     * @return
+     * @return true if commit release fails else false
      */
     bool transitionCoverageCommitReleaseFailed();
 
     /**
-     * @return
+     * State-based test method for the following transition coverage:
+     * preparation for transitionCoverageCommitReleasePartTwo()
+     * @return true if first part of commit release fails else false
      */
     bool transitionCoverageCommitReleasePartOne();
 
     /**
-     * @return
+     * State-based test method for the following transition coverage:
+     * commit release of last switch misses commit timestamp
+     * @return true if second part of commit release fails else false
      */
     bool transitionCoverageCommitReleasePartTwo();
 

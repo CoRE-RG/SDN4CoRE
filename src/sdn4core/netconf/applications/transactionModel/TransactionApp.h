@@ -27,6 +27,11 @@
 
 #include "core4inet/scheduler/period/Period.h"
 
+#define SEND_TIMESTAMP_MSG_SIZE 226 * 8 // 226 Byte = 1808 bit
+#define ACK_TIMESTAMP_MSG_SIZE 112 * 8 // 112 Byte = 896 bit
+#define SEND_COMMIT_MSG_SIZE 108 * 8 // 108 Byte = 864 bit
+#define MAX_ETHERNET_FRAME_SIZE 1530 * 8 // 1530 Byte = 12240 bit
+
 namespace SDN4CoRE{
 
 /**
@@ -62,7 +67,6 @@ public:
         WaitOnCandidateConfirmation,
         WaitOnCandidateLockResponse,
         WaitOnChangeConfirmation,
-        WaitOnTimestampConfirmation,
         WaitOnCommit_Execution,
         WaitOnDeleteOldConfiguration,
         WaitOnDeleteCandidate,
@@ -77,7 +81,6 @@ public:
         SwitchWithCandidate, // hasLockedRunning & hasCandidate
         SwitchWithLockedCandidate, // hasLockedRunning & hasCandidate & hasLockedCandidate
         SwitchWithChangedCandidateConfiguration, // hasLockedRunning & hasCandidate & hasLockedCandidate & hasConfiguration
-        SwitchWithTimestamp, // hasLockedRunning & hasCandidate & hasLockedCandidate & hasConfiguration & hasCommitTimeStamp
         SwitchCommited, // hasLockedRunning & hasCandidate & hasLockedCandidate & hasConfiguration & hasCommitTimeStamp & hasCommited
         SwitchWithoutCandidate, // hasLockedRunning
         SwitchWithoutOldConfig, // hasLockedRunning
@@ -90,14 +93,13 @@ public:
         bool hasCandidate = false;
         bool hasLockedCandidate = false;
         bool hasConfiguration = false;
-        bool hasCommitTimeStamp = false;
         bool hasCommited = false;
         bool hasError = false;
 
         bool isInState(SwitchState state) {
             switch (state) {
                 case SwitchState::SwitchAvailable:
-                    if(!hasLockedRunning && !hasCandidate && !hasLockedCandidate && !hasConfiguration && !hasCommitTimeStamp && !hasCommited && !hasError){
+                    if(!hasLockedRunning && !hasCandidate && !hasLockedCandidate && !hasConfiguration && !hasCommited && !hasError){
                         return true;
                     }
                     break;
@@ -107,27 +109,22 @@ public:
                     }
                     break;
                 case SwitchState::SwitchWithCandidate:
-                    if(hasLockedRunning && hasCandidate && !hasLockedCandidate && !hasConfiguration && !hasCommitTimeStamp && !hasCommited && !hasError){
+                    if(hasLockedRunning && hasCandidate && !hasLockedCandidate && !hasConfiguration && !hasCommited && !hasError){
                         return true;
                     }
                     break;
                 case SwitchState::SwitchWithLockedCandidate:
-                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && !hasConfiguration && !hasCommitTimeStamp && !hasCommited && !hasError){
+                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && !hasConfiguration && !hasCommited && !hasError){
                         return true;
                     }
                     break;
                 case SwitchState::SwitchWithChangedCandidateConfiguration:
-                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && hasConfiguration && !hasCommitTimeStamp && !hasCommited && !hasError){
-                        return true;
-                    }
-                    break;
-                case SwitchState::SwitchWithTimestamp:
-                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && hasConfiguration && hasCommitTimeStamp && !hasCommited && !hasError){
+                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && hasConfiguration && !hasCommited && !hasError){
                         return true;
                     }
                     break;
                 case SwitchState::SwitchCommited:
-                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && hasConfiguration && hasCommitTimeStamp && hasCommited && !hasError){
+                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && hasConfiguration && hasCommited && !hasError){
                         return true;
                     }
                     break;
@@ -181,12 +178,6 @@ protected:
     Configuration_t* getCommitTimestampConfig(NetConfConfigCommitTimestamp::CommitTimestamp_t timestamp);
 
     /**
-     * determines timestamp by calculation for each connection the latencies of all Ethernet frames that still to be sent
-     * @return the CommitTimestamp
-     */
-    NetConfConfigCommitTimestamp::CommitTimestamp_t determineTimestamp();
-
-    /**
      * finds the mentioned connection for the reply
      * @param reply    the NetConfMessage_RPCReply
      * @return the Connection
@@ -225,12 +216,6 @@ protected:
      * @param state         the giving state
      */
     void transitionToState(TransactionAppState state);
-
-    /**
-     * checks if the transaction misses the commit timestamp
-     * @return true if it misses the commit timestamp, else false
-     */
-    bool checkCommitrelease();
 
     /**
      * checks if the received message is a msg which the transaction model can process
@@ -318,13 +303,6 @@ protected:
     bool handleMessageInWaitOnChangeConfirmation(cMessage* msg);
 
     /**
-     * handles the message in the state WaitOnTimestampConfirmation
-     * @param msg   the received message
-     * @param eventHandled  handled event
-     */
-    bool handleMessageInWaitOnTimestampConfirmation(cMessage* msg);
-
-    /**
      * handles the message in the state WaitOnCommit_Execution
      * @param msg   the received message
      * @param eventHandled  handled event
@@ -366,7 +344,6 @@ protected:
      */
     void checkEventHandled(bool eventHandled, cMessage* msg);
 
-protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
     /**
@@ -385,38 +362,38 @@ private:
     void scheduleTransactionStart(SimTime startTime = SimTime::ZERO);
 
     /**
-     * period from scheduler
+     * the processing time of the controller
      */
-    CoRE4INET::Period* _period;
-
-    /**
-     * the commit time with cycle and period for commit execution
-     */
-    NetConfConfigCommitTimestamp::CommitTimestamp_t _timestamp;
-
-    /**
-     * period to be synchronized
-     */
-    size_t _syncPeriod = 0;
-
-    /**
-     * sum of the last latencies of each connection
-     */
-    double _sumOfLastLatencies = 0;
-
     double controllerProcessingTime = 0;
 
-    simsignal_t numSent;
-
-    simsignal_t numReceived;
-
+    /**
+     * Signal to emit the result of transaction
+     */
     simsignal_t resultOfTransaction;
 
+    /**
+     * Signal to emit the duration of transaction
+     */
     simsignal_t transactionDuration;
 
+    /**
+     * Signal to emit the lockphase
+     */
     simsignal_t lockPhase;
+
+    /**
+     * Signal to emit the changephase
+     */
     simsignal_t changePhase;
+
+    /**
+     * Signal to emit the confirmationphase
+     */
     simsignal_t confirmationPhase;
+
+    /**
+     * Signal to emit the unlockphase
+     */
     simsignal_t unlockPhase;
 };
 
