@@ -18,8 +18,8 @@
 package sdn4core.examples.tsn.small_network_ofnc;
 
 
-import sdn4core.controller.base.NetConfOpenFlowController;
+import sdn4core.controller.tsn.TSN_NC_OF_Controller;
 
-module Controller extends NetConfOpenFlowController
+module Controller extends TSN_NC_OF_Controller
 {
 }

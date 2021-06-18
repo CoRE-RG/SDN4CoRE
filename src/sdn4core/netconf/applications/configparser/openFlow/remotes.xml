@@ -1,0 +1,33 @@
+<!--
+This is an example file on how to declare remotes for an INetConfApplication.
+-->
+
+<server_connections>
+	<application client_host="managementUnit[0]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1">
+			<configure at="5" type="edit_config" module="OpenFlow">
+			 	<config operation="ADD_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+						    <match  in_port="0" dl_dst="0A-AA-00-00-00-08" dl_src="0A-AA-00-00-00-10" dl_type="2048" wildcards="4194274" />
+						    <instructions>
+						        <action_output port="1"/>
+						    </instructions>
+						</flowEntry>
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+						    <match  in_port="1" dl_dst="0A-AA-00-00-00-10" dl_src="0A-AA-00-00-00-08" dl_type="2048" wildcards="4194274" />
+						    <instructions>
+						        <action_output port="0"/>
+						    </instructions>
+						</flowEntry>
+				</config>
+		 	</configure>
+		</connection>
+		<connection local_port="6124" remote_address="managedUnit[0]" remote_port="830" connect_at="2"/>
+	</application>
+	<application client_host="managementUnit[0]" client_app="1">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+	</application>
+	<application client_host="managementUnit[1]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+	</application>
+</server_connections>

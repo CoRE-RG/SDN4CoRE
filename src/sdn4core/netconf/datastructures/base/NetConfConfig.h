@@ -18,7 +18,7 @@
 #ifndef SDN4CORE_NETCONF_MESSAGES_NETCONFCONFIG_H_
 #define SDN4CORE_NETCONF_MESSAGES_NETCONFCONFIG_H_
 
-#include "sdn4core/netconf/messages/NetConfMessage_m.h"
+#include "sdn4core/netconf/messages/NetConfOperation_m.h"
 
 namespace SDN4CoRE {
 
@@ -35,8 +35,7 @@ public:
      * copy constructor should be overritten to support copy of config data.
      * @param old_obj   the config to copy
      */
-    NetConfConfig (const NetConfConfig &old_obj) {
-
+    NetConfConfig (const NetConfConfig &old_obj) : NetConfConfig_Base(old_obj) {
     };
 
     /**

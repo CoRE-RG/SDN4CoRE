@@ -33,6 +33,8 @@ class ProcessingTimeSimulation: public cSimpleModule {
 public:
     virtual ~ProcessingTimeSimulation();
 
+    double getProcessingTime();
+
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

@@ -1,0 +1,22 @@
+<server_connections>
+	<application client_host="managementUnit[0]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1">
+			<configure at="5" type="edit_config" module="SRPTable">
+				
+		        <talkerEntry stream_id="2" vlan_id="2" srClass="A" address="AB-AA-00-00-00-02" module="avb_of_test.domain[0].open_flow_switch.etherMAC[0]" framesize="372" intervalFrames="1" pcp="6" />
+		        <talkerEntry stream_id="1" vlan_id="2" srClass="A" address="AB-AA-00-00-00-01" module="avb_of_test.domain[0].open_flow_switch.etherMAC[2]" framesize="372" intervalFrames="1" pcp="6" />
+				
+	            <listenerEntry stream_id="1" vlan_id="2" module="avb_of_test.domain[0].open_flow_switch.etherMAC[0]"  />
+	            <listenerEntry stream_id="2" vlan_id="2" module="avb_of_test.domain[0].open_flow_switch.etherMAC[1]"  />
+			    
+			</configure>
+		</connection>
+		<connection local_port="6124" remote_address="managedUnit[0]" remote_port="830" connect_at="2"/>
+	</application>
+	<application client_host="managementUnit[0]" client_app="1">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+	</application>
+	<application client_host="managementUnit[1]" client_app="0">
+		<connection local_port="6123" remote_address="managedUnit[0]" remote_port="830" connect_at="1"/>
+	</application>
+</server_connections>

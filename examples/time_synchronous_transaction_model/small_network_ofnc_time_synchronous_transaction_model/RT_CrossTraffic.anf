@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
+  <inputs>
+    <inputs name="/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-*.vec"/>
+    <inputs name="/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-*.sca"/>
+  </inputs>
+  <datasets>
+    <datasets name="Ende zu Ende Latenzen mit Crosstraffic">
+      <items xsi:type="scave:Add" filterPattern="file(/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec) AND attr:configname(RT_CrossTraffic) AND attr:runnumber(0) AND module(small_network_ofnc_time_synchronous_transaction_model.switch1.netconf.dataStoreManager) AND name(commitExecution:vector)" type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="file(/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec) AND attr:configname(RT_CrossTraffic) AND attr:runnumber(0) AND module(small_network_ofnc_time_synchronous_transaction_model.switch2.netconf.dataStoreManager) AND name(commitExecution:vector)" type="VECTOR"/>
+      <items xsi:type="scave:Compute" operation="add">
+        <params name="c" value="-1"/>
+      </items>
+      <items xsi:type="scave:Add" filterPattern="file(/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec) AND attr:configname(RT_CrossTraffic) AND attr:runnumber(0) AND module(small_network_ofnc_time_synchronous_transaction_model.node3.app[1]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="file(/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec) AND attr:configname(RT_CrossTraffic) AND attr:runnumber(0) AND module(small_network_ofnc_time_synchronous_transaction_model.node3.app[1]) AND name(rxQPcp7Latency:vector)" type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="file(/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec) AND attr:configname(RT_CrossTraffic) AND attr:runnumber(0) AND module(small_network_ofnc_time_synchronous_transaction_model.node3.app[0]) AND name(rxQPcp7Latency:vector)" type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="file(/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec) AND attr:configname(RT_CrossTraffic) AND attr:runnumber(0) AND module(small_network_ofnc_time_synchronous_transaction_model.node3.app[2]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="file(/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec) AND attr:configname(RT_CrossTraffic) AND attr:runnumber(0) AND module(small_network_ofnc_time_synchronous_transaction_model.node3.app[0]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="file(/SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec) AND attr:configname(RT_CrossTraffic) AND attr:runnumber(0) AND module(small_network_ofnc_time_synchronous_transaction_model.node3.app[2]) AND name(rxQPcp7Latency:vector)" type="VECTOR"/>
+      <items xsi:type="scave:LineChart" name="Latenzen von transaktionaler und zeitsynchroner Netzwerkkonfiguration" lineNameFormat="">
+        <properties name="Graph.Title" value="Mit Cross-Traffic"/>
+        <properties name="X.Axis.Title" value="Simulationszeit [s]"/>
+        <properties name="Y.Axis.Title" value="Latenz [s]"/>
+        <properties name="Y.Axis.Max" value="5.0E-4"/>
+        <properties name="Legend.Display" value="true"/>
+        <properties name="Legend.Position" value="Inside"/>
+        <properties name="Legend.Anchoring" value="NorthWest"/>
+        <properties name="Line.Name/small_network_ofnc_time_synchronous_transaction_model.node3.app[0] rxQPcp0Latency:vector" value="Best-Effort Fluss 1"/>
+        <properties name="Line.Name/small_network_ofnc_time_synchronous_transaction_model.node3.app[0] rxQPcp7Latency:vector" value="Echtzeitfluss 1"/>
+        <properties name="Line.Name/small_network_ofnc_time_synchronous_transaction_model.node3.app[1] rxQPcp0Latency:vector" value="Best-Effort Fluss 2"/>
+        <properties name="Line.Name/small_network_ofnc_time_synchronous_transaction_model.node3.app[1] rxQPcp7Latency:vector" value="Echtzeitfluss 2"/>
+        <properties name="Line.Name/small_network_ofnc_time_synchronous_transaction_model.node3.app[2] rxQPcp0Latency:vector" value="Best-Effort Fluss 3"/>
+        <properties name="Line.Name/small_network_ofnc_time_synchronous_transaction_model.node3.app[2] rxQPcp7Latency:vector" value="Echtzeitfluss 3"/>
+        <properties name="Line.Name//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[0] rxQPcp7Latency:vector" value="Echtzeitfluss 1"/>
+        <properties name="Line.Name//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[1] rxQPcp7Latency:vector" value="Echtzeitfluss 2"/>
+        <properties name="Line.Name//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[2] rxQPcp7Latency:vector" value="Echtzeitfluss 3"/>
+        <properties name="Line.Name//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[0] rxQPcp0Latency:vector" value="Best-effort Fluss 1"/>
+        <properties name="Line.Name//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[1] rxQPcp0Latency:vector" value="Best-effort Fluss 2"/>
+        <properties name="Line.Name//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[2] rxQPcp0Latency:vector" value="Best-effort Fluss 3"/>
+        <properties name="Line.Display//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.switch1.netconf.dataStoreManager commitExecution:vector" value="false"/>
+        <properties name="Line.Display//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.switch2.netconf.dataStoreManager commitExecution:vector" value="false"/>
+        <properties name="Line.Name/C:/Users/fazel/Desktop/Simulationsmodelle/SDN4CoRE/.computed/computed927129134431340318.vec small_network_ofnc_time_synchronous_transaction_model.switch1.netconf.dataStoreManager add(commitExecution:vector)" value="Transaktionale und zeitsynchrone Commit-Ausführung auf Switch 1"/>
+        <properties name="Line.Name/C:/Users/fazel/Desktop/Simulationsmodelle/SDN4CoRE/.computed/computed927129134431340318.vec small_network_ofnc_time_synchronous_transaction_model.switch2.netconf.dataStoreManager add(commitExecution:vector)" value="Transaktionale und zeitsynchrone Commit-Ausführung auf Switch 2"/>
+        <properties name="Symbols.Type//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[0] rxQPcp7Latency:vector" value="Square"/>
+        <properties name="Symbols.Type//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[1] rxQPcp7Latency:vector" value="Square"/>
+        <properties name="Symbols.Type//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[2] rxQPcp7Latency:vector" value="Triangle"/>
+        <properties name="Line.Color//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[2] rxQPcp7Latency:vector" value="green"/>
+        <properties name="Line.Color//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[0] rxQPcp7Latency:vector" value="red"/>
+        <properties name="Line.Color//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[1] rxQPcp7Latency:vector" value="blue"/>
+        <properties name="Symbols.Type//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[0] rxQPcp0Latency:vector" value="Cross"/>
+        <properties name="Symbols.Type//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[1] rxQPcp0Latency:vector" value="Diamond"/>
+        <properties name="Symbols.Type//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[2] rxQPcp0Latency:vector" value="Plus"/>
+        <properties name="Line.Color//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[0] rxQPcp0Latency:vector" value="grey"/>
+        <properties name="Line.Color//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[1] rxQPcp0Latency:vector" value="grey"/>
+        <properties name="Line.Color//SDN4CoRE/examples/time_synchronous_transaction_model/small_network_ofnc_time_synchronous_transaction_model/results/RT_CrossTraffic-#0.vec small_network_ofnc_time_synchronous_transaction_model.node3.app[2] rxQPcp0Latency:vector" value="grey"/>
+        <properties name="Symbols.Type/C:/Users/fazel/Desktop/Simulationsmodelle/SDN4CoRE/.computed/computed927129134431340318.vec small_network_ofnc_time_synchronous_transaction_model.switch1.netconf.dataStoreManager add(commitExecution:vector)" value="Dot"/>
+        <properties name="Symbols.Size/C:/Users/fazel/Desktop/Simulationsmodelle/SDN4CoRE/.computed/computed927129134431340318.vec small_network_ofnc_time_synchronous_transaction_model.switch1.netconf.dataStoreManager add(commitExecution:vector)" value="10"/>
+        <properties name="Line.Color/C:/Users/fazel/Desktop/Simulationsmodelle/SDN4CoRE/.computed/computed927129134431340318.vec small_network_ofnc_time_synchronous_transaction_model.switch1.netconf.dataStoreManager add(commitExecution:vector)" value="black"/>
+        <properties name="Symbols.Type/C:/Users/fazel/Desktop/Simulationsmodelle/SDN4CoRE/.computed/computed927129134431340318.vec small_network_ofnc_time_synchronous_transaction_model.switch2.netconf.dataStoreManager add(commitExecution:vector)" value="Dot"/>
+        <properties name="Symbols.Size/C:/Users/fazel/Desktop/Simulationsmodelle/SDN4CoRE/.computed/computed927129134431340318.vec small_network_ofnc_time_synchronous_transaction_model.switch2.netconf.dataStoreManager add(commitExecution:vector)" value="5"/>
+        <properties name="Line.Color/C:/Users/fazel/Desktop/Simulationsmodelle/SDN4CoRE/.computed/computed927129134431340318.vec small_network_ofnc_time_synchronous_transaction_model.switch2.netconf.dataStoreManager add(commitExecution:vector)" value="magenta"/>
+      </items>
+    </datasets>
+  </datasets>
+  <chartSheets>
+    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.9"/>
+  </chartSheets>
+</scave:Analysis>

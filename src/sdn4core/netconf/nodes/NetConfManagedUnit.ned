@@ -19,18 +19,25 @@ package sdn4core.netconf.nodes;
 
 import sdn4core.netconf.server.INetConfServer;
 import sdn4core.netconf.datastores.manager.INetConfDataStoreManager;
-import sdn4core.netconf.datastores.config.base.INetConfConfigDataStore;
+import sdn4core.netconf.datastores.config.base.INetConfDataConfigurator;
+import sdn4core.netconf.datastores.store.base.INetConfDataStore;
+
 
 //
 // NetConf managed unit compound module to be included in a NetConf server host (e.g. a switch).
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
+
+
 module NetConfManagedUnit
 {
     parameters:
-        string netConfServerType = default("");
-        string dataStoreManagerType = default("");
+        int numConfigurators = default(0);
+        string netConfServerType = default("NetConfServerTCP");
+        string dataStoreManagerType = default("NetConfDataStoreManagerBase");
+        string runningConfigType = default("NetConfRunningDataStore");
+        string candidateConfigType = default("NetConfCandidateDataStore");
        	double processingTime @unit(s) = default(0s);
         *.processingTime = processingTime;
 
@@ -46,16 +53,27 @@ module NetConfManagedUnit
     submodules:
         // Netconf Client module
         netConfServer: <netConfServerType> like INetConfServer {
-            @display("p=136,70");
+            @display("p=130,70");
         }
 
-        // Netconf state store modules
+        // Netconf state store module
         dataStoreManager: <dataStoreManagerType> like INetConfDataStoreManager {
-            @display("p=234,70");
+            @display("p=230,70");
         }
 
-        configStores[0]: <> like INetConfConfigDataStore {
-            @display("p=330,70,c,50");
+        // Netconf running config store module
+        running: <runningConfigType> like INetConfDataStore {
+            @display("p=330,70");
+        }
+		
+		// Netconf candidate config store module
+        candidate: <candidateConfigType> like INetConfDataStore {
+        	@display("p=330,140");
+        }
+        
+        // Netconf running config store module
+        configurators [numConfigurators]: <> like INetConfDataConfigurator {
+            @display("p=430,70,c,70");
         }
 
     connections:

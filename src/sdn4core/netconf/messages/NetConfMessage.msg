@@ -59,7 +59,8 @@ packet NetConfMessage {
 //
 packet NetConfMessage_RPC extends NetConfMessage {
     messageType = NetConfMessageType::NETCONFMESSAGETYPE_RPC;
-    string message_id;
+    string message_id;//dont forget to add string size to byteLength
+    byteLength = 25;//<rpc message-id=""></rpc>
 }
 
 //
@@ -85,7 +86,8 @@ packet NetConf_RPCReplyElement {
 //
 packet NetConfMessage_RPCReply extends NetConfMessage {
     messageType = NetConfMessageType::NETCONFMESSAGETYPE_RPCREPLY;
-    string message_id;
+    string message_id;//dont forget to add filter size to length
+    byteLength = 37;//<rpc-reply> message-id=""></rpc-reply>
 }
 
 //
@@ -94,10 +96,6 @@ packet NetConfMessage_RPCReply extends NetConfMessage {
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConf_RPCReplyElement_Data extends NetConf_RPCReplyElement {
-}
-
-packet NetConfConfig {
-    @customize(true);
 }
 
 //
@@ -157,9 +155,10 @@ enum NetConf_RPCReplyElement_Error_Severity {
 //
 packet NetConf_RPCReplyElement_Error extends NetConf_RPCReplyElement {
     int error_type @enum(NetConf_RPCReplyElement_Error_Type);
-    string error_tag;
+    string error_tag;//dont forget to add filter size to length
     int error_severity @enum(NetConf_RPCReplyElement_Error_Severity);
-    string error_app_tag;
+    string error_app_tag;//dont forget to add filter size to length
+    byteLength = 131;//<rpc-error><error-type>1</error-type><error-tag></error-tag><error-severity>1</error-severity><error-info></error-info></rpc-error>
 }
 
 //
@@ -170,6 +169,7 @@ packet NetConf_RPCReplyElement_Error extends NetConf_RPCReplyElement {
 // @author Timo Haeckel, for HAW Hamburg
 //
 packet NetConf_RPCReplyElement_Ok extends NetConf_RPCReplyElement {
+    byteLength = 5;//<ok/>
 }
 
 

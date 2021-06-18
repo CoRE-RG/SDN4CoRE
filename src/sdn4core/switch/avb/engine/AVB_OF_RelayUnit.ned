@@ -38,5 +38,5 @@ simple AVB_OF_RelayUnit extends OF_RelayUnit
     	string srpProtocolModule = default("^.srpProtocol");
     	
         //SRP Table module, default name is srpTable
-        string srpTable = default("^.^.srpTable");
+        string srpTable = default("^.srpTable");
 }

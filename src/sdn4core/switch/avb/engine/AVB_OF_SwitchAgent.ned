@@ -33,17 +33,14 @@ simple AVB_OF_SwitchAgent extends OF_SwitchAgent
     parameters:
         @class(SDN4CoRE::AVB_OF_SwitchAgent);
     	
-    	// Path to the SRP protocol module
-    	string srpProtocolModule = default("^.srpProtocol");
-    	
         //SRP Table module, default name is srpTable
-        string srpTable = default("^.^.srpTable");
+        string srpTable = default("^.srpTable");
     	
    	gates:
    	    //SRP message in from SRP protocol module
-        input srpIn @loose;
+        input srpIn;
         //SRP message out to SRP protocol module
-        output srpOut @loose;
+        output srpOut;
     	    
     
 }

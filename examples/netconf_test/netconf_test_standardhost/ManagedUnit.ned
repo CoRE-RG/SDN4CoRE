@@ -30,8 +30,6 @@ module ManagedUnit extends StandardHost
 {
     parameters:
         hasTcp = true;
-        string netConfServerType = default("");
-        string dataStoreManagerType = default("");
 
     gates:
         // no additional gates needed
@@ -39,8 +37,8 @@ module ManagedUnit extends StandardHost
     submodules:
         // Netconf Client module
         netConfServer: NetConfManagedUnit{
-            netConfServerType = netConfServerType;
-            dataStoreManagerType = dataStoreManagerType;
+            numConfigurators = 1;
+            configurators[0].typename = "NetConfDataConfiguratorDummy";
         }
 
     connections:

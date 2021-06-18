@@ -106,20 +106,6 @@ void AVB_OF_SwitchAgent::initialize(int stage){
             }
             break;
         }
-        case INITSTAGE_LAST: {
-            // connect the gates to the SRPProtocol Module.
-            // find the srp protocol module
-            OF_SRProtocol* srpProtocol = dynamic_cast<OF_SRProtocol*> (getModuleByPath(par("srpProtocolModule")));
-            if(!srpProtocol){
-                throw cRuntimeError(("AVB_OF_SwitchAgent: Could not init as no SRP Protocol Module could be found at " + par("srpProtocolModule").str()).c_str());
-            }
-            //srpProtocol.out --> relayUnit.srpIn;
-            srpProtocol->gate("out")->connectTo(this->gate("srpIn"));
-            //srpProtocol.in <-- relayUnit.srpOut;
-            this->gate("srpOut")->connectTo(srpProtocol->gate("in"));
-
-            break;
-         }
          default:
              break;
          }

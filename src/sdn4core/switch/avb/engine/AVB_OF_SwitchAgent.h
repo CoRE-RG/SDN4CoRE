@@ -49,7 +49,6 @@ protected:
      */
     virtual void forwardSRPtoController(omnetpp::cPacket* msg);
 
-
 protected:
     /**
      * Reference to the SRP Table module.

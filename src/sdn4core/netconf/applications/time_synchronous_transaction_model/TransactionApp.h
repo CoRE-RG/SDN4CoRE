@@ -1,0 +1,425 @@
+//
+// c Mohammad Fazel Soltani, Timo Haeckel for HAW Hamburg
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see http://www.gnu.org/licenses/.
+//
+
+#ifndef __SDN4CORE_TRANSACTIONAPP_H_
+#define __SDN4CORE_TRANSACTIONAPP_H_
+
+#include <sdn4core/netconf/datastructures/transactionModel/NetConfConfigCommitTimestamp.h>
+#include <map>
+#include <vector>
+#include <string.h>
+#include "sdn4core/netconf/applications/base/NetConfApplicationBase.h"
+#include "algorithm"
+
+#include "core4inet/scheduler/period/Period.h"
+
+namespace SDN4CoRE{
+
+/**
+ * Contains the Transaction-App implementation of a netconf application.
+ * This module needs to be connected to the NetConf client.
+ *
+ * @author Mohammad Fazel Soltani, for HAW Hamburg
+ */
+class TransactionApp: public NetConfApplicationBase {
+#define LOCK_MSG_ID "Lock"
+#define COPY_CONFIG_MSG_ID "Copy Config"
+#define LOCK_CANDIDATE_MSG_ID "Lock Candidate"
+#define CHANGE_MSG_ID 0
+#define TIMESTAMP_MSG_ID "Timestamp"
+#define UNLOCK_MSG_ID "Unlock"
+#define COMMIT_APPROVED_MSG_ID "Commit approved"
+#define DELETE_CANDIDATE_MSG_ID "Delete Candidate Config"
+#define DELETE_OLD_CONFIG_MSG_ID "Delete Old Config"
+#define SELFMESSAGE_START_TRANSACTION "Start Transaction"
+#define SELFMESSAGE_LAMBDA "LAMBDA_EVENT"
+public:
+    friend class TransactionModelTest;
+
+    struct connections_less {
+        bool operator()(Connection_t* lhs, Connection_t* rhs) {
+            return lhs->remoteAddress.compare(rhs->remoteAddress.c_str())< 0;
+        }
+    };
+
+    enum TransactionAppState{
+        BeginOfTransaction,
+        WaitOnLockResponse,
+        WaitOnCandidateConfirmation,
+        WaitOnCandidateLockResponse,
+        WaitOnChangeConfirmation,
+        WaitOnTimestampConfirmation,
+        WaitOnCommit_Execution,
+        WaitOnDeleteOldConfiguration,
+        WaitOnDeleteCandidate,
+        WaitOnUnlock,
+        ErrorState,
+        EndOfTransaction
+    };
+
+    enum SwitchState {
+        SwitchAvailable, // all false
+        SwitchLocked, // hasLockedRunning
+        SwitchWithCandidate, // hasLockedRunning & hasCandidate
+        SwitchWithLockedCandidate, // hasLockedRunning & hasCandidate & hasLockedCandidate
+        SwitchWithChangedCandidateConfiguration, // hasLockedRunning & hasCandidate & hasLockedCandidate & hasConfiguration
+        SwitchWithTimestamp, // hasLockedRunning & hasCandidate & hasLockedCandidate & hasConfiguration & hasCommitTimeStamp
+        SwitchCommited, // hasLockedRunning & hasCandidate & hasLockedCandidate & hasConfiguration & hasCommitTimeStamp & hasCommited
+        SwitchWithoutCandidate, // hasLockedRunning
+        SwitchWithoutOldConfig, // hasLockedRunning
+        SwitchUnlocked, // all false
+        SwitchError // all wildcard & hasError
+    };
+
+    typedef struct SwitchState_s {
+        bool hasLockedRunning = false;
+        bool hasCandidate = false;
+        bool hasLockedCandidate = false;
+        bool hasConfiguration = false;
+        bool hasCommitTimeStamp = false;
+        bool hasCommited = false;
+        bool hasError = false;
+
+        bool isInState(SwitchState state) {
+            switch (state) {
+                case SwitchState::SwitchAvailable:
+                    if(!hasLockedRunning && !hasCandidate && !hasLockedCandidate && !hasConfiguration && !hasCommitTimeStamp && !hasCommited && !hasError){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchLocked:
+                    if(hasLockedRunning && !hasError){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchWithCandidate:
+                    if(hasLockedRunning && hasCandidate && !hasLockedCandidate && !hasConfiguration && !hasCommitTimeStamp && !hasCommited && !hasError){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchWithLockedCandidate:
+                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && !hasConfiguration && !hasCommitTimeStamp && !hasCommited && !hasError){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchWithChangedCandidateConfiguration:
+                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && hasConfiguration && !hasCommitTimeStamp && !hasCommited && !hasError){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchWithTimestamp:
+                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && hasConfiguration && hasCommitTimeStamp && !hasCommited && !hasError){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchCommited:
+                    if(hasLockedRunning && hasCandidate && hasLockedCandidate && hasConfiguration && hasCommitTimeStamp && hasCommited && !hasError){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchWithoutCandidate:
+                    if(hasLockedRunning && !hasCandidate && !hasCommited){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchWithoutOldConfig:
+                    if(hasLockedRunning && !hasCandidate && hasCommited){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchUnlocked:
+                    if(!hasLockedRunning){
+                        return true;
+                    }
+                    break;
+                case SwitchState::SwitchError:
+                    if(hasError){
+                        return true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return false;
+            // TODO Ueberarbeitung der SwitchStates
+        };
+    } SwitchState_t;
+
+    TransactionApp() {
+
+    };
+
+    ~TransactionApp(){
+        if(LAMBDA_EVENT != nullptr) {
+            auto owner = LAMBDA_EVENT->getOwner();
+            if (owner != nullptr && owner == this) {
+                delete LAMBDA_EVENT;
+            }
+        }
+    }
+
+protected:
+    /**
+     * sets the timestamp as data for the configuration
+     * @param timestamp    the timestamp.
+     * @return the Configurations
+     */
+    Configuration_t* getCommitTimestampConfig(NetConfConfigCommitTimestamp::CommitTimestamp_t timestamp);
+
+    /**
+     * determines timestamp by calculation for each connection the latencies of all Ethernet frames that still to be sent
+     * @return the CommitTimestamp
+     */
+    NetConfConfigCommitTimestamp::CommitTimestamp_t determineTimestamp();
+
+    /**
+     * finds the mentioned connection for the reply
+     * @param reply    the NetConfMessage_RPCReply
+     * @return the Connection
+     */
+    NetConfApplicationBase::Connection_t* findConnectionForReply(NetConfMessage_RPCReply* reply);
+
+    /**
+     * returns a vector of connection which are in the giving state
+     * @param state     the giving state
+     * @return vector of connection
+     */
+    std::vector<Connection_t*> getSwitchesInState(SwitchState state);
+
+    /**
+     * converts a state name to a string
+     * @param state     the giving state
+     * @return state name as string
+     */
+    std::string transactionAppStateToString(TransactionAppState state);
+
+    TransactionAppState getTransactionState();
+
+    /**
+     * the finite state machine of the transaction model
+     *@param msg        the received message
+     */
+    void finiteStateMachine(cMessage* msg);
+
+    /**
+     * determines the lock order of connections
+     */
+    void determineLockOrder();
+
+    /**
+     * executes transition to next state
+     * @param state         the giving state
+     */
+    void transitionToState(TransactionAppState state);
+
+    /**
+     * checks if the transaction misses the commit timestamp
+     * @return true if it misses the commit timestamp, else false
+     */
+    bool checkCommitrelease();
+
+    /**
+     * checks if the received message is a msg which the transaction model can process
+     * @param msg       the received message
+     * @return true if it is a message which can process the model, else false
+     */
+    bool isFSMAlphabet(cMessage* msg);
+
+    /**
+     * checks if the received message is a self message to start the transaction
+     * @param msg       the received message
+     * @return true if it is a message to start the transaction, else false
+     */
+    bool isStartTransactionEvent(cMessage* msg);
+
+    /**
+     * checks if the received message is a rpc reply event message
+     * @param msg       the received message
+     * @return true if it is a rpc reply event message , else false
+     */
+    bool isRPCReplyEvent(cMessage* msg);
+
+    /**
+     * checks if it is a Lambda event message
+     * @param msg       the received message
+     * @return true if it is a Lambda event message , else false
+     */
+    bool isLambdaEvent(cMessage* msg);
+
+    /**
+     * the result of the transaction
+     * true = successful
+     * false = failed
+     */
+    bool result;
+
+    /**
+     * the cMessage for the Lambda event
+     */
+    cMessage* LAMBDA_EVENT;
+
+    /**
+     * the first state of the transaction model
+     */
+    TransactionAppState transactionState = TransactionAppState::BeginOfTransaction;
+
+    /**
+     * map to order a connection to the switch state
+     */
+    std::map<Connection_t*, SwitchState_t,connections_less> switchStates;//connection_less will keep this sorted after the remote_ip
+
+    /**
+     * handles the message in the state BeginOfTransaction
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInBeginOfTransaction(cMessage* msg);
+
+    /**
+     * handles the message in the state WaitOnLockResponse
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInWaitOnLockResponse(cMessage* msg);
+
+    /**
+     * handles the message in the state WaitOnCandidateConfirmation
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInWaitOnCandidateConfirmation(cMessage* msg);
+
+    /**
+     * handles the message in the state WaitOnCandidateLockResponse
+     * @param msg   the received message
+     * * @param eventHandled  handled event
+     */
+    bool handleMessageInWaitOnCandidateLockResponse(cMessage* msg);
+
+    /**
+     * handles the message in the state WaitOnChangeConfirmation
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInWaitOnChangeConfirmation(cMessage* msg);
+
+    /**
+     * handles the message in the state WaitOnTimestampConfirmation
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInWaitOnTimestampConfirmation(cMessage* msg);
+
+    /**
+     * handles the message in the state WaitOnCommit_Execution
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInWaitOnCommit_Execution(cMessage* msg);
+
+    /**
+     * handles the message in the state WaitOnDeleteOldConfiguration
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInWaitOnDeleteOldConfiguration(cMessage* msg);
+
+    /**
+     * handles the message in the state WaitOnDeleteCandidate
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInWaitOnDeleteCandidate(cMessage* msg);
+
+    /**
+     * handles the message in the state WaitOnUnlock
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInWaitOnUnlock(cMessage* msg);
+
+    /**
+     * handles the message in the state ErrorState
+     * @param msg   the received message
+     * @param eventHandled  handled event
+     */
+    bool handleMessageInErrorState(cMessage* msg);
+
+    /**
+     * checks if the event was handled
+     * @param eventHandled
+     * @return true, if event was handled else false
+     */
+    void checkEventHandled(bool eventHandled, cMessage* msg);
+
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+    /**
+     * intercept when all connections are ready
+     */
+    virtual void scheduleNextConfigurationFor(Connection_t* connection) override;
+
+    /**
+     * Schedules a self messsage for the next connection creation;
+     */
+    virtual void scheduleNextConnection() override;
+private:
+    /**
+     * schedules the start of the transaction
+     */
+    void scheduleTransactionStart(SimTime startTime = SimTime::ZERO);
+
+    /**
+     * period from scheduler
+     */
+    CoRE4INET::Period* _period;
+
+    /**
+     * the commit time with cycle and period for commit execution
+     */
+    NetConfConfigCommitTimestamp::CommitTimestamp_t _timestamp;
+
+    /**
+     * period to be synchronized
+     */
+    size_t _syncPeriod = 0;
+
+    /**
+     * sum of the last latencies of each connection
+     */
+    double _sumOfLastLatencies = 0;
+
+    double controllerProcessingTime = 0;
+
+    simsignal_t numSent;
+
+    simsignal_t numReceived;
+
+    simsignal_t resultOfTransaction;
+
+    simsignal_t transactionDuration;
+
+    simsignal_t lockPhase;
+    simsignal_t changePhase;
+    simsignal_t confirmationPhase;
+    simsignal_t unlockPhase;
+};
+
+} // namespace SDN4CoRE
+
+#endif

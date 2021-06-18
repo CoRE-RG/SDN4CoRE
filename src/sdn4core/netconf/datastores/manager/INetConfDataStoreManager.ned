@@ -32,8 +32,6 @@ moduleinterface INetConfDataStoreManager
         bool displayStatus;
         // the path to the INetConfServer module
         string pathToNetConfServer;
-        // maximum number of config data stores 
-        int numMaxDataStores;
         // xml file for a startup configuration of the device.
     	xml startupConfigXML;
         
