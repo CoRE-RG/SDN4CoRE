@@ -15,10 +15,21 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.papers.omnetsummit2019.configanalysis;
+package sdn4core.netconf.client.tcp;
 
-import sdn4core.switch.ieee8021qbv.IEEE8021QbvOFNCSwitch;
+import sdn4core.netconf.client.base.NetConfClientBase;
 
-module Switch extends IEEE8021QbvOFNCSwitch
+//
+// Contains the TCP specific implementation of a NetConf client.
+// This module has to be connected to the tcp module.
+//
+// All responses will be forwarded to the applicaitonOut gate with the 
+// same index as the arriving applicationIn gate   
+//
+// @author Timo Haeckel, for HAW Hamburg
+//
+simple NetConfClientTCP extends NetConfClientBase
 {
+    parameters:
+        @class(SDN4CoRE::NetConfClientTCP);
 }

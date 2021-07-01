@@ -1,6 +1,4 @@
 //
-// c Timo Haeckel, for HAW Hamburg
-// 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -15,10 +13,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.papers.omnetsummit2019.configanalysis;
+package sdn4core.examples.transactionModel.small_network_ofnc;
 
-import sdn4core.switch.ieee8021qbv.IEEE8021QbvOFNCSwitch;
+// TSN Ethernet Host
+import core4inet.nodes.ethernet.tsn.TSNEtherHost;
 
-module Switch extends IEEE8021QbvOFNCSwitch
-{
+module Node3 extends TSNEtherHost{
+    
 }

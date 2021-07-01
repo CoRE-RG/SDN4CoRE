@@ -17,7 +17,7 @@
 
 package sdn4core.examples.IEEE8021Qbv.of_test;
 
-import sdn4core.nodes.IEEE8021Qbv.IEEE8021Qbv_OpenFlowDomain;
+import sdn4core.nodes.ieee8021qbv.IEEE8021Qbv_OpenFlowDomain;
 import sdn4core.controller.base.OpenFlowControllerBase;
 //INET
 import inet.node.ethernet.EtherSwitch;

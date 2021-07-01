@@ -15,7 +15,7 @@
 
 package sdn4core.examples.IEEE8021Qbv.small_network_ofnc;
 
-import sdn4core.switch.IEEE8021Qbv.IEEE8021QbvOFNCSwitch;
+import sdn4core.switch.ieee8021qbv.IEEE8021QbvOFNCSwitch;
 
 //
 // Switch1: configuration in switch1.ini

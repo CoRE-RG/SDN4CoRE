@@ -15,10 +15,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.papers.omnetsummit2019.configanalysis;
+package sdn4core.netconf.datastores.config.ieee8021qbv;
 
-import sdn4core.switch.ieee8021qbv.IEEE8021QbvOFNCSwitch;
+import sdn4core.netconf.datastores.config.base.NetConfDataConfiguratorBase;
 
-module Switch extends IEEE8021QbvOFNCSwitch
+//
+// Contains a IEEE8021Qbv switch implementation of a NetConf config data store.
+//
+// @author Timo Haeckel, for HAW Hamburg
+//
+simple NetConfDataConfiguratorIEEE8021Qbv extends NetConfDataConfiguratorBase
 {
+    parameters:
+        @class(SDN4CoRE::NetConfDataConfiguratorIEEE8021Qbv);
+    //these modules are used via direct method calls.
 }

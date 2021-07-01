@@ -15,10 +15,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
+#include <sdn4core/netconf/applications/configparser/ieee8021qbv/NetConfAppConfigParserIEEE8021Qbv.h>
+#include <sdn4core/netconf/applications/configparser/openflow/NetConfAppConfigParserOpenFlow.h>
 #include "NetConfAppConfigParserCollection.h"
 
-#include "sdn4core/netconf/applications/configparser/IEEE8021Qbv/NetConfAppConfigParserIEEE8021Qbv.h"
-#include "sdn4core/netconf/applications/configparser/openFlow/NetConfAppConfigParserOpenFlow.h"
 #include "sdn4core/netconf/applications/configparser/multipart/NetConfAppConfigParserMultipart.h"
 #include "sdn4core/netconf/applications/configparser/srptable/NetConfAppConfigParserSRPTable.h"
 #include "sdn4core/utility/xml/XMLUtility.h"
