@@ -1,6 +1,4 @@
 //
-// c Timo Haeckel, for HAW Hamburg
-// 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -15,10 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.papers.omnetsummit2019.configanalysis;
+package sdn4core.examples.transactionModel.transactionModelTest;
 
-import sdn4core.switch.ieee8021qbv.IEEE8021QbvOFNCSwitch;
+import sdn4core.netconf.applications.transactionModel.transactionModelTest.TransactionModelTest;
 
-module Switch extends IEEE8021QbvOFNCSwitch
+network transaction_model_test
 {
+    submodules:
+        knoten: TransactionModelTest {}
+        controller: Controller {}
+    connections allowunconnected:
+        knoten.in <-- controller.out;
+        knoten.out --> controller.in;
 }
