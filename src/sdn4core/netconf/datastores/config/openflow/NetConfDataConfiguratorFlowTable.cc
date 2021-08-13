@@ -15,10 +15,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
+//Openflow
+#include "openflow/openflow/switch/flowtable/OF_FlowTableEntry.h"
+//SDN4CoRE
 #include <sdn4core/netconf/datastores/config/openflow/NetConfDataConfiguratorFlowTable.h>
 #include <sdn4core/netconf/datastructures/openflow/OF_NetConfConfigFlowMod.h>
-
-#include "openflow/openflow/switch/flowtable/OF_FlowTableEntry.h"
 
 
 using namespace openflow;

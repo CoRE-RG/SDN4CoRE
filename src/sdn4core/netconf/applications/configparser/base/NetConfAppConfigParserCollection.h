@@ -17,12 +17,18 @@
 
 #ifndef __SDN4CORE_NETCONFAPPCONFIGPARSERBASECOLLECTION_H_
 #define __SDN4CORE_NETCONFAPPCONFIGPARSERBASECOLLECTION_H_
+
+//Omnet
 #include <omnetpp.h>
-#include <sdn4core/netconf/applications/configparser/base/Configuration_t.h>
+//STD
 #include <map>
 #include <string>
-#include "sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserBase.h"
-#include "sdn4core/netconf/applications/base/NetConfApplicationBase.h"
+//SDN4CoRE
+#include <sdn4core/netconf/applications/configparser/base/Configuration_t.h>
+#include <sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserBase.h>
+#include <sdn4core/netconf/applications/base/NetConfApplicationBase.h>
+
+
 using namespace omnetpp;
 
 namespace SDN4CoRE {
@@ -79,11 +85,12 @@ public:
             cXMLElement* element, bool executionTimeRequired = true);
 
 private:
+    /**
+     * Available ConfigParsers
+     */
     static std::map<std::string, NetConfAppConfigParserBase*> parsers;
 };
 
-}
-;
-// namespace SDN4CoRE
+};// namespace SDN4CoRE
 
 #endif //__SDN4CORE_NETCONFAPPCONFIGPARSERBASECOLLECTION_H_

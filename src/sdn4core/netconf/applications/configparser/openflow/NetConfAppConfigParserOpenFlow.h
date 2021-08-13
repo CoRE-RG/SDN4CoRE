@@ -17,8 +17,9 @@
 #ifndef SDN4CORE_NETCONF_APPLICATIONS_CONFIGPARSER_OPENFLOW_NETCONFAPPCONFIGPARSEROPENFLOW_H_
 #define SDN4CORE_NETCONF_APPLICATIONS_CONFIGPARSER_OPENFLOW_NETCONFAPPCONFIGPARSEROPENFLOW_H_
 
-
+//Omnet
 #include <omnetpp.h>
+//SDN4CoRE
 #include <sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserBase.h>
 #include <sdn4core/netconf/datastructures/openflow/OF_NetConfConfigFlowMod.h>
 
@@ -26,7 +27,6 @@
 using namespace omnetpp;
 
 namespace SDN4CoRE{
-
 
 /**
  * Contains the OpenFlow switch specific implementation of a netconf application.

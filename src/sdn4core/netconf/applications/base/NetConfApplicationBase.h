@@ -18,11 +18,13 @@
 #ifndef __SDN4CORE_NETCONFAPPLICATIONBASE_H_
 #define __SDN4CORE_NETCONFAPPLICATIONBASE_H_
 
+//OMNENT
 #include <omnetpp.h>
-#include <sdn4core/netconf/applications/configparser/base/Configuration_t.h>
+//STD
 #include <vector>
 #include <string>
-
+//SDN4CoRE
+#include <sdn4core/netconf/applications/configparser/base/Configuration_t.h>
 #include <sdn4core/netconf/datastructures/tcp/NetConfClientSessionInfoTCP.h>
 #include "sdn4core/netconf/messages/NetConfCapability_m.h"
 #include "sdn4core/netconf/messages/NetConfMessage_m.h"

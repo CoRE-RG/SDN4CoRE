@@ -18,11 +18,13 @@
 #ifndef __SDN4CORE_NETCONFSERVER_H_
 #define __SDN4CORE_NETCONFSERVER_H_
 
+//Omnet
 #include <omnetpp.h>
-#include <sdn4core/netconf/datastructures/base/NetConfServerSessionInfo.h>
+//STD
 #include <unordered_map>
 #include <vector>
-
+//SDN4CoRE
+#include <sdn4core/netconf/datastructures/base/NetConfServerSessionInfo.h>
 #include "sdn4core/utility/processing/ProcessingTimeSimulation.h"
 
 #include "sdn4core/netconf/messages/NetConfMessage_m.h"

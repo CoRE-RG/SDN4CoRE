@@ -15,8 +15,8 @@
 // c Timo Haeckel, for HAW Hamburg
 //
 
+//SND4CoRE
 #include <sdn4core/switch/avb/engine/AVB_OF_SwitchAgent.h>
-
 #include <sdn4core/switch/avb/services/avb/SRP/OF_SRProtocol.h>
 //STD
 #include <sstream>
@@ -31,11 +31,11 @@
 #include "openflow/messages/OFP_Packet_In_m.h"
 #include "openflow/messages/OFP_Packet_Out_m.h"
 
+
 using namespace std;
 using namespace inet;
 using namespace openflow;
 using namespace omnetpp;
-
 
 namespace SDN4CoRE{
 

@@ -17,12 +17,15 @@
 #ifndef SDN4CORE_NETCONF_DATASTRUCTURES_SRP_NETCONFCONFIGSRP_H_
 #define SDN4CORE_NETCONF_DATASTRUCTURES_SRP_NETCONFCONFIGSRP_H_
 
+//STD
 #include <vector>
+//SDN4CoRE
 #include <sdn4core/netconf/datastructures/base/NetConfConfig.h>
+//CoRE4INET
 #include <core4inet/services/avb/SRP/SRPTable.h>
 
-namespace SDN4CoRE {
 
+namespace SDN4CoRE {
 
 /**
  * SRP configuration data to be transferred in NetConf sessions

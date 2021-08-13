@@ -1,5 +1,5 @@
 
-#include <sdn4core/switch/base/engine/OF_SwitchAgent.h>
+//STD
 #include <sstream>
 #include <string>
 //inet
@@ -22,14 +22,14 @@
 #include "openflow/messages/OFP_Packet_In_m.h"
 #include "openflow/messages/OFP_Packet_Out_m.h"
 #include "openflow/messages/OFP_Flow_Mod_m.h"
-//SwitchAgent
+//SDN4CoRE
 #include <sdn4core/switch/base/engine/OF_RelayUnit.h>
+#include <sdn4core/switch/base/engine/OF_SwitchAgent.h>
 
 
 using namespace std;
 using namespace inet;
 using namespace openflow;
-
 
 namespace SDN4CoRE{
 

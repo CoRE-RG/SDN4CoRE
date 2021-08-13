@@ -18,12 +18,15 @@
 #ifndef __SDN4CORE_AVB_OF_RELAYUNIT_H_
 #define __SDN4CORE_AVB_OF_RELAYUNIT_H_
 
+//Omnet
 #include <omnetpp.h>
+//SDN4CoRE
 #include <sdn4core/switch/base/engine/OF_RelayUnit.h>
+//CoRE4INET
 #include "core4inet/services/avb/SRP/SRPTable.h"
 
-namespace SDN4CoRE{
 
+namespace SDN4CoRE{
 
 /**
  * The OF_RelayUnit is part of the switching engine of an OpenFlow switch.

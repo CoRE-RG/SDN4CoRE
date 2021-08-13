@@ -18,11 +18,14 @@
 #ifndef SDN4CORE_NETCONF_DATASTORES_CONFIG_IEEE8021QBV_NETCONFDATACONFIGURATORIEEE8021QBV_H_
 #define SDN4CORE_NETCONF_DATASTORES_CONFIG_IEEE8021QBV_NETCONFDATACONFIGURATORIEEE8021QBV_H_
 
+//Omnet
 #include <omnetpp.h>
-#include <sdn4core/netconf/datastores/config/base/NetConfDataConfiguratorBase.h>
+//STD
 #include <map>
 //CoRE4INET
-#include "core4inet/linklayer/shaper/IEEE8021Qbv/gate/IEEE8021QbvGateControlList.h"
+#include <core4inet/linklayer/shaper/IEEE8021Qbv/gate/IEEE8021QbvGateControlList.h>
+#include <sdn4core/netconf/datastores/config/base/NetConfDataConfiguratorBase.h>
+
 
 using namespace omnetpp;
 

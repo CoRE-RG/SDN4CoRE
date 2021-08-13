@@ -18,6 +18,7 @@
 #ifndef SDN4CORE_NETCONF_DATASTORES_CONFIG_SRP_NETCONFDATACONFIGURATORSRP_H_
 #define SDN4CORE_NETCONF_DATASTORES_CONFIG_SRP_NETCONFDATACONFIGURATORSRP_H_
 
+//SDN4CoRE
 #include <sdn4core/netconf/datastores/config/base/NetConfDataConfiguratorBase.h>
 #include <sdn4core/switch/avb/services/avb/SRP/OF_SRProtocol.h>
 #include <sdn4core/netconf/messages/NetConfOperation_m.h>

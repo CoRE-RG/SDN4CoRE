@@ -17,13 +17,16 @@
 #ifndef SDN4CORE_NETCONF_APPLICATIONS_CONFIGPARSER_SRPTABLE_NETCONFAPPCONFIGPARSERSRPTABLE_H_
 #define SDN4CORE_NETCONF_APPLICATIONS_CONFIGPARSER_SRPTABLE_NETCONFAPPCONFIGPARSERSRPTABLE_H_
 
-#include "core4inet/base/avb/AVBDefs.h"
-#include <sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserBase.h>
+//STD
 #include <unordered_map>
 #include <string>
+//CoRE4INET
+#include "core4inet/base/avb/AVBDefs.h"
+//SDN4CoRE
+#include <sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserBase.h>
+
 
 namespace SDN4CoRE {
-
 
 /**
  * Contains the SRP switch specific implementation of a netconf application.

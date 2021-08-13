@@ -18,10 +18,12 @@
 #ifndef SDN4CORE_NETCONF_DATASTRUCTURES_IEEE8021QBV_NETCONFCONFIGIEEE8021QBV_H_
 #define SDN4CORE_NETCONF_DATASTRUCTURES_IEEE8021QBV_NETCONFCONFIGIEEE8021QBV_H_
 
-#include <sdn4core/netconf/datastructures/base/NetConfConfig.h>
-
+//STD
 #include <string>
 #include <vector>
+//SDN4CoRE
+#include <sdn4core/netconf/datastructures/base/NetConfConfig.h>
+
 
 namespace SDN4CoRE {
 

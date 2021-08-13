@@ -15,17 +15,19 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <sdn4core/netconf/applications/configparser/ieee8021qbv/NetConfAppConfigParserIEEE8021Qbv.h>
-#include <sdn4core/netconf/applications/configparser/openflow/NetConfAppConfigParserOpenFlow.h>
 #include "NetConfAppConfigParserCollection.h"
-
-#include "sdn4core/netconf/applications/configparser/multipart/NetConfAppConfigParserMultipart.h"
-#include "sdn4core/netconf/applications/configparser/srptable/NetConfAppConfigParserSRPTable.h"
-#include "sdn4core/utility/xml/XMLUtility.h"
-
+//STD
 #include <algorithm>
+//SDN4CoRE
+#include <sdn4core/netconf/applications/configparser/openflow/NetConfAppConfigParserOpenFlow.h>
+#include <sdn4core/netconf/applications/configparser/ieee8021qbv/NetConfAppConfigParserIEEE8021Qbv.h>
+#include <sdn4core/netconf/applications/configparser/multipart/NetConfAppConfigParserMultipart.h>
+#include <sdn4core/netconf/applications/configparser/srptable/NetConfAppConfigParserSRPTable.h>
+#include <sdn4core/utility/xml/XMLUtility.h>
+
 
 using namespace std;
+
 namespace SDN4CoRE {
 
 // All key strings have to be in lower case!!!

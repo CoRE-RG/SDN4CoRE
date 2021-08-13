@@ -18,7 +18,9 @@
 #ifndef SDN4CORE_NETCONF_MESSAGES_NETCONFCONFIG_H_
 #define SDN4CORE_NETCONF_MESSAGES_NETCONFCONFIG_H_
 
-#include "sdn4core/netconf/messages/NetConfOperation_m.h"
+//SDN4CoRE
+#include <sdn4core/netconf/messages/NetConfOperation_m.h>
+
 
 namespace SDN4CoRE {
 

@@ -17,10 +17,11 @@
 #ifndef SDN4CORE_NETCONF_APPLICATIONS_CONFIGPARSER_MULTIPART_NETCONFAPPCONFIGPARSERMULTIPART_H_
 #define SDN4CORE_NETCONF_APPLICATIONS_CONFIGPARSER_MULTIPART_NETCONFAPPCONFIGPARSERMULTIPART_H_
 
+//SDN4CoRE
 #include <sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserBase.h>
 
-namespace SDN4CoRE {
 
+namespace SDN4CoRE {
 
 /**
  * Contains the Multipart switch specific implementation of a netconf application.

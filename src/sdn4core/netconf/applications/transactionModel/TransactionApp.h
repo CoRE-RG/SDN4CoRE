@@ -18,14 +18,17 @@
 #ifndef __SDN4CORE_TRANSACTIONAPP_H_
 #define __SDN4CORE_TRANSACTIONAPP_H_
 
-#include <sdn4core/netconf/datastructures/transactionModel/NetConfConfigCommitTimestamp.h>
+//STD
 #include <map>
 #include <vector>
 #include <string.h>
-#include "sdn4core/netconf/applications/base/NetConfApplicationBase.h"
-#include "algorithm"
-
+#include <algorithm>
+//SDN4CoRE
+#include <sdn4core/netconf/applications/base/NetConfApplicationBase.h>
+#include <sdn4core/netconf/datastructures/transactionModel/NetConfConfigCommitTimestamp.h>
+//CoRE4INET
 #include "core4inet/scheduler/period/Period.h"
+
 
 #define SEND_TIMESTAMP_MSG_SIZE 226 * 8 // 226 Byte = 1808 bit
 #define ACK_TIMESTAMP_MSG_SIZE 112 * 8 // 112 Byte = 896 bit

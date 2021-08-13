@@ -18,10 +18,13 @@
 #ifndef SDN4CORE_NETCONF_DATASTORES_CONFIG_OPENFLOW_NETCONFDATACONFIGURATORFLOWTABLE_H_
 #define SDN4CORE_NETCONF_DATASTORES_CONFIG_OPENFLOW_NETCONFDATACONFIGURATORFLOWTABLE_H_
 
+//Omnet
 #include <omnetpp.h>
-#include <sdn4core/netconf/datastores/config/base/NetConfDataConfiguratorBase.h>
+//Openflow
 #include "openflow/messages/Open_Flow_Message_m.h"
 #include "openflow/openflow/switch/flowtable/OF_FlowTable.h"
+//SDN4CoRE
+#include <sdn4core/netconf/datastores/config/base/NetConfDataConfiguratorBase.h>
 
 
 using namespace omnetpp;
