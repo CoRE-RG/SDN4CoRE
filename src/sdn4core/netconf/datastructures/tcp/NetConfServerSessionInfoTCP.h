@@ -18,8 +18,9 @@
 #ifndef SDN4CORE_NETCONF_SERVER_TCP_NETCONFSESSIONINFOTCP_H_
 #define SDN4CORE_NETCONF_SERVER_TCP_NETCONFSESSIONINFOTCP_H_
 
+//SDN4CoRE
 #include <sdn4core/netconf/datastructures/base/NetConfServerSessionInfo.h>
-
+//INET
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 
 namespace SDN4CoRE {
@@ -38,18 +39,34 @@ public:
 
     }
 
+    /**
+     * returns the connection
+     * @return connID
+     */
     int getConnId() const {
         return connID;
     }
 
+    /**
+     * sets the connection id
+     * @param connId
+     */
     void setConnId(int connId) {
         connID = connId;
     }
 
+    /**
+     * returns the tcp socket
+     * @return socket
+     */
     inet::TCPSocket* getSocket() {
         return socket;
     }
 
+    /**
+     * sets a tcp socket
+     * @param socket
+     */
     void setSocket(inet::TCPSocket* socket) {
         this->socket = socket;
     }

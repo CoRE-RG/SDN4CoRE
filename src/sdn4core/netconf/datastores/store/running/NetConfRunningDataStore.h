@@ -18,21 +18,25 @@
 #ifndef SDN4CORE_NETCONF_DATASTORES_STORE_RUNNING_NETCONFRUNNINGDATASTORE_H_
 #define SDN4CORE_NETCONF_DATASTORES_STORE_RUNNING_NETCONFRUNNINGDATASTORE_H_
 
+//Omnet
 #include <omnetpp.h>
+//STD
+#include <vector>
+//SDN4CoRE
 #include <sdn4core/netconf/datastores/store/base/NetConfDataStoreBase.h>
 #include <sdn4core/netconf/datastores/config/base/NetConfDataConfiguratorBase.h>
-#include <vector>
 
 
 using namespace omnetpp;
 
 namespace SDN4CoRE {
 
-
+/**
+ * Contains the running/active configuration of a device's Datatstore.
+ * All modifications done to this Datastore will be activated immediately.
+ * It supports all operations provided by the base class @see~NetConfDataStoreBase
+ */
 class NetConfRunningDataStore: public NetConfDataStoreBase {
-protected:
-    virtual void initialize() override;
-
 public:
     /**
      * Creates a NetConfConfig from the current configuration data that only contains elements in the filter.
@@ -60,6 +64,9 @@ protected:
      * list of all active configurators
      */
     std::vector<NetConfDataConfiguratorBase*> _configurators;
+
+    virtual void initialize() override;
+
 };
 }
 

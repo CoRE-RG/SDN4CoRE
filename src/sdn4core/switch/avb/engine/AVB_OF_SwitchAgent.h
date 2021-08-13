@@ -1,10 +1,14 @@
 #ifndef __SDN4CORE_AVB_OF_SWITCHAGENT_H_
 #define __SDN4CORE_AVB_OF_SWITCHAGENT_H_
 
+//Omneet
 #include <omnetpp.h>
+//SDN4CoRE
 #include <sdn4core/switch/base/engine/OF_SwitchAgent.h>
-#include "core4inet/services/avb/SRP/SRPTable.h"
 #include <sdn4core/switch/avb/engine/AVB_OF_RelayUnit.h>
+//CoRE4INET
+#include "core4inet/services/avb/SRP/SRPTable.h"
+
 
 namespace SDN4CoRE{
 

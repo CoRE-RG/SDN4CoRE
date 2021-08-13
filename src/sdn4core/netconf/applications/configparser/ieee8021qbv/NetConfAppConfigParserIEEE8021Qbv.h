@@ -18,11 +18,12 @@
 #ifndef __SDN4CORE_NETCONFAPPCONFIGPARSERIEEE8021QBV_H_
 #define __SDN4CORE_NETCONFAPPCONFIGPARSERIEEE8021QBV_H_
 
-
+//Omnet
 #include <omnetpp.h>
+//SDN4CoRE
 #include <sdn4core/netconf/datastructures/ieee8021qbv/NetConfConfigIEEE8021Qbv.h>
+#include <sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserBase.h>
 
-#include "sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserBase.h"
 
 using namespace omnetpp;
 
@@ -58,7 +59,6 @@ public:
         return dynamic_cast<NetConfConfig*>(configData);
     }
 };
-
 }  // namespace SDN4CoRE
 
 #endif //__SDN4CORE_NETCONFAPPCONFIGPARSERIEEE8021QBV_H_

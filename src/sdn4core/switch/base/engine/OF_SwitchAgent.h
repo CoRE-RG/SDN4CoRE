@@ -18,6 +18,7 @@
 #ifndef SDN4CORE_SWITCH_BASE_ENGINE_OF_SWITCHAGENT_H_
 #define SDN4CORE_SWITCH_BASE_ENGINE_OF_SWITCHAGENT_H_
 
+//Omnet
 #include <omnetpp.h>
 //STD
 #include <vector>
@@ -30,8 +31,9 @@
 #include "openflow/openflow/switch/flowtable/OF_FlowTable.h"
 //relayUnit
 #include <sdn4core/switch/base/engine/OF_RelayUnit.h>
-namespace SDN4CoRE{
 
+
+namespace SDN4CoRE{
 
 /**
  * The OF_SwitchAgent is part of the switching engine of an OpenFlow switch.

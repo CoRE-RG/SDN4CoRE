@@ -18,10 +18,13 @@
 #ifndef SDN4CORE_NETCONF_DATASTRUCTURES_OPENFLOW_OF_NETCONFCONFIGOPENFLOW_H_
 #define SDN4CORE_NETCONF_DATASTRUCTURES_OPENFLOW_OF_NETCONFCONFIGOPENFLOW_H_
 
+//STD
 #include <vector>
+//SDN4CoRE
 #include <sdn4core/netconf/datastructures/base/NetConfConfig.h>
 //OpenFlow
 #include "openflow/openflow/switch/flowtable/OF100_FlowTableEntry.h"
+
 
 using namespace openflow;
 

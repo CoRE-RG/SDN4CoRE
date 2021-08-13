@@ -18,11 +18,12 @@
 #ifndef SDN4CORE_NETCONF_DATASTORES_CONFIG_MULTIPART_NETCONFDATACONFIGURATORMULTIPART_H_
 #define SDN4CORE_NETCONF_DATASTORES_CONFIG_MULTIPART_NETCONFDATACONFIGURATORMULTIPART_H_
 
+//SDN4CoRE
 #include <sdn4core/netconf/datastores/config/base/NetConfDataConfiguratorBase.h>
 #include <sdn4core/netconf/datastores/store/running/NetConfRunningDataStore.h>
 
-namespace SDN4CoRE {
 
+namespace SDN4CoRE {
 
 /**
  * Provides a Multipart implementation for the interface of a NetConfConfigDataStore.

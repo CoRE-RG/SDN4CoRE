@@ -18,10 +18,12 @@
 #ifndef __SDN4CORE_NETCONFDATASTOREBASE_H_
 #define __SDN4CORE_NETCONFDATASTOREBASE_H_
 
+//Omnet
 #include <omnetpp.h>
+//SDN4CoRE
+#include <sdn4core/netconf/datastructures/base/NetConfConfig.h>
+#include <sdn4core/netconf/datastructures/base/NetConfFilter.h>
 
-#include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
-#include "sdn4core/netconf/datastructures/base/NetConfFilter.h"
 
 using namespace omnetpp;
 

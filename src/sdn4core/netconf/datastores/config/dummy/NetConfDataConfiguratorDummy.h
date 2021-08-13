@@ -18,9 +18,11 @@
 #ifndef __SDN4CORE_NETCONFCONFIGURATORDUMMY_H_
 #define __SDN4CORE_NETCONFCONFIGURATORDUMMY_H_
 
+//Omnet
 #include <omnetpp.h>
-
+//SDN4CoRE
 #include <sdn4core/netconf/datastores/config/base/NetConfDataConfiguratorBase.h>
+
 
 using namespace omnetpp;
 

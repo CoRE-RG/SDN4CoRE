@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
+
+//STD
+#include <string>
+//SDN4CoRE
 #include <sdn4core/netconf/applications/configparser/srptable/NetConfAppConfigParserSRPTable.h>
 #include <sdn4core/netconf/datastructures/srp/NetConfConfigSRP.h>
 #include <core4inet/services/avb/SRP/SRPTable.h>
-#include "inet/linklayer/common/MACAddress.h"
-#include <string>
+
 
 using namespace std;
 

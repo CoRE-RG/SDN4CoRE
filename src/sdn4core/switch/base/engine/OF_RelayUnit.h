@@ -2,6 +2,7 @@
 #ifndef SDN4CORE_SWITCH_BASE_ENGINE_OF_RELAYUNIT_H_
 #define SDN4CORE_SWITCH_BASE_ENGINE_OF_RELAYUNIT_H_
 
+//Omnet
 #include <omnetpp.h>
 //STD
 #include <vector>
@@ -15,7 +16,6 @@
 
 
 namespace SDN4CoRE{
-
 
 /**
  * The OF_RelayUnit is part of the switching engine of an OpenFlow switch.

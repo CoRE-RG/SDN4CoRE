@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
+
+//SDN4CoRE
 #include <sdn4core/netconf/datastores/config/srp/NetConfDataConfiguratorSRP.h>
 #include <sdn4core/netconf/datastructures/srp/NetConfConfigSRP.h>
 #include <sdn4core/netconf/messages/NetConfOperation_m.h>
 
-using namespace std;
 
+using namespace std;
 
 namespace SDN4CoRE {
 
@@ -58,7 +60,7 @@ bool SDN4CoRE::NetConfDataConfiguratorSRP::editConfig(int defaultOperation, int 
 
             switch(defaultOperation){
                 case NETCONFOPERATION_OPERATION_CREATE:
-                    if( _srpTable->getTalkerForStreamId(talker.streamId, talker.vlan_id)->size() <= 0){
+                    if(_srpTable->getTalkerForStreamId(talker.streamId, talker.vlan_id)){
                         noError = false;
                     }else{
                         _srpTable->updateTalkerWithStreamId(talker.streamId, talker.module, talker.address, talker.srClass, talker.framesize, talker.intervalFrames, talker.vlan_id, talker.pcp,true);

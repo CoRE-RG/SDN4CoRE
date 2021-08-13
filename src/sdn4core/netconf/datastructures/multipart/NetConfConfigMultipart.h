@@ -18,8 +18,11 @@
 #ifndef SDN4CORE_NETCONF_DATASTRUCTURES_MULTIPART_NETCONFCONFIGMULTIPART_H_
 #define SDN4CORE_NETCONF_DATASTRUCTURES_MULTIPART_NETCONFCONFIGMULTIPART_H_
 
+//STD
 #include <vector>
+//SDN4CoRE
 #include <sdn4core/netconf/datastructures/base/NetConfConfig.h>
+
 
 namespace SDN4CoRE {
 

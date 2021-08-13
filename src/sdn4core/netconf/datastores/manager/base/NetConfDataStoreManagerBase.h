@@ -18,18 +18,20 @@
 #ifndef __SDN4CORE_NETCONFDATASTOREMANAGERBASE_H_
 #define __SDN4CORE_NETCONFDATASTOREMANAGERBASE_H_
 
+//STD
 #include <omnetpp.h>
+#include <string>
+#include <unordered_map>
+//CoRE4INET
+#include "core4inet/scheduler/period/Period.h"
+//SDN4CoRE
 #include <sdn4core/netconf/datastores/store/running/NetConfRunningDataStore.h>
 #include <sdn4core/netconf/datastores/store/candidate/NetConfCandidateDataStore.h>
 #include <sdn4core/netconf/datastructures/transactionModel/NetConfConfigCommitTimestamp.h>
-#include <string>
-#include <unordered_map>
-
-#include "core4inet/scheduler/period/Period.h"
-
 //AUTO-GENERATED MESSAGES
-#include "sdn4core/netconf/messages/NetConfMessage_m.h"
-#include "sdn4core/netconf/messages/NetConfOperation_m.h"
+#include <sdn4core/netconf/messages/NetConfMessage_m.h>
+#include <sdn4core/netconf/messages/NetConfOperation_m.h>
+
 
 using namespace omnetpp;
 
@@ -232,8 +234,6 @@ class NetConfDataStoreManagerBase : public cSimpleModule , public cListener
     static simsignal_t commitExecutionSignal;
 
     static simsignal_t editConfigSignal;
-
-  private:
 };
 
 }  // namespace SDN4CoRE

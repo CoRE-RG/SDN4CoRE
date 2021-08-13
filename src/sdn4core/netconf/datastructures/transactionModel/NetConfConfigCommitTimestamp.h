@@ -18,10 +18,17 @@
 #ifndef SDN4CORE_NETCONF_DATASTRUCTURES_TRANSACTIONMODEL_NETCONFCONFIGCOMMITTIMESTAMP_H_
 #define SDN4CORE_NETCONF_DATASTRUCTURES_TRANSACTIONMODEL_NETCONFCONFIGCOMMITTIMESTAMP_H_
 
+//SDN4CoRE
 #include <sdn4core/netconf/datastructures/base/NetConfConfig.h>
+
 
 namespace SDN4CoRE {
 
+/**
+ * Commit time stamp data to be transferred in NetConf sessionsn.
+ *
+ * @author Timo Haeckel, for HAW Hamburg
+ */
 class NetConfConfigCommitTimestamp: public NetConfConfig{
 public:
     typedef struct CommitTimestamp_t{

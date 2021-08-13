@@ -18,33 +18,26 @@
 #ifndef SDN4CORE_NETCONF_DATASTORES_STORE_CANDIDATE_NETCONFCANDIDATEDATASTORE_H_
 #define SDN4CORE_NETCONF_DATASTORES_STORE_CANDIDATE_NETCONFCANDIDATEDATASTORE_H_
 
+//Omnet
 #include <omnetpp.h>
+//SDN4CoRE
 #include <sdn4core/netconf/datastores/store/base/NetConfDataStoreBase.h>
 #include <sdn4core/netconf/datastores/store/running/NetConfRunningDataStore.h>
 //AUTO-GENERATED MESSAGES
-#include "sdn4core/netconf/messages/NetConfMessage_m.h"
-#include "sdn4core/netconf/messages/NetConfOperation_m.h"
+#include <sdn4core/netconf/messages/NetConfMessage_m.h>
+#include <sdn4core/netconf/messages/NetConfOperation_m.h>
+
+
 using namespace omnetpp;
 namespace SDN4CoRE {
 
 /**
- *
+ * The NetConfCandidateDataStore can be used when reconfigurations are supposed to be activated
+ * simultaneously. There fore this class holds a copy of a NetConfRunningDataStore's configuration that can be
+ * modified safely. When all modifications are done the NetConfCandidateDataStore can apply it's
+ * configuration to a NetConfRunningDataStore
  */
 class NetConfCandidateDataStore: public NetConfDataStoreBase {
-protected:
-
-    /**
-     *
-     */
-    NetConfRunningDataStore* _runningStore;
-
-    /**
-     *
-     */
-    std::vector<NetConfConfig*> _configVector;
-
-    virtual void initialize() override;
-
 public:
 
     /**
@@ -86,6 +79,20 @@ public:
      * @return      true if it the lock was acquired
      */
     virtual bool checkAndLock(int lockHolderSessionId) override;
+
+protected:
+
+    /**
+     * The corresponding running Datatstore all reconfigurations will be applied to
+     */
+    NetConfRunningDataStore* _runningStore;
+
+    /**
+     * configuration of the Datastore
+     */
+    std::vector<NetConfConfig*> _configVector;
+
+    virtual void initialize() override;
 
 };
 

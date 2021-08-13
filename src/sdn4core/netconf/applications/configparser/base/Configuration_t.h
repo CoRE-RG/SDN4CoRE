@@ -18,9 +18,13 @@
 #ifndef SDN4CORE_NETCONF_APPLICATIONS_CONFIGPARSER_BASE_CONFIGURATION_T_H_
 #define SDN4CORE_NETCONF_APPLICATIONS_CONFIGPARSER_BASE_CONFIGURATION_T_H_
 
+//Omnet
 #include <omnetpp.h>
-#include "sdn4core/netconf/datastructures/base/NetConfConfig.h"
-#include "sdn4core/netconf/datastructures/base/NetConfFilter.h"
+//SDN4CoRE
+#include <sdn4core/netconf/datastructures/base/NetConfConfig.h>
+#include <sdn4core/netconf/datastructures/base/NetConfFilter.h>
+
+
 using namespace omnetpp;
 
 namespace SDN4CoRE {

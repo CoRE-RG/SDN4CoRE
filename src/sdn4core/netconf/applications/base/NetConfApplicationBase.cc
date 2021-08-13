@@ -17,19 +17,19 @@
 
 #include "NetConfApplicationBase.h"
 
-
-#include "sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserCollection.h"
-#include "sdn4core/utility/xml/XMLUtility.h"
+//STD
 #include <string>
-
 //INET
 #include "inet/networklayer/common/L3AddressResolver.h"
+//SDN4CoRE
+#include <sdn4core/netconf/applications/configparser/base/NetConfAppConfigParserCollection.h>
+#include <sdn4core/utility/xml/XMLUtility.h>
 
 namespace SDN4CoRE {
 
 Define_Module(NetConfApplicationBase);
-
 #define SELFMESSAGE_SEND_NETCONF "Send Netconf"
+
 
 NetConfApplicationBase::~NetConfApplicationBase() {
     for(auto conn : this->_connections){
