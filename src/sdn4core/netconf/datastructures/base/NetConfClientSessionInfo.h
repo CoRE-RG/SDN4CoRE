@@ -33,18 +33,34 @@ public:
 
     }
 
+    /**
+     * get the current scessioId
+     * @return session id
+     */
     int getSessionId() {
         return _sessionId;
     }
 
+    /**
+     * set the sessionId
+     * @param _sessionId
+     */
     void setSessionId(int sessionId) {
         _sessionId = sessionId;
     }
 
+    /**
+     * get the application index
+     * @return _applicationIndex
+     */
     int getApplicationIndex() const {
         return _applicationIndex;
     }
 
+    /**
+     * set the application index
+     * @param applicationIndex
+     */
     void setApplicationIndex(int applicationIndex) {
         _applicationIndex = applicationIndex;
     }

@@ -33,10 +33,19 @@ public:
 
     }
 
+
+    /**
+     * get the current scessioId
+     * @return session id
+     */
     int getSessionId() {
         return session_id;
     }
 
+    /**
+     * set the sessionId
+     * @param _sessionId
+     */
     void setSessionId(int sessionId) {
         session_id = sessionId;
     }

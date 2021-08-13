@@ -19,14 +19,9 @@
 
 namespace SDN4CoRE {
 
-NetConfFilter::NetConfFilter() {
-    // TODO Auto-generated constructor stub
+NetConfFilter::NetConfFilter() {}
 
-}
-
-NetConfFilter::~NetConfFilter() {
-    // TODO Auto-generated destructor stub
-}
+NetConfFilter::~NetConfFilter() {}
 
 unsigned int  NetConfFilter::getByteSize() {
     return 4;

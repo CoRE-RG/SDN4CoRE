@@ -19,14 +19,9 @@
 
 namespace SDN4CoRE {
 
-NetConfConfig::NetConfConfig() {
-    // TODO Auto-generated constructor stub
+NetConfConfig::NetConfConfig() {}
 
-}
-
-NetConfConfig::~NetConfConfig() {
-    // TODO Auto-generated destructor stub
-}
+NetConfConfig::~NetConfConfig() {}
 
 unsigned int  NetConfConfig::getByteSize() {
     return 4;
