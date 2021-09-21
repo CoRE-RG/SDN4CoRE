@@ -168,6 +168,11 @@ class NetConfDataStoreManagerBase : public cSimpleModule , public cListener
     virtual void scheduleTimedCommit();
 
     /**
+     * reset timed commit
+     */
+    virtual void resetTimedCommit();
+
+    /**
      * Executes the commit
      */
     virtual void executeCommit();
