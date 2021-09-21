@@ -68,6 +68,8 @@ void NetConfDataStoreManagerBase::initialize() {
         _periods.push_back(dynamic_cast<CoRE4INET::Period*>(scheduler->getSubmodule("period", i)));
         }
     }
+
+    resetTimedCommit();
 }
 
 void NetConfDataStoreManagerBase::handleParameterChange(const char* parname) {
@@ -176,9 +178,7 @@ void NetConfDataStoreManagerBase::handleMessage(cMessage *msg) {
             reply = createRPCReplyElement_Ok();
             reply->setControlInfo(_commitOperation->removeControlInfo());
             sendDirect(reply,_netConfServer->gate(RESPONSE_OUT_GATE_NAME));
-            setCommitOperation(nullptr);
-            _commitTimestamp.cycle = 0;
-            _commitTimestamp.period = 0;
+            resetTimedCommit();
         }
     }
     else {
@@ -512,8 +512,7 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleCommit(
 
 bool NetConfDataStoreManagerBase::hasCommitTimestamp(){
     bool isCommitTimestamp = true;
-    if(_periods[_commitTimestamp.cycle] == 0
-            && _periods[_commitTimestamp.period] == 0){
+    if(_commitTimestamp.cycle == 0 && _commitTimestamp.period == 0){
         isCommitTimestamp = false;
     }
     return isCommitTimestamp;
@@ -522,6 +521,12 @@ bool NetConfDataStoreManagerBase::hasCommitTimestamp(){
 void NetConfDataStoreManagerBase::scheduleTimedCommit(){
     //subscribe period cycles signal and wait for correct cycle to execute
     _periods[_commitTimestamp.period]->subscribe(_newCycleSignal, this);
+}
+
+void NetConfDataStoreManagerBase::resetTimedCommit(){
+    setCommitOperation(nullptr);
+    _commitTimestamp.cycle = 0;
+    _commitTimestamp.period = 0;
 }
 
 void NetConfDataStoreManagerBase::executeCommit(){
