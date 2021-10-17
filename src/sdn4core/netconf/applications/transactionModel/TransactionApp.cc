@@ -37,6 +37,9 @@ void TransactionApp::initialize(){
     confirmationPhase = registerSignal("confirmationPhase");
     unlockPhase = registerSignal("unlockPhase");
 
+    numSent = registerSignal("numSentMsgs");
+    numReceived = registerSignal("numReceivedMsgs");
+
     cXMLElement* xmlServerConnections = par("serverConnections").xmlValue();
     if (xmlServerConnections) {
         if (strcmp(xmlServerConnections->getName(), "server_connections")
@@ -65,6 +68,7 @@ void TransactionApp::initialize(){
 
 void TransactionApp::handleMessage(cMessage* msg){
     if(isFSMAlphabet(msg)){
+        emit(numReceived, 1L);
         finiteStateMachine(msg);
         if(!isLambdaEvent(msg)){
             delete msg;
@@ -110,10 +114,10 @@ void TransactionApp::scheduleTransactionStart(SimTime startTime){
     }
 }
 
-std::vector<NetConfApplicationBase::Connection_t*> TransactionApp::getSwitchesInState(SwitchState state){
+std::vector<NetConfApplicationBase::Connection_t*> TransactionApp::getSwitchesInState(int state){
     std::vector<NetConfApplicationBase::Connection_t*> resultVector;
     for(auto it = switchStates.begin(); it != switchStates.end(); it++) {
-        if (it->second.isInState(state)) {
+        if (it->second->isInState(state)) {
             resultVector.push_back(it->first);
         }
     }
@@ -122,35 +126,35 @@ std::vector<NetConfApplicationBase::Connection_t*> TransactionApp::getSwitchesIn
 
 void TransactionApp::determineLockOrder(){
     for(auto& connection: _connections){
-        switchStates[&connection] = SwitchState_t();
+        switchStates[&connection] = new SwitchState_t();
     }
 }
 
-TransactionApp::TransactionAppState TransactionApp::getTransactionState(){
+int TransactionApp::getTransactionState(){
     return transactionState;
 }
 
-std::string TransactionApp::transactionAppStateToString(TransactionAppState state){
+std::string TransactionApp::transactionAppStateToString(int state){
     switch(state){
-    case TransactionApp::BeginOfTransaction:
+    case TransactionAppState::BeginOfTransaction:
         return "BeginOfTransaction";
-    case TransactionApp::WaitOnLockResponse:
+    case TransactionAppState::WaitOnLockResponse:
         return "WaitOnLockResponse";
-    case TransactionApp::WaitOnCandidateConfirmation:
+    case TransactionAppState::WaitOnCandidateConfirmation:
         return "WaitOnCandidateConfirmation";
-    case TransactionApp::WaitOnChangeConfirmation:
+    case TransactionAppState::WaitOnChangeConfirmation:
         return "WaitOnChangeConfirmation";
-    case TransactionApp::WaitOnCommit_Execution:
-        return "WaitOnCommit_Execution";
-    case TransactionApp::WaitOnDeleteOldConfiguration:
+    case TransactionAppState::WaitOnCommitExecution:
+        return "WaitOnCommitExecution";
+    case TransactionAppState::WaitOnDeleteOldConfiguration:
         return "WaitOnDeleteOldConfiguration";
-    case TransactionApp::WaitOnDeleteCandidate:
+    case TransactionAppState::WaitOnDeleteCandidate:
         return "WaitOnDeleteCandidate";
-    case TransactionApp::WaitOnUnlock:
+    case TransactionAppState::WaitOnUnlock:
         return "WaitOnUnlock";
-    case TransactionApp::ErrorState:
+    case TransactionAppState::ErrorState:
         return "ErrorState";
-    case TransactionApp::EndOfTransaction:
+    case TransactionAppState::EndOfTransaction:
         return "EndOfTransaction";
     default:
         return "invalid state";
@@ -216,7 +220,7 @@ Configuration_t* TransactionApp::getCommitTimestampConfig(NetConfConfigCommitTim
     return config;
 }
 
-void TransactionApp::transitionToState(TransactionAppState nextState){
+void TransactionApp::transitionToState(int nextState){
     //execute exit action of current state
     switch (transactionState) {
     default:
@@ -229,7 +233,7 @@ void TransactionApp::transitionToState(TransactionAppState nextState){
     switch (nextState) {
     case TransactionAppState::WaitOnLockResponse:
         for(auto it = switchStates.begin(); it != switchStates.end(); it++) {
-            if(it->second.isInState(SwitchState::SwitchAvailable)){
+            if(it->second->isInState(SwitchState::SwitchAvailable)){
                 connectionToLock = it->first;
                 break;
             }
@@ -240,6 +244,7 @@ void TransactionApp::transitionToState(TransactionAppState nextState){
             config->target = "running";
             NetConfMessage_RPC* s_Switch_sperren = createNetConfRPCForConfiguration(connectionToLock, config, LOCK_MSG_ID);
             sendDelayed(s_Switch_sperren, controllerProcessingTime, gate("applicationOut"));
+            emit(numSent, 1L);
         } else {
             throw cRuntimeError("connection cannot locked");
         }
@@ -285,8 +290,8 @@ void TransactionApp::finiteStateMachine(cMessage* msg){
     case TransactionAppState::ErrorState:
         eventHandled = handleMessageInErrorState(msg);
         break;
-    case TransactionAppState::WaitOnCommit_Execution:
-        eventHandled = handleMessageInWaitOnCommit_Execution(msg);
+    case TransactionAppState::WaitOnCommitExecution:
+        eventHandled = handleMessageInWaitOnCommitExecution(msg);
         break;
     case TransactionAppState::WaitOnDeleteOldConfiguration:
         eventHandled = handleMessageInWaitOnDeleteOldConfiguration(msg);
@@ -328,14 +333,15 @@ bool TransactionApp::handleMessageInBeginOfTransaction(cMessage* msg){
     return false;
 }
 
+//prüfen ob die isInState Methode an erweiterten Struct aufgerufen wird!
 bool TransactionApp::handleMessageInWaitOnLockResponse(cMessage* msg){
     if(isRPCReplyEvent(msg)){
         // e_Switch_gesperrt
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
             Connection_t* con = findConnectionForReply(reply);
-            if (((strcmp(reply->getMessage_id(), LOCK_MSG_ID) == 0) && (switchStates[con].isInState(SwitchState::SwitchAvailable)))) {
-                switchStates[con].hasLockedRunning = true;
+            if (((strcmp(reply->getMessage_id(), LOCK_MSG_ID) == 0) && (switchStates[con]->isInState(SwitchState::SwitchAvailable)))) {
+                switchStates[con]->hasLockedRunning = true;
                 std::vector<Connection_t*> lockedSwitches = getSwitchesInState(SwitchState::SwitchLocked);
                 if(lockedSwitches.size() < switchStates.size()){
                     transitionToState(TransactionAppState::WaitOnLockResponse);
@@ -393,7 +399,7 @@ bool TransactionApp::handleMessageInWaitOnLockResponse(cMessage* msg){
                             }
                         }
                     }
-                    switchStates[con].hasLockedRunning = false;
+                    switchStates[con]->hasLockedRunning = false;
                     result = false;
                     emit(resultOfTransaction,result);
                     transitionToState(TransactionAppState::WaitOnUnlock);
@@ -414,7 +420,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateConfirmation(cMessage* msg){
             if(strcmp(reply->getMessage_id(), COPY_CONFIG_MSG_ID) != 0){
                 throw cRuntimeError(" reply is not the response of e_Konfig_kopiert");
             }else{
-                switchStates[con].hasCandidate = true;
+                switchStates[con]->hasCandidate = true;
                 std::vector<Connection_t*> lockedSwitchesWithCandidate = getSwitchesInState(SwitchState::SwitchWithCandidate);
                 std::vector<Connection_t*> failedSwitch = getSwitchesInState(SwitchState::SwitchError);
                 if(failedSwitch.size() > 0){
@@ -442,6 +448,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateConfirmation(cMessage* msg){
                             config->type = Configuration_t::NetConfMessageType_t::NetConfMessageType_Lock;
                             NetConfMessage_RPC* s_Switch_Kandidat_sperren = createNetConfRPCForConfiguration(connection, config, LOCK_CANDIDATE_MSG_ID);
                             sendDelayed(s_Switch_Kandidat_sperren, controllerProcessingTime, gate("applicationOut"));
+                            emit(numSent, 1L);
                         }
                     }
                     transitionToState(TransactionAppState::WaitOnCandidateLockResponse);
@@ -454,7 +461,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateConfirmation(cMessage* msg){
             if(strcmp(reply->getMessage_id(), COPY_CONFIG_MSG_ID) != 0){
                 throw cRuntimeError(" reply is not the response of e_Kandidat_fehlgeschlagen");
             }else{
-                switchStates[con].hasError = true;
+                switchStates[con]->hasError = true;
                 std::vector<Connection_t*> lockedSwitchesWithCandidate = getSwitchesInState(SwitchState::SwitchWithCandidate);
                 std::vector<Connection_t*> failedSwitch = getSwitchesInState(SwitchState::SwitchError);
                 if((lockedSwitchesWithCandidate.size() == 0) && failedSwitch.size() == switchStates.size()){
@@ -497,7 +504,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateLockResponse(cMessage* msg){
             if(strcmp(reply->getMessage_id(), LOCK_CANDIDATE_MSG_ID) != 0){
                 throw cRuntimeError(" reply is not the response of e_Switch_Kandidat_gesperrt");
             }else{
-                switchStates[con].hasLockedCandidate = true;
+                switchStates[con]->hasLockedCandidate = true;
                 std::vector<Connection_t*> switchesWithLockedCandidate = getSwitchesInState(SwitchState::SwitchWithLockedCandidate);
                 if(switchesWithLockedCandidate.size() < switchStates.size()){
                     transitionToState(TransactionAppState::WaitOnCandidateLockResponse);
@@ -535,7 +542,7 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
             con->configurations[idx]->state = Configuration_t::ConfigurationState_t::ConfigurationStateSuccess;
             if(getSwitchesInState(SwitchState::SwitchError).size() > 0){
-                switchStates[con].hasConfiguration = true;
+                switchStates[con]->hasConfiguration = true;
                 if(getSwitchesInState(SwitchState::SwitchError).size()+getSwitchesInState(SwitchState::SwitchWithChangedCandidateConfiguration).size() == switchStates.size()){
                     transitionToState(TransactionAppState::ErrorState);
                     return true;
@@ -552,13 +559,14 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
                     con->configurations[i]->target = "candidate";
                     NetConfMessage_RPC* s_Aenderung_durchfuehren = createNetConfRPCForConfiguration(con, con->configurations[i], std::to_string(CHANGE_MSG_ID+i));
                     sendDelayed(s_Aenderung_durchfuehren, controllerProcessingTime, gate("applicationOut"));
+                    emit(numSent, 1L);
                     con->configurations[i]->state = Configuration_t::ConfigurationState_t::ConfigurationStateRequested;
                     break;//only send next one
                 }
             }
             if(i >= configsInConnection.size()){
                 //no more changes sent
-                switchStates[con].hasConfiguration = true;
+                switchStates[con]->hasConfiguration = true;
             }
             if((getSwitchesInState(SwitchState::SwitchWithChangedCandidateConfiguration).size() == switchStates.size())
                     && (getSwitchesInState(SwitchState::SwitchError).size() == 0)){ // Keine weiteren Änderungen für alle switches
@@ -575,7 +583,7 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
                         emit(confirmationPhase,true);
                     }
                 }
-                transitionToState(TransactionAppState::WaitOnCommit_Execution);
+                transitionToState(TransactionAppState::WaitOnCommitExecution);
                 return true;
             }
             else { // done with changes || no more changes for this switch
@@ -586,7 +594,7 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
         else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket())){
             // e_Aenderung_fehlgeschlagen
             con->configurations[idx]->state = Configuration_t::ConfigurationState_t::ConfigurationStateError;
-            switchStates[con].hasError = true;
+            switchStates[con]->hasError = true;
             std::vector<Connection_t*> switchesWithChangedCandidateConfig = getSwitchesInState(SwitchState::SwitchWithChangedCandidateConfiguration);
             std::vector<Connection_t*> failedSwitch = getSwitchesInState(SwitchState::SwitchError);
             if((switchesWithChangedCandidateConfig.size()+failedSwitch.size()) < switchStates.size()){
@@ -602,7 +610,7 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
     return false;
 }
 
-bool TransactionApp::handleMessageInWaitOnCommit_Execution(cMessage* msg){
+bool TransactionApp::handleMessageInWaitOnCommitExecution(cMessage* msg){
     if(isRPCReplyEvent(msg)){
         // e_Commit_ausgefuehrt
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
@@ -611,10 +619,10 @@ bool TransactionApp::handleMessageInWaitOnCommit_Execution(cMessage* msg){
             if(strcmp(reply->getMessage_id(), COMMIT_APPROVED_MSG_ID) != 0){
                 throw cRuntimeError(" reply is not the response of e_Commit_ausgefuehrt");
             }else{
-                switchStates[con].hasCommited = true;
+                switchStates[con]->hasCommited = true;
                 std::vector<Connection_t*> commitedSwitches = getSwitchesInState(SwitchState::SwitchCommited);
                 if(switchStates.size() > commitedSwitches.size()){
-                    transitionToState(TransactionAppState::WaitOnCommit_Execution);
+                    transitionToState(TransactionAppState::WaitOnCommitExecution);
                     return true;
                 }else if(switchStates.size() == commitedSwitches.size()){
                     emit(confirmationPhase,true);
@@ -630,6 +638,7 @@ bool TransactionApp::handleMessageInWaitOnCommit_Execution(cMessage* msg){
                             config->target = "candidate";
                             NetConfMessage_RPC* s_alte_Konfig_loeschen = createNetConfRPCForConfiguration(connection, config, DELETE_OLD_CONFIG_MSG_ID);
                             sendDelayed(s_alte_Konfig_loeschen, controllerProcessingTime, gate("applicationOut"));
+                            emit(numSent, 1L);
                         }
                     }
                     transitionToState(TransactionAppState::WaitOnDeleteOldConfiguration);
@@ -653,8 +662,8 @@ bool TransactionApp::handleMessageInWaitOnDeleteOldConfiguration(cMessage* msg){
             if(strcmp(reply->getMessage_id(), DELETE_OLD_CONFIG_MSG_ID) != 0){
                 throw cRuntimeError(" reply is not the response of e_alte_Konfig_geloescht");
             }else{
-                switchStates[con].hasCandidate = false;
-                switchStates[con].hasLockedCandidate = false;
+                switchStates[con]->hasCandidate = false;
+                switchStates[con]->hasLockedCandidate = false;
                 std::vector<Connection_t*> switchesWithoutOldConfig = getSwitchesInState(SwitchState::SwitchWithoutOldConfig);
                 if(switchesWithoutOldConfig.size() == switchStates.size()){
                     // s_Switch_entsperren
@@ -668,6 +677,7 @@ bool TransactionApp::handleMessageInWaitOnDeleteOldConfiguration(cMessage* msg){
                             config->target = "running";
                             NetConfMessage_RPC* s_Switch_entsperren = createNetConfRPCForConfiguration(connection, config, UNLOCK_MSG_ID);
                             sendDelayed(s_Switch_entsperren, controllerProcessingTime, gate("applicationOut"));
+                            emit(numSent, 1L);
                         }
                     }
                     transitionToState(TransactionAppState::WaitOnUnlock);
@@ -691,8 +701,8 @@ bool TransactionApp::handleMessageInWaitOnDeleteCandidate(cMessage* msg){
             if(strcmp(reply->getMessage_id(), DELETE_CANDIDATE_MSG_ID) != 0){
                 throw cRuntimeError(" reply is not the response of e_Kandidat_geloescht");
             }else{
-                switchStates[con].hasCandidate = false;
-                switchStates[con].hasLockedCandidate = false;
+                switchStates[con]->hasCandidate = false;
+                switchStates[con]->hasLockedCandidate = false;
                 std::vector<Connection_t*> switchesWithoutCandidate = getSwitchesInState(SwitchState::SwitchWithoutCandidate);
                 if(switchStates.size() > switchesWithoutCandidate.size()){
                     transitionToState(TransactionAppState::WaitOnDeleteCandidate);
@@ -729,7 +739,7 @@ bool TransactionApp::handleMessageInWaitOnUnlock(cMessage* msg){
             if(strcmp(reply->getMessage_id(), UNLOCK_MSG_ID) != 0){
                 throw cRuntimeError(" reply is not the response of e_Switch_sperren");
             }else{
-                switchStates[con].hasLockedRunning = false;
+                switchStates[con]->hasLockedRunning = false;
                 std::vector<Connection_t*> unlockedSwitches = getSwitchesInState(SwitchState::SwitchUnlocked);
                 if(unlockedSwitches.size() < switchStates.size()){
                     transitionToState(TransactionAppState::WaitOnUnlock);
@@ -754,12 +764,13 @@ bool TransactionApp::handleMessageInErrorState(cMessage* msg){
         emit(resultOfTransaction,result);
         for(auto it = switchStates.begin(); it != switchStates.end(); it++){
             connection = it->first;
-            if(connection && switchStates[connection].hasCandidate){
+            if(connection && switchStates[connection]->hasCandidate){
                 config = new Configuration_t();
                 config->type = Configuration_t::NetConfMessageType_t::NetConfMessageType_DeleteConfig;
                 config->target = "candidate";
                 NetConfMessage_RPC* s_Kandidat_loeschen = createNetConfRPCForConfiguration(connection, config, DELETE_CANDIDATE_MSG_ID);
                 sendDelayed(s_Kandidat_loeschen, controllerProcessingTime, gate("applicationOut"));
+                emit(numSent, 1L);
             }
         }
         transitionToState(TransactionAppState::WaitOnDeleteCandidate);

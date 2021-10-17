@@ -64,21 +64,35 @@ public:
         }
     };
 
-    enum TransactionAppState{
+/*    enum TransactionAppState{
         BeginOfTransaction,
         WaitOnLockResponse,
         WaitOnCandidateConfirmation,
         WaitOnCandidateLockResponse,
         WaitOnChangeConfirmation,
-        WaitOnCommit_Execution,
+        WaitOnCommitExecution,
         WaitOnDeleteOldConfiguration,
         WaitOnDeleteCandidate,
         WaitOnUnlock,
         ErrorState,
         EndOfTransaction
+    };*/
+
+    struct TransactionAppState{
+        static const int BeginOfTransaction = 0;
+        static const int WaitOnLockResponse = 1;
+        static const int WaitOnCandidateConfirmation = 2;
+        static const int WaitOnCandidateLockResponse = 3;
+        static const int WaitOnChangeConfirmation = 4;
+        static const int WaitOnCommitExecution = 5;
+        static const int WaitOnDeleteOldConfiguration = 6;
+        static const int WaitOnDeleteCandidate = 7;
+        static const int WaitOnUnlock = 8;
+        static const int ErrorState = 9;
+        static const int EndOfTransaction = 10;
     };
 
-    enum SwitchState {
+    /*enum SwitchState {
         SwitchAvailable, // all false
         SwitchLocked, // hasLockedRunning
         SwitchWithCandidate, // hasLockedRunning & hasCandidate
@@ -89,6 +103,19 @@ public:
         SwitchWithoutOldConfig, // hasLockedRunning
         SwitchUnlocked, // all false
         SwitchError // all wildcard & hasError
+    };*/
+
+    struct SwitchState{
+        static const int SwitchAvailable = 0;
+        static const int SwitchLocked = 1;
+        static const int SwitchWithCandidate = 2;
+        static const int SwitchWithLockedCandidate = 3;
+        static const int SwitchWithChangedCandidateConfiguration = 4;
+        static const int SwitchCommited = 5;
+        static const int SwitchWithoutCandidate = 6;
+        static const int SwitchWithoutOldConfig = 7;
+        static const int SwitchUnlocked = 8;
+        static const int SwitchError = 9;
     };
 
     typedef struct SwitchState_s {
@@ -99,7 +126,7 @@ public:
         bool hasCommited = false;
         bool hasError = false;
 
-        bool isInState(SwitchState state) {
+        bool isInState(int state) {
             switch (state) {
                 case SwitchState::SwitchAvailable:
                     if(!hasLockedRunning && !hasCandidate && !hasLockedCandidate && !hasConfiguration && !hasCommited && !hasError){
@@ -192,16 +219,16 @@ protected:
      * @param state     the giving state
      * @return vector of connection
      */
-    std::vector<Connection_t*> getSwitchesInState(SwitchState state);
+    std::vector<Connection_t*> getSwitchesInState(int state);
 
     /**
      * converts a state name to a string
      * @param state     the giving state
      * @return state name as string
      */
-    std::string transactionAppStateToString(TransactionAppState state);
+    std::string transactionAppStateToString(int state);
 
-    TransactionAppState getTransactionState();
+    int getTransactionState();
 
     /**
      * the finite state machine of the transaction model
@@ -218,7 +245,7 @@ protected:
      * executes transition to next state
      * @param state         the giving state
      */
-    void transitionToState(TransactionAppState state);
+    void transitionToState(int state);
 
     /**
      * checks if the received message is a msg which the transaction model can process
@@ -263,12 +290,12 @@ protected:
     /**
      * the first state of the transaction model
      */
-    TransactionAppState transactionState = TransactionAppState::BeginOfTransaction;
+    int transactionState = TransactionAppState::BeginOfTransaction;
 
     /**
      * map to order a connection to the switch state
      */
-    std::map<Connection_t*, SwitchState_t,connections_less> switchStates;//connection_less will keep this sorted after the remote_ip
+    std::map<Connection_t*, SwitchState_t*,connections_less> switchStates;//connection_less will keep this sorted after the remote_ip
 
     /**
      * handles the message in the state BeginOfTransaction
@@ -306,11 +333,11 @@ protected:
     bool handleMessageInWaitOnChangeConfirmation(cMessage* msg);
 
     /**
-     * handles the message in the state WaitOnCommit_Execution
+     * handles the message in the state WaitOnCommitExecution
      * @param msg   the received message
      * @param eventHandled  handled event
      */
-    bool handleMessageInWaitOnCommit_Execution(cMessage* msg);
+    bool handleMessageInWaitOnCommitExecution(cMessage* msg);
 
     /**
      * handles the message in the state WaitOnDeleteOldConfiguration
@@ -358,7 +385,7 @@ protected:
      * Schedules a self messsage for the next connection creation;
      */
     virtual void scheduleNextConnection() override;
-private:
+
     /**
      * schedules the start of the transaction
      */
@@ -398,6 +425,16 @@ private:
      * Signal to emit the unlockphase
      */
     simsignal_t unlockPhase;
+
+    /**
+     * Signal that is emitted to count sent messages
+     */
+    simsignal_t numSent;
+
+    /**
+     * Signal that is emitted to count received messages
+     */
+    simsignal_t numReceived;
 };
 
 } // namespace SDN4CoRE
