@@ -38,6 +38,12 @@ simple TransactionApp extends NetConfApplicationBase
         @statistic[confirmationPhase](title="Duration of confirmation phase";record=vector?;interpolationmode=none);
         @signal[unlockPhase]();
         @statistic[unlockPhase](title="Duration of unlock phase";record=vector?;interpolationmode=none);
+        
+        @signal[numSentMsgs]();
+        @statistic[numSentMsgs](title="Number of sent messages";record=vector?;interpolationmode=none);
+        @signal[numReceivedMsgs]();
+        @statistic[numReceivedMsgs](title="Number of received messages";record=vector?;interpolationmode=none);
+        
         double controllerProcessingTime @unit(s); // the processing time of a controller
         double startHelloHandshake @unit(s) = default(0s); // the begin of NetConf Hello Handshake
         double startTransaction @unit(s) = default(0s); // the begin of the transaction
