@@ -37,7 +37,7 @@ namespace SDN4CoRE{
  * Contains the Transaction-App implementation of a netconf application.
  * This module needs to be connected to the NetConf client.
  *
- * @author Mohammad Fazel Soltani, for HAW Hamburg
+ * @author Mohammad Fazel Soltani, Tobias Haugg for HAW Hamburg
  */
 class TimeSynchronousTransactionApp: public TransactionApp {
 
@@ -75,6 +75,13 @@ public:
 protected:
 
     /**
+     * returns a vector of connection which are in the giving state
+     * @param state     the giving state
+     * @return vector of connection
+     */
+    std::vector<Connection_t*> getSwitchesInState(int state) override;
+
+    /**
      * determines timestamp by calculation for each connection the latencies of all Ethernet frames that still to be sent
      * @return the CommitTimestamp
      */
@@ -85,19 +92,19 @@ protected:
      * @param state     the giving state
      * @return state name as string
      */
-    std::string transactionAppStateToString(int state);
+    std::string transactionAppStateToString(int state)override;
 
 
     /**
      * the finite state machine of the transaction model
      *@param msg        the received message
      */
-    void finiteStateMachine(cMessage* msg);
+    void finiteStateMachine(cMessage* msg)override;
 
     /**
      * determines the lock order of connections
      */
-    void determineLockOrder();
+    void determineLockOrder()override;
 
     /**
      * checks if the transaction misses the commit timestamp
@@ -110,7 +117,7 @@ protected:
      * @param msg   the received message
      * @param eventHandled  handled event
      */
-    bool handleMessageInWaitOnChangeConfirmation(cMessage* msg);
+    bool handleMessageInWaitOnChangeConfirmation(cMessage* msg) override;
 
     /**
      * handles the message in the state WaitOnTimestampConfirmation

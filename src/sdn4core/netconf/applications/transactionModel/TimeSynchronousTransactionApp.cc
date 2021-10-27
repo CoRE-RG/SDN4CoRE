@@ -35,6 +35,16 @@ void TimeSynchronousTransactionApp::initialize()
     controllerProcessingTime = this->par("controllerProcessingTime").doubleValue();
 }
 
+std::vector<NetConfApplicationBase::Connection_t*> TimeSynchronousTransactionApp::getSwitchesInState(int state){
+    std::vector<NetConfApplicationBase::Connection_t*> resultVector;
+    for(auto it = switchStates.begin(); it != switchStates.end(); it++) {
+        if (((TimeSynchronousTransactionApp::SwitchState_s*)(it->second))->isInState(state)) {
+            resultVector.push_back(it->first);
+        }
+    }
+    return resultVector;
+}
+
 void TimeSynchronousTransactionApp::determineLockOrder(){
     for(auto& connection: _connections){
         switchStates[&connection] = new TimeSynchronousTransactionApp::SwitchState_t();
