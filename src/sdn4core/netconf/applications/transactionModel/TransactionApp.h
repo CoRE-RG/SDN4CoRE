@@ -219,14 +219,14 @@ protected:
      * @param state     the giving state
      * @return vector of connection
      */
-    std::vector<Connection_t*> getSwitchesInState(int state);
+    virtual std::vector<Connection_t*> getSwitchesInState(int state);
 
     /**
      * converts a state name to a string
      * @param state     the giving state
      * @return state name as string
      */
-    std::string transactionAppStateToString(int state);
+    virtual std::string transactionAppStateToString(int state);
 
     int getTransactionState();
 
@@ -234,12 +234,12 @@ protected:
      * the finite state machine of the transaction model
      *@param msg        the received message
      */
-    void finiteStateMachine(cMessage* msg);
+    virtual void finiteStateMachine(cMessage* msg);
 
     /**
      * determines the lock order of connections
      */
-    void determineLockOrder();
+    virtual void determineLockOrder();
 
     /**
      * executes transition to next state
@@ -330,7 +330,7 @@ protected:
      * @param msg   the received message
      * @param eventHandled  handled event
      */
-    bool handleMessageInWaitOnChangeConfirmation(cMessage* msg);
+    virtual bool handleMessageInWaitOnChangeConfirmation(cMessage* msg);
 
     /**
      * handles the message in the state WaitOnCommitExecution
