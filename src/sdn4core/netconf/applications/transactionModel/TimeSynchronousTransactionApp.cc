@@ -166,12 +166,11 @@ void TimeSynchronousTransactionApp::finiteStateMachine(cMessage* msg)
     }
 }
 
-//achtung hier wird der Timestamp berechnet
 bool TimeSynchronousTransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg)
 {
     if(isRPCReplyEvent(msg))
     {
-        // e_Aenderung_durchgefuehrt
+        // received_applied_changes
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         Connection_t* con = findConnectionForReply(reply);
         int idx = atoi(reply->getMessage_id()) - CHANGE_MSG_ID;
@@ -222,7 +221,7 @@ bool TimeSynchronousTransactionApp::handleMessageInWaitOnChangeConfirmation(cMes
             {
                 // transition to next state
                 NetConfConfigCommitTimestamp::CommitTimestamp_t timestamp = determineTimestamp();
-                // s_Zeitstempel
+                // send_timestamp
                 Connection_t* connection;
                 for(auto it = switchStates.begin(); it != switchStates.end(); it++)
                 {
@@ -249,7 +248,7 @@ bool TimeSynchronousTransactionApp::handleMessageInWaitOnChangeConfirmation(cMes
             }
         }
         else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket())){
-            // e_Aenderung_fehlgeschlagen
+            // received_applying_changes_failed
             con->configurations[idx]->state = Configuration_t::ConfigurationState_t::ConfigurationStateError;
             switchStates[con]->hasError = true;
             std::vector<Connection_t*> switchesWithChangedCandidateConfig = getSwitchesInState(SwitchState::SwitchWithChangedCandidateConfiguration);
@@ -269,12 +268,11 @@ bool TimeSynchronousTransactionApp::handleMessageInWaitOnChangeConfirmation(cMes
     return false;
 }
 
-//hier wird der neue bool im SwitchState gebutzt!!!
 bool TimeSynchronousTransactionApp::handleMessageInWaitOnTimestampConfirmation(cMessage* msg)
 {
     if(isRPCReplyEvent(msg))
     {
-        // e_Zeitstempel_akzeptiert
+        // received_timestamp_accepted
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket()))
         {
@@ -328,7 +326,7 @@ bool TimeSynchronousTransactionApp::handleMessageInWaitOnTimestampConfirmation(c
         }
         else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket()))
         {
-            // e_Zeitpunkt_ ueberschritten
+            // received_timestamp_missed
             if(strcmp(reply->getMessage_id(), TIMESTAMP_MSG_ID) != 0)
             {
                 throw cRuntimeError(" reply is not the response of e_Zeitpunkt_ ueberschritten");
