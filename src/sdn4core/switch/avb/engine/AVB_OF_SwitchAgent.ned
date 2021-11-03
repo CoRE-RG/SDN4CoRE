@@ -35,12 +35,13 @@ simple AVB_OF_SwitchAgent extends OF_SwitchAgent
     	
         //SRP Table module, default name is srpTable
         string srpTable = default("^.srpTable");
+        string srpProtocolModule = default("^.srpProtocol");
     	
    	gates:
    	    //SRP message in from SRP protocol module
-        input srpIn;
+        input srpIn @loose;
         //SRP message out to SRP protocol module
-        output srpOut;
+        output srpOut @loose;
     	    
     
 }

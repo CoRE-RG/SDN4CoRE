@@ -57,7 +57,8 @@ module AVBOpenFlowSwitch extends OpenFlowSwitch
         }
 
     connections allowunconnected:
-	    //this only throws an error in the IDE but works in the current omnet version!
-        srpProtocol.out --> switchAgent.srpIn;
-        srpProtocol.in <-- switchAgent.srpOut;
+	    //The direct connection works in the current omnet version but throws an error in the IDE
+	    //Both srp gates will be connected in the initialization of the switch agent 
+	    //srpProtocol.out --> switchAgent.srpIn;
+		//srpProtocol.in <-- switchAgent.srpOut;
 }
