@@ -41,7 +41,7 @@ namespace SDN4CoRE{
  * Contains the Transaction-App implementation of a netconf application.
  * This module needs to be connected to the NetConf client.
  *
- * @author Mohammad Fazel Soltani, for HAW Hamburg
+ * @author Mohammad Fazel Soltani, Tobias Haugg for HAW Hamburg
  */
 class TransactionApp: public NetConfApplicationBase {
 #define LOCK_MSG_ID "Lock"
@@ -64,20 +64,6 @@ public:
         }
     };
 
-/*    enum TransactionAppState{
-        BeginOfTransaction,
-        WaitOnLockResponse,
-        WaitOnCandidateConfirmation,
-        WaitOnCandidateLockResponse,
-        WaitOnChangeConfirmation,
-        WaitOnCommitExecution,
-        WaitOnDeleteOldConfiguration,
-        WaitOnDeleteCandidate,
-        WaitOnUnlock,
-        ErrorState,
-        EndOfTransaction
-    };*/
-
     struct TransactionAppState{
         static const int BeginOfTransaction = 0;
         static const int WaitOnLockResponse = 1;
@@ -91,19 +77,6 @@ public:
         static const int ErrorState = 9;
         static const int EndOfTransaction = 10;
     };
-
-    /*enum SwitchState {
-        SwitchAvailable, // all false
-        SwitchLocked, // hasLockedRunning
-        SwitchWithCandidate, // hasLockedRunning & hasCandidate
-        SwitchWithLockedCandidate, // hasLockedRunning & hasCandidate & hasLockedCandidate
-        SwitchWithChangedCandidateConfiguration, // hasLockedRunning & hasCandidate & hasLockedCandidate & hasConfiguration
-        SwitchCommited, // hasLockedRunning & hasCandidate & hasLockedCandidate & hasConfiguration & hasCommitTimeStamp & hasCommited
-        SwitchWithoutCandidate, // hasLockedRunning
-        SwitchWithoutOldConfig, // hasLockedRunning
-        SwitchUnlocked, // all false
-        SwitchError // all wildcard & hasError
-    };*/
 
     struct SwitchState{
         static const int SwitchAvailable = 0;
@@ -182,7 +155,6 @@ public:
                     break;
             }
             return false;
-            // TODO Ueberarbeitung der SwitchStates
         };
     } SwitchState_t;
 

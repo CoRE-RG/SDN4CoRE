@@ -333,10 +333,9 @@ bool TransactionApp::handleMessageInBeginOfTransaction(cMessage* msg){
     return false;
 }
 
-//prüfen ob die isInState Methode an erweiterten Struct aufgerufen wird!
 bool TransactionApp::handleMessageInWaitOnLockResponse(cMessage* msg){
     if(isRPCReplyEvent(msg)){
-        // e_Switch_gesperrt
+        // received_Switch_locked
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
             Connection_t* con = findConnectionForReply(reply);
@@ -350,7 +349,7 @@ bool TransactionApp::handleMessageInWaitOnLockResponse(cMessage* msg){
                 else if(lockedSwitches.size() == switchStates.size()){
                     emit(lockPhase, true);
                     emit(changePhase,true);
-                    // s_Konfig_kopieren
+                    // send_copy_config
                     Connection_t* connection;
                     Configuration_t* config;
                     for(auto it = switchStates.begin(); it != switchStates.end(); it++){
@@ -371,7 +370,7 @@ bool TransactionApp::handleMessageInWaitOnLockResponse(cMessage* msg){
                 throw cRuntimeError("reply is not the response of e_Switch_gesperrt and cannot locked");
             }
         }
-        // e_bereits_belegt
+        // received_not_available
         else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket())){
             if(strcmp(reply->getMessage_id(), LOCK_MSG_ID) != 0){
                 throw cRuntimeError("error-reply is not the response of e_bereits_belegt ");
@@ -384,7 +383,7 @@ bool TransactionApp::handleMessageInWaitOnLockResponse(cMessage* msg){
                     return true;
                 }else if(lockedSwitches.size() > 0){
                     Connection_t* con = findConnectionForReply(reply);
-                    // s_Switch_entsperren
+                    // send_unlock_switch
                     Connection_t* connection;
                     Configuration_t* config;
                     for(auto it = switchStates.begin(); it != switchStates.end(); it++){
@@ -413,7 +412,7 @@ bool TransactionApp::handleMessageInWaitOnLockResponse(cMessage* msg){
 
 bool TransactionApp::handleMessageInWaitOnCandidateConfirmation(cMessage* msg){
     if(isRPCReplyEvent(msg)){
-        // e_Konfig_kopiert
+        // received_config_copied
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
             Connection_t* con = findConnectionForReply(reply);
@@ -437,7 +436,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateConfirmation(cMessage* msg){
                     return true;
                 }
                 else if(lockedSwitchesWithCandidate.size() == switchStates.size()){
-                    // s_Switch_Kandidat_sperren
+                    // send_lock_candidate_of_switch
                     Connection_t* connection;
                     Configuration_t* config;
                     for(auto it = switchStates.begin(); it != switchStates.end(); it++){
@@ -456,7 +455,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateConfirmation(cMessage* msg){
                 }
             }
         }else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket())){
-            // e_Kandidat_fehlgeschlagen
+            // received_creating_candidate_failed
             Connection_t* con = findConnectionForReply(reply);
             if(strcmp(reply->getMessage_id(), COPY_CONFIG_MSG_ID) != 0){
                 throw cRuntimeError(" reply is not the response of e_Kandidat_fehlgeschlagen");
@@ -465,7 +464,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateConfirmation(cMessage* msg){
                 std::vector<Connection_t*> lockedSwitchesWithCandidate = getSwitchesInState(SwitchState::SwitchWithCandidate);
                 std::vector<Connection_t*> failedSwitch = getSwitchesInState(SwitchState::SwitchError);
                 if((lockedSwitchesWithCandidate.size() == 0) && failedSwitch.size() == switchStates.size()){
-                    //s_Switch_entsperren
+                    //send_unlock_switch
                     Connection_t* connection;
                     Configuration_t* config;
                     for(auto it = switchStates.begin(); it != switchStates.end(); it++){
@@ -498,7 +497,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateConfirmation(cMessage* msg){
 bool TransactionApp::handleMessageInWaitOnCandidateLockResponse(cMessage* msg){
     if(isRPCReplyEvent(msg)){
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
-        // e_Switch_Kandidat_gesperrt
+        // received_switch_candidate_locked
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
             Connection_t* con = findConnectionForReply(reply);
             if(strcmp(reply->getMessage_id(), LOCK_CANDIDATE_MSG_ID) != 0){
@@ -510,7 +509,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateLockResponse(cMessage* msg){
                     transitionToState(TransactionAppState::WaitOnCandidateLockResponse);
                     return true;
                 }else if(switchesWithLockedCandidate.size() == switchStates.size()){
-                    // s_Aenderung_durchfuehren
+                    // send_apply_changes
                     Connection_t* connection;
                     for(auto it = switchStates.begin(); it != switchStates.end(); it++){
                         connection = it->first;
@@ -532,7 +531,7 @@ bool TransactionApp::handleMessageInWaitOnCandidateLockResponse(cMessage* msg){
 
 bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
     if(isRPCReplyEvent(msg)){
-        // e_Aenderung_durchgefuehrt
+        // receive_apply_changes
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         Connection_t* con = findConnectionForReply(reply);
         int idx = atoi(reply->getMessage_id()) - CHANGE_MSG_ID;
@@ -569,7 +568,7 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
                 switchStates[con]->hasConfiguration = true;
             }
             if((getSwitchesInState(SwitchState::SwitchWithChangedCandidateConfiguration).size() == switchStates.size())
-                    && (getSwitchesInState(SwitchState::SwitchError).size() == 0)){ // Keine weiteren Änderungen für alle switches
+                    && (getSwitchesInState(SwitchState::SwitchError).size() == 0)){ // no more changes for all switches
                 // transition to next state
                 Connection_t* connection;
                 for(auto it = switchStates.begin(); it != switchStates.end(); it++){
@@ -592,7 +591,7 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
             }
         }
         else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket())){
-            // e_Aenderung_fehlgeschlagen
+            // received_applaying_changes_failed
             con->configurations[idx]->state = Configuration_t::ConfigurationState_t::ConfigurationStateError;
             switchStates[con]->hasError = true;
             std::vector<Connection_t*> switchesWithChangedCandidateConfig = getSwitchesInState(SwitchState::SwitchWithChangedCandidateConfiguration);
@@ -612,7 +611,7 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
 
 bool TransactionApp::handleMessageInWaitOnCommitExecution(cMessage* msg){
     if(isRPCReplyEvent(msg)){
-        // e_Commit_ausgefuehrt
+        // received_execute_commit
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
             Connection_t* con = findConnectionForReply(reply);
@@ -627,7 +626,7 @@ bool TransactionApp::handleMessageInWaitOnCommitExecution(cMessage* msg){
                 }else if(switchStates.size() == commitedSwitches.size()){
                     emit(confirmationPhase,true);
                     emit(unlockPhase, true);
-                    // s_alte_Konfig_loeschen
+                    // send_delete_old_configuration
                     Connection_t* connection;
                     Configuration_t* config;
                     for(auto it = switchStates.begin(); it != switchStates.end(); it++){
@@ -655,7 +654,7 @@ bool TransactionApp::handleMessageInWaitOnCommitExecution(cMessage* msg){
 
 bool TransactionApp::handleMessageInWaitOnDeleteOldConfiguration(cMessage* msg){
     if(isRPCReplyEvent(msg)){
-        // e_alte_Konfig_geloescht
+        // received_delete_old_configuration
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
             Connection_t* con = findConnectionForReply(reply);
@@ -666,7 +665,7 @@ bool TransactionApp::handleMessageInWaitOnDeleteOldConfiguration(cMessage* msg){
                 switchStates[con]->hasLockedCandidate = false;
                 std::vector<Connection_t*> switchesWithoutOldConfig = getSwitchesInState(SwitchState::SwitchWithoutOldConfig);
                 if(switchesWithoutOldConfig.size() == switchStates.size()){
-                    // s_Switch_entsperren
+                    // send_unlock_switch
                     Connection_t* connection;
                     Configuration_t* config;
                     for(auto it = switchStates.begin(); it != switchStates.end(); it++){
@@ -694,7 +693,7 @@ bool TransactionApp::handleMessageInWaitOnDeleteOldConfiguration(cMessage* msg){
 
 bool TransactionApp::handleMessageInWaitOnDeleteCandidate(cMessage* msg){
     if(isRPCReplyEvent(msg)){
-        // e_Kandidat_geloescht
+        // receive_candidate_deleted
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
             Connection_t* con = findConnectionForReply(reply);
@@ -708,7 +707,7 @@ bool TransactionApp::handleMessageInWaitOnDeleteCandidate(cMessage* msg){
                     transitionToState(TransactionAppState::WaitOnDeleteCandidate);
                     return true;
                 }else if(switchStates.size() == switchesWithoutCandidate.size()){
-                    // s_Switch_entsperren
+                    // send_unlock_switch
                     Connection_t* connection;
                     Configuration_t* config;
                     for(auto it = switchStates.begin(); it != switchStates.end(); it++){
@@ -732,7 +731,7 @@ bool TransactionApp::handleMessageInWaitOnDeleteCandidate(cMessage* msg){
 
 bool TransactionApp::handleMessageInWaitOnUnlock(cMessage* msg){
     if(isRPCReplyEvent(msg)){
-        // e_Switch_sperren
+        // receive_switch_unlocked
         NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg);
         if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
             Connection_t* con = findConnectionForReply(reply);
@@ -757,7 +756,7 @@ bool TransactionApp::handleMessageInWaitOnUnlock(cMessage* msg){
 
 bool TransactionApp::handleMessageInErrorState(cMessage* msg){
     if(isLambdaEvent(msg)){
-        // s_Kandidat_loeschen
+        // send_delete_candidate
         Connection_t* connection;
         Configuration_t* config;
         result = false;
