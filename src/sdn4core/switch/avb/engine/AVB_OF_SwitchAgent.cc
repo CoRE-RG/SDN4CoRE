@@ -85,11 +85,6 @@ void AVB_OF_SwitchAgent::initialize(int stage){
                 throw cRuntimeError(("AVB_OF_SwitchAgent: Could not init as no SRP Table could be found at " + par("srpTable").str()).c_str());
             }
 
-            //connect srp protocol gates
-            OF_SRProtocol* srProtocol = dynamic_cast<OF_SRProtocol*> (getModuleByPath(par("srpProtocolModule")));
-            srProtocol->gate("out")->connectTo(this->gate("srpIn"));
-            this->gate("srpOut")->connectTo(srProtocol->gate("in"));
-
             break;
         }
         case INITSTAGE_APPLICATION_LAYER: {

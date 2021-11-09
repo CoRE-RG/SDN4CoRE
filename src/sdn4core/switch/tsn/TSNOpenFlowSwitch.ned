@@ -46,13 +46,15 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
         string ofSrpTableModule = default(absPath(".ofSrpTable"));
         string srpProtocolModule = default(absPath(".srpProtocol"));
         string srpTableModule = default(absPath(".srpTable"));
+     	string pathSwitchAgent = default(absPath(".switchAgent"));
+     	string pathEth = default(absPath(".eth[0]"));
 
         eth[0].**.srpTable = srpTableModule;
         etherMAC[*].**.srpTable = ofSrpTableModule;
         switchAgent.srpProtocolModule = ofSrpProtocolModule;
         switchAgent.srpTable = ofSrpTableModule;
         relayUnit.srpTable = ofSrpTableModule;
-
+		
 
     submodules:
 
@@ -79,12 +81,14 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
             portModule = "etherMAC";
             macModulePath = ".mac";
             shaperModulePath = ".shaper";
+            srpEncap = pathSwitchAgent;
             @display("p=324.9,240.34999");
         }
 
 		// Control Plane Stream Reservation Protocol implementation
         srpProtocol: SRProtocol {
             srpTable = srpTableModule;
+            srpEncap = pathEth;
             @display("p=34.199997,240.34999");
         }
 
@@ -94,9 +98,4 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
         }
 
     connections allowunconnected:
-        //this only throws an error in the IDE but works in the current omnet version!
-        ofSrpProtocol.out --> switchAgent.srpIn;
-        ofSrpProtocol.in <-- switchAgent.srpOut;
-        srpProtocol.out --> eth[0].srpIn;
-        srpProtocol.in <-- eth[0].srpOut;
 }

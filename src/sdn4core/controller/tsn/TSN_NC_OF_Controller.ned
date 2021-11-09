@@ -29,6 +29,7 @@ import core4inet.linklayer.ethernet.TSNEtherNic;
 module TSN_NC_OF_Controller extends NetConfOpenFlowController
 {
     parameters:
+        string pathEth = default(absPath(".eth[0]"));
         eth[0].typename = "TSNEtherNic";
         networkLayerType = default("RTNetworkLayer");
     submodules:
@@ -52,12 +53,8 @@ module TSN_NC_OF_Controller extends NetConfOpenFlowController
 		// Stream Reservation Protocol implementation
         srpProtocol: SRProtocol {
             @display("p=423,287");
+            srpEncap = pathEth;
         }
 
     connections allowunconnected:
-		//this only throws an error in the IDE but works in the current omnet version!
-        srpProtocol.out --> eth[0].srpIn;
-        srpProtocol.in <-- eth[0].srpOut;
-
-
 }
