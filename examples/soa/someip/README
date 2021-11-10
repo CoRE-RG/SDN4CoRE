@@ -1,0 +1,15 @@
+Demonstrates a small SOME/IP Service Discovery network.
+After the service discovery publishers send messages to their subscribers.
+
+- The small network contains the three hosts: node1, node2, node3
+
+- Next to that there is one switch that connects every node with each other.
+  So all hosts can communicate with each other over the switch.
+
+- node1 provides one publisher service.
+
+- node2 provides one subscriber that subscribes the publisher service on node1.
+
+- node3 provides one publisher service and one subscriber.
+  The subscriber on node3 subscribes the publisher service on node3.
+  

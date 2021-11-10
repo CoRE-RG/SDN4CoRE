@@ -1,0 +1,13 @@
+<config>
+
+    <interface hosts="**.Node{1-3}" names="phy0" address="192.168.178.x" netmask="255.255.255.x" /> <!-- data plane -->
+    <route hosts="Node1" interface="phy0" destination="192.168.178.9" netmask="255.255.255.255" metric="2" />
+    <route hosts="Node1" interface="phy0" destination="192.168.178.5" netmask="255.255.255.255" metric="2" />
+    <route hosts="Node2" interface="phy0" destination="192.168.178.1" netmask="255.255.255.255" metric="2" />
+    <route hosts="Node2" interface="phy0" destination="192.168.178.9" netmask="255.255.255.255" metric="2" />
+    <route hosts="Node3" interface="phy0" destination="192.168.178.1" netmask="255.255.255.255" metric="2" />
+    <route hosts="Node3" interface="phy0" destination="192.168.178.5" netmask="255.255.255.255" metric="2" />
+    
+    <interface among="controller switch" names="eth0" address="10.0.0.x"/> <!-- control plane -->    
+    
+</config>
