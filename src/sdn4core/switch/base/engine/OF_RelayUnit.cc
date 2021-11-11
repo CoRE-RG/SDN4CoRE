@@ -122,19 +122,8 @@ void OF_RelayUnit::initialize(int stage){
         }
         break;
     }
+    //    case INITSTAGE_LAST:
 
-    case INITSTAGE_LAST: {
-
-       //remove unused nics from ift
-       IInterfaceTable* interfaceTable = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
-       for(int i=0; i< interfaceTable->getNumInterfaces() ;i++){
-           if(interfaceTable->getInterface(i) != interfaceTable->getInterfaceByName("eth0")){
-               interfaceTable->deleteInterface(interfaceTable->getInterface(i));
-               i--;
-           }
-       }
-       break;
-    }
     default:
         break;
     }
