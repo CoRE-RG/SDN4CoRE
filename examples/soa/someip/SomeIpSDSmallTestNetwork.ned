@@ -17,6 +17,7 @@ package sdn4core.examples.soa.someip;
 
 import inet.node.ethernet.EtherLink;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import core4inet.nodes.ethernet.IEEE8021Q.IEEE8021QEtherSwitch;
 
 network SomeIpSDSmallTestNetwork
 {
@@ -34,36 +35,59 @@ network SomeIpSDSmallTestNetwork
         }
 
     submodules:
-        Node1: Node1 {
-            @display("p=30,112");
+        Node1: Node {
+            @display("p=29,164");
         }
-        Node2: Node2 {
-            @display("p=172,169");
-        }
-
-        Node3: Node3 {
-            @display("p=315,112");
+        Node2: Node {
+            @display("p=101,218");
         }
 
-        switch: Switch {
+        Node3: Node {
+            @display("p=314,164");
+        }
+
+        Node4: Node {
+            @display("p=244,218");
+        }
+
+        switch1: Switch {
             parameters:
-                @display("p=172,111");
+                @display("p=101,163");
             gates:
                 gateDataPlane[3];
         }
 
+        switch2: Switch {
+            parameters:
+                @display("p=244,163");
+            gates:
+                gateDataPlane[3];
+        }
+
+        ethswitch: IEEE8021QEtherSwitch {
+           	parameters:
+           	    @display("p=172,105");
+           	    hardware_delay = 3us;
+        }
+
         controller: Controller {
-            @display("p=172,36");
+            @display("p=172,42");
         }
 
         configurator: IPv4NetworkConfigurator {
-            @display("p=315,155");
+            @display("p=22,20");
         }
 
     connections:
-        Node1.ethg <--> ETH_100MBIT <--> switch.gateDataPlane[0];
-        Node2.ethg <--> ETH_100MBIT <--> switch.gateDataPlane[1];
-        Node3.ethg <--> ETH_100MBIT <--> switch.gateDataPlane[2];
+        Node1.ethg <--> ETH_100MBIT <--> switch1.gateDataPlane[0];
+        Node2.ethg <--> ETH_100MBIT <--> switch1.gateDataPlane[1];
 
-        controller.ethg++ <--> ETH_1GBIT <--> switch.gateControlPlane;
+        Node3.ethg <--> ETH_100MBIT <--> switch2.gateDataPlane[0];
+        Node4.ethg <--> ETH_100MBIT <--> switch2.gateDataPlane[1];
+
+        switch2.gateDataPlane[2] <--> ETH_100MBIT <--> switch1.gateDataPlane[2];
+
+        controller.ethg++ <--> ETH_1GBIT <--> ethswitch.ethg++;
+        switch1.gateControlPlane <--> ETH_1GBIT <--> ethswitch.ethg++;
+        switch2.gateControlPlane <--> ETH_1GBIT <--> ethswitch.ethg++;
 }

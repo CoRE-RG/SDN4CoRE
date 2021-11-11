@@ -5,6 +5,13 @@
             	<entry mac="1A-A5-B5-70-41-6E" port="0" />
                 <entry mac="42-C3-12-D1-D3-4B" port="1" />
                 <entry mac="1A-A5-E5-71-41-6E" port="2" />
+                <entry mac="1A-A5-E5-72-41-6E" port="2" />
+            </mactable>
+            <mactable switch_id="0A-00-00-00-00-C2">
+            	<entry mac="1A-A5-B5-70-41-6E" port="2" />
+                <entry mac="42-C3-12-D1-D3-4B" port="2" />
+                <entry mac="1A-A5-E5-71-41-6E" port="0" />
+                <entry mac="1A-A5-E5-72-41-6E" port="1" />
             </mactable>
         </macManager>
     </controllerapp>

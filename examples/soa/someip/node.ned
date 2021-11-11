@@ -21,11 +21,14 @@ import core4inet.buffer.AS6802.TTQueueBuffer;
 import core4inet.incoming.AS6802.RCIncoming;
 import core4inet.buffer.AS6802.RCQueueBuffer;
 import soqosmw.nodes.SOQoSMWHost;
+import soqosmw.discovery.someipservicediscovery.SomeIpSD;
 
 
-module Node3 extends SOQoSMWHost
+module Node extends SOQoSMWHost
 {
+    parameters:   
 	submodules:
-	connections: 
- 
+	connections:
+
+
 }
