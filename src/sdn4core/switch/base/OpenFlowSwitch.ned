@@ -19,6 +19,7 @@ package sdn4core.switch.base;
 //INET
 import inet.networklayer.common.InterfaceTable;
 import inet.linklayer.contract.IWiredNic;
+import inet.linklayer.loopback.LoopbackInterface;
 import inet.networklayer.contract.INetworkLayer;
 import inet.networklayer.contract.IRoutingTable;
 import inet.transportlayer.contract.ITCP;
@@ -122,13 +123,17 @@ module OpenFlowSwitch
         // Ethernet Interface module for the control plane port
         eth[sizeof(gateControlPlane)]: <ethControlPlaneType> like IWiredNic {
             parameters:
-                @display("p=35,143");
+                @display("p=35,167");
+        }
+
+        lo0: LoopbackInterface {
+            @display("p=35,104");
         }
 
         // NetworkLayer module for the control plane port
         networkLayer: <networkLayerType> like INetworkLayer {
             parameters:
-                @display("p=137,143");
+                @display("p=137,167");
             gates:
                 ifIn[1];
                 ifOut[1];
@@ -136,14 +141,14 @@ module OpenFlowSwitch
 
         // TCP module for the control plane port
         tcp: <tcpType> like ITCP {
-            @display("p=226,143");
+            @display("p=226,167");
         }
 
         // OpenFlow RelayUnit
         relayUnit: <relayUnitType> like IOF_RelayUnit {
             parameters:
                 interfaceTableModule = default(absPath(".dpInterfaceTable"));
-                @display("p=431,143");
+                @display("p=431,167");
             gates:
                 dataPlaneOut[sizeof(gateDataPlane)];
                 dataPlaneIn[sizeof(gateDataPlane)];
@@ -153,14 +158,14 @@ module OpenFlowSwitch
         switchAgent: <switchAgentType> like IOF_SwitchAgent {
             parameters:
                 serviceTime = of_service_time;
-                @display("p=325,143");
+                @display("p=325,167");
         }
 
         // Ethernet Interface modules for the data plane ports
         etherMAC[sizeof(gateDataPlane)]: <ethDataPlaneType> like IWiredNic {
             parameters:
                 mac.promiscuous = true;
-                @display("p=597,143,c,50");
+                @display("p=597,167,c,50");
         }
 
 		// Flow Table module contains match entries and resulting actions
@@ -180,6 +185,10 @@ module OpenFlowSwitch
         tcp.ipIn <-- networkLayer.transportOut++;
         tcp.appOut++ --> switchAgent.controlPlaneIn;
         tcp.appIn++ <-- switchAgent.controlPlaneOut;
+
+        // network Layer <--> loopback interface        
+        networkLayer.ifOut++ --> lo0.upperLayerIn;
+        lo0.upperLayerOut --> networkLayer.ifIn++;
 
         // data plane connections
         for i=0..sizeof(gateDataPlane)-1 {
