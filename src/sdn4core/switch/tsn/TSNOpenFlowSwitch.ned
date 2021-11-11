@@ -46,28 +46,28 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
         string ofSrpTableModule = default(absPath(".ofSrpTable"));
         string srpProtocolModule = default(absPath(".srpProtocol"));
         string srpTableModule = default(absPath(".srpTable"));
-     	string pathSwitchAgent = default(absPath(".switchAgent"));
-     	string pathEth = default(absPath(".eth[0]"));
+        string pathSwitchAgent = default(absPath(".switchAgent"));
+        string pathEth = default(absPath(".eth[0]"));
 
         eth[0].**.srpTable = srpTableModule;
         etherMAC[*].**.srpTable = ofSrpTableModule;
         switchAgent.srpProtocolModule = ofSrpProtocolModule;
         switchAgent.srpTable = ofSrpTableModule;
         relayUnit.srpTable = ofSrpTableModule;
-		
+
 
     submodules:
 
         // Sync module for synchronisation of the scheduler
         sync: <default("DummySync")> like ISync {
             parameters:
-                @display("p=576,27");
+                @display("p=578,38");
         }
 
         // Scheduler for the device
         scheduler: <default("Scheduler")> like ITTEScheduler {
             parameters:
-                @display("p=519,27");
+                @display("p=521,38");
         }
 
 	    // Stream Reservation Protocol table

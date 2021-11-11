@@ -84,6 +84,8 @@ module OpenFlowSwitch
         // Setting paths in all submodules in need of those modules
         *.routingTableModule = default(absPath(".routingTable"));
         *.interfaceTableModule = default(absPath(".interfaceTable"));
+        etherMAC[*].**.interfaceTableModule = absPath(".dpInterfaceTable");
+
 
     gates:
         inout gateControlPlane @labels(ControlPlane);
@@ -98,12 +100,17 @@ module OpenFlowSwitch
 
         // Keeps track of the status of network node (up, down, etc.)
         status: NodeStatus {
-            @display("p=597,38;is=n");
+            @display("p=211,38;is=n");
         }
 
         // Interface Table module for all Ethernet interfaces
         interfaceTable: InterfaceTable {
             @display("p=35,38");
+        }
+
+        // Interface Table module for all Ethernet interfaces
+        dpInterfaceTable: InterfaceTable {
+            @display("p=643,38");
         }
 
         // Routing module for the controlplane network, every inet host contains one
@@ -114,12 +121,14 @@ module OpenFlowSwitch
 
         // Ethernet Interface module for the control plane port
         eth[sizeof(gateControlPlane)]: <ethControlPlaneType> like IWiredNic {
-            @display("p=35,143");
+            parameters:
+                @display("p=35,143");
         }
 
         // NetworkLayer module for the control plane port
         networkLayer: <networkLayerType> like INetworkLayer {
-            @display("p=137,143");
+            parameters:
+                @display("p=137,143");
             gates:
                 ifIn[1];
                 ifOut[1];
@@ -131,8 +140,9 @@ module OpenFlowSwitch
         }
 
         // OpenFlow RelayUnit
-        relayUnit: <relayUnitType> like IOF_RelayUnit{
+        relayUnit: <relayUnitType> like IOF_RelayUnit {
             parameters:
+                interfaceTableModule = default(absPath(".dpInterfaceTable"));
                 @display("p=431,143");
             gates:
                 dataPlaneOut[sizeof(gateDataPlane)];
