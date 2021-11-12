@@ -19,7 +19,7 @@ import inet.node.ethernet.EtherLink;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 import core4inet.nodes.ethernet.IEEE8021Q.IEEE8021QEtherSwitch;
 
-network SomeIpSDSmallTestNetwork
+network SomeIpSD_Over_SDN
 {
     parameters:
     types:
