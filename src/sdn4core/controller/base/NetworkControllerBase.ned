@@ -17,6 +17,8 @@
 
 package sdn4core.controller.base;
 
+import sdn4core.controllerState.base.ControllerState;
+
 //INET
 import inet.node.inet.StandardHost;
 

@@ -15,8 +15,7 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-#include <sdn4core/controllerApps/utility/SRPTableManagement.h>
-
+#include <sdn4core/controllerState/srp/SRPTableManagement.h>
 #include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
 
 //STD
@@ -38,7 +37,7 @@ namespace SDN4CoRE {
 Define_Module(SRPTableManagement);
 
 const char SRPTableManagement::SRPTABLEMODULEPATH[] = "core4inet.services.avb.SRP.SRPTable";
-const char SRPTableManagement::PORTMODULEPATH[] = "sdn4core.controllerApps.utility.PortModule";
+const char SRPTableManagement::PORTMODULEPATH[] = "sdn4core.controllerState.base.PortModule";
 
 
 bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,

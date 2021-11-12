@@ -50,9 +50,9 @@ namespace SDN4CoRE{
 
 Define_Module(AVBLearningControllerApp);
 
-const char AVBLearningControllerApp::SRPTABLEMANAGERMODULEPATH[] = "sdn4core.controllerApps.utility.SRPTableManagement";
+const char AVBLearningControllerApp::SRPTABLEMANAGERMODULEPATH[] = "sdn4core.controllerState.srp.SRPTableManagement";
 
-const char AVBLearningControllerApp::MACTABLEMANAGERMODULEPATH[] = "sdn4core.controllerApps.utility.MACTableManagement";
+const char AVBLearningControllerApp::MACTABLEMANAGERMODULEPATH[] = "sdn4core.controllerState.mac.MACTableManagement";
 
 AVBLearningControllerApp::AVBLearningControllerApp() {
     _macManager = nullptr;

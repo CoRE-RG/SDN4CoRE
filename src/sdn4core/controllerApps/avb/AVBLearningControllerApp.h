@@ -18,8 +18,8 @@
 #ifndef __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_
 #define __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_
 
-#include "sdn4core/controllerApps/utility/SRPTableManagement.h"
-#include "sdn4core/controllerApps/utility/MACTableManagement.h"
+#include "sdn4core/controllerState/srp/SRPTableManagement.h"
+#include "sdn4core/controllerState/mac/MACTableManagement.h"
 //STD
 #include <vector>
 #include <string>

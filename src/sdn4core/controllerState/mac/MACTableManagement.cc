@@ -16,7 +16,7 @@
 // 
 
 
-#include <sdn4core/controllerApps/utility/MACTableManagement.h>
+#include <sdn4core/controllerState/mac/MACTableManagement.h>
 
 using namespace inet;
 using namespace openflow;

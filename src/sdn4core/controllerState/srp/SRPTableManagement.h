@@ -19,6 +19,7 @@
 #define OPENFLOW_REALTIME_CONTROLLERAPPS_SRPTABLEMANAGEMENT_H_
 
 #include <omnetpp.h>
+#include <sdn4core/controllerState/base/PortModule.h>
 //STD
 #include <unordered_map>
 #include <vector>
@@ -31,7 +32,6 @@
 //openflow
 #include "openflow/openflow/controller/Switch_Info.h"
 //SDN4CoRe
-#include "sdn4core/controllerApps/utility/PortModule.h"
 
 
 namespace SDN4CoRE {

@@ -15,14 +15,15 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.controller.base;
+package sdn4core.controllerState.srp;
 
 //
-// Empty compound module to dynamically created and access submodules that contain controller state.
+// Module that manages SRPTables for a Controller Application.
+// It holds one SRPTabel per switch.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-module ControllerState
+simple SRPTableManagement
 {
-    @display("i=block/table2");
+    @class(SDN4CoRE::SRPTableManagement);
 }

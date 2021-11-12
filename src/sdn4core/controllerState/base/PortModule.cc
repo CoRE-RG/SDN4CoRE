@@ -1,6 +1,4 @@
 //
-// c Timo Haeckel, for HAW Hamburg
-// 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -15,15 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.controllerApps.utility;
+#include "PortModule.h"
 
-//
-// Module that manages SRPTables for a Controller Application.
-// It holds one SRPTabel per switch.
-//
-// @author Timo Haeckel, for HAW Hamburg
-//
-simple SRPTableManagement
-{
-    @class(SDN4CoRE::SRPTableManagement);
+namespace SDN4CoRE{
+
+Define_Module(PortModule);
+
+void PortModule::initialize() {
+    WATCH(_port);
+}
+
+int PortModule::getPort(){
+    return _port;
+}
+
+void PortModule::setPort(int port) {
+    _port = port;
+}
+
 }
