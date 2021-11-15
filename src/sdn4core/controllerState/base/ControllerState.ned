@@ -50,6 +50,8 @@ module ControllerState
 //
 // Empty compound module to dynamically created and access submodules that contain controller state.
 //
+// @author Timo Haeckel, for HAW Hamburg
+//
 module ControllerSwitchState
 {
     parameters:
@@ -57,6 +59,12 @@ module ControllerSwitchState
         string switchName = default("");
 }
 
+//
+// Module Interface fro controller state management implementations.
+// @see also ~ControllerStateManagementBase
+//
+// @author Timo Haeckel, for HAW Hamburg
+//
 moduleinterface IControllerStateManagement
 {
 	parameters:
