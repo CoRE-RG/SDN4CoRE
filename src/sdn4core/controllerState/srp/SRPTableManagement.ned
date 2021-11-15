@@ -17,13 +17,18 @@
 
 package sdn4core.controllerState.srp;
 
+import sdn4core.controllerState.base.ControllerStateManagementBase;
+
 //
-// Module that manages SRPTables for a Controller Application.
+// Module that manages SRPTables for Controller Applications.
 // It holds one SRPTabel per switch.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple SRPTableManagement
+simple SRPTableManagement extends ControllerStateManagementBase
 {
-    @class(SDN4CoRE::SRPTableManagement);
+    parameters:
+    	@class(SDN4CoRE::SRPTableManagement);
+    	switchStateModulePath = default ("core4inet.services.avb.SRP.SRPTable"); // ned path to state module 
+        switchStateModuleName = default ("srpTable"); // name of the module to hold the state per switch
 }

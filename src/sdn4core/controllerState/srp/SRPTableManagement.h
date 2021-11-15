@@ -19,7 +19,7 @@
 #define OPENFLOW_REALTIME_CONTROLLERAPPS_SRPTABLEMANAGEMENT_H_
 
 #include <omnetpp.h>
-#include <sdn4core/controllerState/base/PortModule.h>
+#include <sdn4core/controllerState/base/ControllerStateManagementBase.h>
 //STD
 #include <unordered_map>
 #include <vector>
@@ -42,7 +42,7 @@ namespace SDN4CoRE {
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class SRPTableManagement : public cSimpleModule {
+class SRPTableManagement : public ControllerStateManagementBase<CoRE4INET::SRPTable> {
 public:
 
     /**
@@ -110,43 +110,6 @@ public:
      * @return  true if it was updated.
      */
     bool importFromXML(openflow::Switch_Info* swinfo, cXMLElement* xml);
-
-    /**
-     * @brief Module representing the srpTable
-     */
-    std::unordered_map<openflow::Switch_Info*, CoRE4INET::SRPTable*> _srpTables;
-
-private:
-    /**
-     * Checks if a table exists for the switch or creates a new one.
-     * @param swinfo    The switch to create a table for.
-     * @return          The table of the switch for convenience.
-     */
-    CoRE4INET::SRPTable* checkOrCreateTable(openflow::Switch_Info* swinfo);
-    /**
-     * checks if a table for the switch exists.
-     * @param swinfo    The switch to check the table for.
-     * @return          true if a table already exists.
-     */
-    bool tableExistsForSwitch(openflow::Switch_Info* swinfo);
-
-    /**
-     * checks if the port already exists for a given switch
-     * @param swinfo switch info
-     * @param port
-     * @returns PortModule* the portModule to check for
-     */
-    PortModule* checkOrCreatePortModule(openflow::Switch_Info* swinfo, int port);
-
-    /**
-     * Path to the ned module of the SRPTable.
-     */
-    static const char SRPTABLEMODULEPATH [];
-
-    /**
-     * Path to the ned module of the PortModule.
-     */
-    static const char PORTMODULEPATH [];
 
 };
 
