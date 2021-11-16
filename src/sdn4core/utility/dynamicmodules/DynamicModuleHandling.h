@@ -60,6 +60,14 @@ cModule* createDynamicModule(const char* nedModulePath,
  */
 void finalizeModuleAndSchedule(cModule* module, SimTime at = simTime());
 
+/**
+ * Counts the actual vector size of a module vector with the given name inside the parent module.
+ * @param name the name of the module vector.
+ * @param parentModule the parent cModule of the module vector.
+ * @return The size of the module vector, -1 if it is not a vector type.
+ */
+int getDynamicModuleVectorSize(const char* name, cModule* parentModule);
+
 } /* namespace SDN4CoRE */
 
 #endif /* SDN4CORE_UTILITY_DYNAMICMODULES_DYNAMICMODULEHANDLING_H_ */

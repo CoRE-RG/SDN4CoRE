@@ -69,23 +69,15 @@ cModule* createDynamicModule(const char* nedModulePath,
     }
 
     // check whether the module exists already
-    bool exists = false;
-    int size = 0;
-    if(parentModule->getSubmodule(name)){
-        exists = true;
+    int size = getDynamicModuleVectorSize(name, parentModule);
+    if(size<0){
         if(isVector){
             throw createErrorMessage(name, nedModulePath, "Should be vector but already exists as non vector type.");
         } else {
             throw createErrorMessage(name, nedModulePath, "SubModule already exists in ParentModule.");
         }
-    } else {
-        // check if it is a vector
-        for (; parentModule->getSubmodule(name,size); size++){
-            exists = true;
-        }
-        if(exists && !isVector){
-            throw createErrorMessage(name, nedModulePath, "Should be non vector but already exists as vector type.");
-        }
+    } else if(size > 0 && !isVector) {
+        throw createErrorMessage(name, nedModulePath, "Should be non vector but already exists as vector type.");
     }
 
     // 2. Create the module;
@@ -99,6 +91,14 @@ cModule* createDynamicModule(const char* nedModulePath,
     return module;
 }
 
-
+int getDynamicModuleVectorSize(const char* name,
+        cModule* parentModule) {
+    if(parentModule->getSubmodule(name)){
+        return -1;
+    }
+    int size = 0;
+    for (; parentModule->getSubmodule(name,size); size++){};
+    return size;
+}
 
 } /* namespace SDN4CoRE */
