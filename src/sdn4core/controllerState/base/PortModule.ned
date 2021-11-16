@@ -16,6 +16,8 @@
 package sdn4core.controllerState.base;
 
 
-simple PortModule{
+simple PortModule
+{
     @class(SDN4CoRE::PortModule);
+    @display("i=device/port");
 }

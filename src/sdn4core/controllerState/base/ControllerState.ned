@@ -38,11 +38,11 @@ module ControllerState
          	@display("p=50,50,r,50");   
         }
         
-        macManagement : <macManagementType> like IControllerStateManagement if hasMACState {
+        macTableManagement : <macManagementType> like IControllerStateManagement if hasMACState {
         	@display("p=50,150");
         };
         
-        srpManagement : <srpManagementType> like IControllerStateManagement if hasSRPState {
+        srpTableManagement : <srpManagementType> like IControllerStateManagement if hasSRPState {
         	@display("p=150,150");
         };
 }

@@ -266,20 +266,16 @@ private:
      */
     cModule* findSwitchState(openflow::Switch_Info* swinfo) {
         cModule* found = nullptr;
-        cModule* switchStateVec = this->getParentModule()->getSubmodule(
-                        "switchState", 0);
-        if (switchStateVec) {
-            int numSwitches = switchStateVec->getVectorSize();
-            for (int i = 0; i < numSwitches; i++) {
-                cModule* currentModule = this->getParentModule()->getSubmodule(
-                        "switchState", i);
-                if (currentModule->par("switchName").stdstringValue()
-                        == swinfo->getMacAddress()) {
-                    found = currentModule;
-                    cachedSwitches[swinfo->getMacAddress()] = currentModule;
-                    break;
-                    std::cout << "result equal" << std::endl;
-                }
+        int numSwitches = getDynamicModuleVectorSize("switchState", this->getParentModule());
+        for (int i = 0; i < numSwitches; i++) {
+            cModule* currentModule = this->getParentModule()->getSubmodule(
+                    "switchState", i);
+            if (currentModule->par("switchName").stdstringValue()
+                    == swinfo->getMacAddress()) {
+                found = currentModule;
+                cachedSwitches[swinfo->getMacAddress()] = currentModule;
+                break;
+                std::cout << "result equal" << std::endl;
             }
         }
         return found;
