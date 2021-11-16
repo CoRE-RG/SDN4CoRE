@@ -31,4 +31,7 @@ simple SRPTableManagement extends ControllerStateManagementBase
     	@class(SDN4CoRE::SRPTableManagement);
     	switchStateModulePath = default ("core4inet.services.avb.SRP.SRPTable"); // ned path to state module 
         switchStateModuleName = default ("srpTable"); // name of the module to hold the state per switch
+        
+        //Entries not updated are deleted after agingTime (0 means disabled)
+        double agingTime @unit("s") = default(7s); // default from CoRE4INET::SRPTable
 }

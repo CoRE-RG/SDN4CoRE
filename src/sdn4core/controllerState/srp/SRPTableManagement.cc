@@ -37,6 +37,7 @@ Define_Module(SRPTableManagement);
 
 bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
         TalkerAdvertise* talkerAdvertise) {
+    Enter_Method("registerTalker");
     //check if we need to create a table for this switch.
     SRPTable* srpTable = getOrCreateManagedState(swinfo);
 
@@ -69,6 +70,7 @@ bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
 
 bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo, int arrivalPort,
         CoRE4INET::ListenerReady* listenerReady) {
+    Enter_Method("registerListener");
     //check if there is a table for this switch
     SRPTable* srpTable = getManagedState(swinfo);
     if (!srpTable) {
@@ -96,6 +98,7 @@ bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo, int arr
 
 SRPTableManagement::SRPForwardingInfo_t* SRPTableManagement::getForwardingInfoForStreamID(
         Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id) {
+    Enter_Method("getForwardingInfoForStreamID");
     SRPForwardingInfo_t* fwd = new SRPForwardingInfo_t();
     SRPTable* srpTable = getManagedState(swinfo);
     if (!srpTable) {
@@ -167,6 +170,12 @@ bool SRPTableManagement::importFromXML(Switch_Info* swinfo, cXMLElement* xml) {
     }
 
     return false;
+}
+
+void SRPTableManagement::onCreateManagedState(SRPTable* managedState,
+        openflow::Switch_Info* swinfo) {
+    ControllerStateManagementBase<SRPTable>::onCreateManagedState(managedState, swinfo);
+    managedState->par("agingTime").setDoubleValue(this->par("agingTime").doubleValue());
 }
 
 } /*end namespace SDN4CoRE*/

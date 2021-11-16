@@ -21,7 +21,6 @@
 #include <omnetpp.h>
 #include <sdn4core/controllerState/base/ControllerStateManagementBase.h>
 //STD
-#include <unordered_map>
 #include <vector>
 //inet
 #include "inet/linklayer/common/MACAddress.h"
@@ -33,8 +32,9 @@
 #include "openflow/openflow/controller/Switch_Info.h"
 //SDN4CoRe
 
-
 namespace SDN4CoRE {
+
+// TODO register listeners for SRP events such as aging, etc.
 
 /**
  * SRPTableManagement manages the SRPTable operations for the controller.
@@ -42,7 +42,8 @@ namespace SDN4CoRE {
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class SRPTableManagement : public ControllerStateManagementBase<CoRE4INET::SRPTable> {
+class SRPTableManagement: public ControllerStateManagementBase<
+        CoRE4INET::SRPTable> {
 public:
 
     /**
@@ -63,7 +64,9 @@ public:
 
     }
 
-    virtual ~SRPTableManagement(){};
+    virtual ~SRPTableManagement() {
+    }
+    ;
 
     /**
      * Register a talker for a switch and inport.
@@ -82,11 +85,12 @@ public:
      * @param listenerReady     The original listener ready message recieved in the switch.
      * @return                  true if the listener table has been updated.
      */
-    virtual bool registerListener(openflow::Switch_Info* swinfo, int arrivalPort,
-            CoRE4INET::ListenerReady* listenerReady);
+    virtual bool registerListener(openflow::Switch_Info* swinfo,
+            int arrivalPort, CoRE4INET::ListenerReady* listenerReady);
 
     /**
-     * Provides a forwarding information for AVBFrames according to the SRPTable of a switch and a stream.
+     * Provides a forwarding information for AVBFrames according to the SRPTable of a
+     * switch and a stream.
      * @param swinfo        The switch handling the frame
      * @param streamID      The stream to be forwarded.
      * @param vlan_id       The VLAN ID of the frame
@@ -110,6 +114,14 @@ public:
      * @return  true if it was updated.
      */
     bool importFromXML(openflow::Switch_Info* swinfo, cXMLElement* xml);
+
+protected:
+
+    /**
+     * override method from ControllerStateManagementBase to react to srpTable creation
+     */
+    virtual void onCreateManagedState(CoRE4INET::SRPTable* managedState,
+            openflow::Switch_Info* swinfo) override;
 
 };
 
