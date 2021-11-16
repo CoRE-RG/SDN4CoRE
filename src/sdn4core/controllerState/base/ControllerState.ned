@@ -33,7 +33,7 @@ module ControllerState
 
     submodules:
 
-        // vector for dynamically create per switch state
+        // vector for dynamically created switch state
         switchState[0]: ControllerSwitchState {
          	@display("p=50,50,r,50");   
         }

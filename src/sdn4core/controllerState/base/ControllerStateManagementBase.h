@@ -63,7 +63,7 @@ protected:
     ;
 
     /**
-     * Checks weather a given switch is already present else create
+     * Checks whether a given switch is already present else create
      * the compound module.
      *
      * @param swinfo The info of the switch to look for.
@@ -72,19 +72,28 @@ protected:
     cModule* getOrCreateSwitch(openflow::Switch_Info* swinfo) {
         cModule* switchModule = getSwitch(swinfo);
         if (!switchModule) {
-            if ((switchModule = createFinalizeAndScheduleDynamicModule(
+            switchModule = createFinalizeAndScheduleDynamicModule(
                     "sdn4core.controllerState.base.ControllerSwitchState",
-                    "switchState", this->getParentModule(), true))) {
-                switchModule->par("switchName").setStringValue(
-                        swinfo->getMacAddress());
-                cachedSwitches[swinfo->getMacAddress()] = switchModule;
-            } else {
+                    "switchState", this->getParentModule(), true);
+            if (!switchModule) {
                 throw cRuntimeError(
                         "Could not create state module for switch %s ",
                         swinfo->getMacAddress().c_str());
             }
+            onCreateSwitch(switchModule, swinfo);
         }
         return switchModule;
+    }
+    ;
+
+    /**
+     * Function to be executed when a new switch module was successfully created.
+     * @param switchModule The newly created switchModule
+     * @param swinfo Info about the created switch.
+     */
+    void onCreateSwitch(cModule* switchModule, openflow::Switch_Info* swinfo) {
+        switchModule->par("switchName").setStringValue(swinfo->getMacAddress());
+        cachedSwitches[swinfo->getMacAddress()] = switchModule;
     }
     ;
 
@@ -106,7 +115,7 @@ protected:
     ;
 
     /**
-     * Checks weather a portmodule for the given switch port is already present
+     * Checks whether a portmodule for the given switch port is already present
      * if not the module will be dynamically created.
      *
      * @param swinfo The info of the switch to look for.
@@ -116,23 +125,34 @@ protected:
     PortModule* getOrCreateSwitchPort(openflow::Switch_Info* swinfo, int port) {
         PortModule* portModule = getSwitchPort(swinfo, port);
         if (!portModule) {
-            if (cModule* switchModule = getOrCreateSwitch(swinfo)) {
-                if ((portModule =
-                        dynamic_cast<PortModule*>(createFinalizeAndScheduleDynamicModule(
-                                "sdn4core.controllerState.base.PortModule",
-                                "portModules", switchModule, true)))) {
-                    portModule->setPort(port);
-                    cachedSwitchPorts[std::pair<std::string, int>(
-                            swinfo->getMacAddress(), port)] = portModule;
-                } else {
-                    throw cRuntimeError(
-                            "Could not create port module %s for switch %s ",
-                            std::to_string(port).c_str(),
-                            swinfo->getMacAddress().c_str());
-                }
+            cModule* switchModule = getOrCreateSwitch(swinfo);
+            portModule =
+                    dynamic_cast<PortModule*>(createFinalizeAndScheduleDynamicModule(
+                            "sdn4core.controllerState.base.PortModule",
+                            "portModules", switchModule, true));
+            if (!portModule) {
+                throw cRuntimeError(
+                        "Could not create port module %s for switch %s ",
+                        std::to_string(port).c_str(),
+                        swinfo->getMacAddress().c_str());
             }
+            onCreateSwitchPort(portModule, swinfo, port);
         }
         return portModule;
+    }
+    ;
+
+    /**
+     * Function to be executed when a new port module was successfully created.
+     * @param portModule The newly created portModule
+     * @param swinfo Info about the created switch.
+     * @param port The created port id.
+     */
+    virtual void onCreateSwitchPort(PortModule* portModule,
+            openflow::Switch_Info* swinfo, int port) {
+        portModule->setPort(port);
+        cachedSwitchPorts[std::pair<std::string, int>(swinfo->getMacAddress(),
+                port)] = portModule;
     }
     ;
 
@@ -152,7 +172,7 @@ protected:
     ;
 
     /**
-     * Checks weather the state module already exists for a
+     * Checks whether the state module already exists for a
      * given switch if not the module will be dynamically created.
      *
      * @param swinfo The info of the switch to look for.
@@ -169,9 +189,20 @@ protected:
                         "Could not create managed switch state module for switch %s ",
                         swinfo->getMacAddress().c_str());
             }
-            cachedManagedStates[swinfo->getMacAddress()] = managedState;
+            onCreateManagedState(managedState, swinfo);
         }
         return managedState;
+    }
+    ;
+
+    /**
+     * Function to be executed when a new managed state module was successfully created.
+     * @param managedState The newly created managed state
+     * @param swinfo Info about the created switch.
+     */
+    virtual void onCreateManagedState(ManagedType* managedState,
+            openflow::Switch_Info* swinfo) {
+        cachedManagedStates[swinfo->getMacAddress()] = managedState;
     }
     ;
 
@@ -189,7 +220,7 @@ protected:
     ;
 
     /**
-     * Checks weather the manged state module already exists for a
+     * Checks whether the managed state module already exists for a
      * given switch if not the module will be dynamically created.
      *
      * @param swinfo The info of the switch to look for.
@@ -208,9 +239,20 @@ protected:
                             "Could not create state module %s for switch %s ",
                             stateName, swinfo->getMacAddress().c_str());
                 }
+                onCreatePerSwitchState(state, swinfo);
             }
         }
         return state;
+    }
+    ;
+
+    /**
+     * Function to be executed when a new managed state module was successfully created.
+     * @param portModule The newly created portModule
+     * @param swinfo Info about the created switch.
+     */
+    virtual void onCreatePerSwitchState(cModule* state,
+            openflow::Switch_Info* swinfo) {
     }
     ;
 
@@ -224,16 +266,19 @@ private:
      */
     cModule* findSwitchState(openflow::Switch_Info* swinfo) {
         cModule* found = nullptr;
-        if (auto switchStateVec = this->getParentModule()->getSubmodule(
-                "switchState", 0)) {
-            for (int i = 0; i < switchStateVec->getVectorSize(); i++) {
+        cModule* switchStateVec = this->getParentModule()->getSubmodule(
+                        "switchState", 0);
+        if (switchStateVec) {
+            int numSwitches = switchStateVec->getVectorSize();
+            for (int i = 0; i < numSwitches; i++) {
                 cModule* currentModule = this->getParentModule()->getSubmodule(
                         "switchState", i);
-                if (currentModule->par("switchName").str()
+                if (currentModule->par("switchName").stdstringValue()
                         == swinfo->getMacAddress()) {
                     found = currentModule;
                     cachedSwitches[swinfo->getMacAddress()] = currentModule;
                     break;
+                    std::cout << "result equal" << std::endl;
                 }
             }
         }
@@ -249,7 +294,7 @@ private:
      */
     PortModule* findSwitchPort(openflow::Switch_Info* swinfo, int port) {
         PortModule* found = nullptr;
-        if (cModule* switchState = findSwitchState(swinfo)) {
+        if (cModule* switchState = getSwitch(swinfo)) {
             if (auto portVec = switchState->getSubmodule("portModules", 0)) {
                 for (int i = 0; i < portVec->getVectorSize(); i++) {
                     if ((found =
@@ -298,7 +343,7 @@ private:
      */
     cModule* findPerSwitchState(openflow::Switch_Info* swinfo,
             const char* stateName, int index = -1) {
-        if (cModule* switchState = findSwitchState(swinfo)) {
+        if (cModule* switchState = getSwitch(swinfo)) {
             return switchState->getSubmodule(stateName, index);
         }
         return nullptr;
