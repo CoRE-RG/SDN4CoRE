@@ -17,13 +17,21 @@
 
 package sdn4core.controllerState.mac;
 
+import sdn4core.controllerState.base.ControllerStateManagementBase;
+
 //
 // Module that manages MacTables for a Controller Application.
 // It holds one MACTabel per switch.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple MACTableManagement
+simple MACTableManagement extends ControllerStateManagementBase
 {
-    @class(SDN4CoRE::MACTableManagement);
+    parameters:
+    	@class(SDN4CoRE::MACTableManagement);
+    	switchStateModulePath = default ("inet.linklayer.ethernet.switch.MACAddressTable"); // ned path to state module 
+        switchStateModuleName = default ("macTable"); // name of the module to hold the state per switch
+        
+        // parameters to be set for all MACTables 
+        double agingTime @unit("s") = default(120s); // MAC Address aging default from inet::MACAddressTable         
 }

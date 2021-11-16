@@ -25,29 +25,24 @@ namespace SDN4CoRE{
 
 Define_Module(MACTableManagement);
 
-void MACTableManagement::update(openflow::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port) {
-    //search map for source mac address and enter
-    if (lookupTable.count(sw_info) <= 0) {
-        lookupTable[sw_info] = std::map<MACAddress, uint32_t>();
-        lookupTable[sw_info][source] =
-                in_port;
-    } else {
-        if (lookupTable[sw_info].count(source) <= 0) {
-            lookupTable[sw_info][source] =
-                    in_port;
-        }
-    }
+bool MACTableManagement::update(openflow::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port, int vlan_id) {
+    Enter_Method("update");
+    MACAddressTable* lookupTable = getOrCreateManagedState(sw_info);
+    return lookupTable->updateTableWithAddress(in_port,source,vlan_id);
 }
 
-int MACTableManagement::lookup(openflow::Switch_Info* sw_info, inet::MACAddress destination) {
-    long outport = MAC_MANAGER_OUTPORT_FLOOD;
-    if(lookupTable.count(sw_info)>0) {
-        if (lookupTable[sw_info].count(destination)>0){
-            //MACAdress is known so return
-            outport = lookupTable[sw_info][destination];
-        }
+int MACTableManagement::lookup(openflow::Switch_Info* sw_info, inet::MACAddress destination, int vlan_id) {
+    Enter_Method("lookup");
+    if(MACAddressTable* lookupTable = getManagedState(sw_info)){
+        return lookupTable->getPortForAddress(destination, vlan_id);
     }
-    return outport;
+    return MAC_MANAGER_OUTPORT_FLOOD;
+}
+
+void MACTableManagement::onCreateManagedState(MACAddressTable* managedState,
+        openflow::Switch_Info* swinfo) {
+    ControllerStateManagementBase<MACAddressTable>::onCreateManagedState(managedState, swinfo);
+    managedState->setAgingTime(this->par("agingTime").doubleValue());
 }
 
 } /*end namespace SDN4CoRE*/
