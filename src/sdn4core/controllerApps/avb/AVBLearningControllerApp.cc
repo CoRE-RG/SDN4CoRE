@@ -285,25 +285,15 @@ bool AVBLearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
                     if(!macTableXML.empty())
                     {// we git mac entries for this switch.
                         //check if there already is a mac table for the switch
-                        std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> >* lut = _macManager->getLookupTable();
-
-
+//                        std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> >* lut = _macManager->getLookupTable();
                         //fill the map.
                         for(size_t i=0; i<macTableXML.size(); i++){
                             MACAddress mac = MACAddress(macTableXML[i]->getAttribute("mac"));
                             if(!mac.isUnspecified()){
                                 if(const char * portC = macTableXML[i]->getAttribute("port")){
                                     uint32_t port = atoi(portC);
-                                    bool insert = true;
-                                    //check if the entry exists.
-                                    if((*lut)[info].find(mac) != (*lut)[info].end()){
-                                        //mac allready exists.
-                                        insert = false;
-                                    }
-                                    if(insert) {
-                                        (*lut)[info][mac] = port;
-                                        changed = true;
-                                    }
+
+                                    changed |= _macManager->update(info, mac, port);
                                 }
                             }
                         }
@@ -313,7 +303,7 @@ bool AVBLearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
             //get the switch ids.
             cXMLElement* srpManagerXML = controllerXML->getFirstChildWithTag("srpManager");
             if(srpManagerXML){
-                _srpManager->importFromXML(info, srpManagerXML);
+                changed |= _srpManager->importFromXML(info, srpManagerXML);
             }
         }
     }
@@ -329,16 +319,17 @@ std::string AVBLearningControllerApp::stateToXML() {
 
     //mac table
     oss << tab << tab << "<macManager>" << endl;
-    std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> >* lut = _macManager->getLookupTable();
-    for(auto switchMap =lut->begin();switchMap != lut->end();++switchMap){
-        oss << tab << tab << tab << "<mactable switch_id=\"" << switchMap->first->getMacAddress() << "\">" << endl;
-
-        for(auto macToPortMap =switchMap->second.begin();macToPortMap != switchMap->second.end();++macToPortMap){
-            oss << tab << tab << tab << tab << "<entry mac=\"" << macToPortMap->first.str() << "\" port=\"" << macToPortMap->second << "\" />" << endl;
-        }
-
-        oss << tab << tab << tab << "</mactable>" << endl;
-    }
+//    std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> >* lut = _macManager->getLookupTable();
+//    for(auto switchMap =lut->begin();switchMap != lut->end();++switchMap){
+//        oss << tab << tab << tab << "<mactable switch_id=\"" << switchMap->first->getMacAddress() << "\">" << endl;
+//
+//        for(auto macToPortMap =switchMap->second.begin();macToPortMap != switchMap->second.end();++macToPortMap){
+//            oss << tab << tab << tab << tab << "<entry mac=\"" << macToPortMap->first.str() << "\" port=\"" << macToPortMap->second << "\" />" << endl;
+//        }
+//
+//        oss << tab << tab << tab << "</mactable>" << endl;
+//    }
+    oss << tab << tab << tab << "<TODO=\"currently not available for inet::MACAddressTable\" />" << endl;
     oss << tab << tab << "</macManager>" << endl;
 
     //srp table
