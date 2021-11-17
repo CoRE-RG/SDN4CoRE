@@ -36,6 +36,8 @@ module IEEE8021QbvOpenFlowSwitch extends OpenFlowSwitch
     parameters:
         @display("i=device/switch;i2=OpenFlow-Logo-small");
         ethDataPlaneType = default("IEEE8021QbvEthernetInterface");
+        switchAgentType = default("AVB_OF_SwitchAgent");
+        string pathSwitchAgent = default(absPath(".switchAgent"));
 
         *.srpTable = default(absPath(".srpTable"));
         *.srpProtocolModule = default(absPath(".srpProtocol"));
@@ -62,6 +64,7 @@ module IEEE8021QbvOpenFlowSwitch extends OpenFlowSwitch
 		// Stream Reservation Protocol implementation
         srpProtocol: OF_SRProtocol {
             portModule = "etherMAC";
+            srpEncap = pathSwitchAgent;
             @display("p=371,241");
         }
 

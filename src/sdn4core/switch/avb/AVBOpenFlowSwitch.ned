@@ -34,6 +34,7 @@ import sdn4core.switch.base.OpenFlowSwitch;
 module AVBOpenFlowSwitch extends OpenFlowSwitch
 {
     parameters:
+        string pathSwitchAgent = default(absPath(".switchAgent"));
         relayUnitType = default("AVB_OF_RelayUnit");
         switchAgentType = default("AVB_OF_SwitchAgent");
         ethDataPlaneType = default("AVBEthernetInterface");
@@ -53,6 +54,7 @@ module AVBOpenFlowSwitch extends OpenFlowSwitch
             portModule = "etherMAC";
             macModulePath = ".phy.mac";
             shaperModulePath = ".phy.shaper";
+			srpEncap = pathSwitchAgent;
             @display("p=325,241");
         }
 
