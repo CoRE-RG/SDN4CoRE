@@ -32,19 +32,19 @@ module ControllerState
         string srpManagementType = default("SRPTableManagement");
 
     submodules:
-
-        // vector for dynamically created switch state
-        switchState[0]: ControllerSwitchState {
-         	@display("p=50,50,r,50");   
-        }
         
         macTableManagement : <macManagementType> like IControllerStateManagement if hasMACState {
-        	@display("p=50,150");
+        	@display("p=50,50");
         };
         
         srpTableManagement : <srpManagementType> like IControllerStateManagement if hasSRPState {
-        	@display("p=150,150");
+        	@display("p=150,50");
         };
+
+        // vector for dynamically created switch state
+        switchState[0]: ControllerSwitchState {
+         	@display("p=50,150,m,5,50,50");   
+        }
 }
 
 //

@@ -117,6 +117,7 @@ protected:
      */
     void onCreateSwitch(cModule* switchModule, openflow::Switch_Info* swinfo) {
         switchModule->par("switchName").setStringValue(swinfo->getMacAddress());
+        setModuleDisplayName(switchModule, swinfo->getMacAddress());
         cachedSwitches[swinfo->getMacAddress()] = switchModule;
     }
     ;
@@ -174,6 +175,8 @@ protected:
      */
     virtual void onCreateSwitchPort(PortModule* portModule,
             openflow::Switch_Info* swinfo, int port) {
+        setModulePosition(portModule, MODULE_SPACING*(port+1), MODULE_SPACING);
+        setModuleDisplayName(portModule, "Port " + std::to_string(port));
         portModule->setPort(port);
         cachedSwitchPorts[std::pair<std::string, int>(swinfo->getMacAddress(),
                 port)] = portModule;
@@ -226,6 +229,7 @@ protected:
      */
     virtual void onCreateManagedState(ManagedType* managedState,
             openflow::Switch_Info* swinfo) {
+        setModulePosition(managedState, MODULE_SPACING, MODULE_SPACING*(this->getMangerID()+2));
         cachedManagedStates[swinfo->getMacAddress()] = managedState;
     }
     ;
@@ -368,6 +372,18 @@ private:
             return switchState->getSubmodule(stateName, index);
         }
         return nullptr;
+    }
+    ;
+
+    void setModuleDisplayName(cModule* module, std::string name) {
+        std::string newDisplayString = "t="+name;
+        module->getDisplayString().updateWith(newDisplayString.c_str());
+    }
+    ;
+
+    void setModulePosition(cModule* module, int x, int y){
+        std::string newDisplayString = "p="+std::to_string(x)+","+std::to_string(y);
+        module->getDisplayString().updateWith(newDisplayString.c_str());
     }
     ;
 
