@@ -60,14 +60,6 @@ public:
         std::vector<int> outports;
     };
 
-    SRPTableManagement() {
-
-    }
-
-    virtual ~SRPTableManagement() {
-    }
-    ;
-
     /**
      * Register a talker for a switch and inport.
      * @param swinfo            The switch recieving the talker advertise.

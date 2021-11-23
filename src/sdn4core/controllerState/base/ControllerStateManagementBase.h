@@ -35,6 +35,30 @@ using namespace omnetpp;
 
 namespace SDN4CoRE {
 
+#define MODULE_SPACING 70
+
+/**
+ * Workaround to count module creations for the template class.
+ * Used to set display options.
+ *
+ * @author Timo Haeckel, for HAW Hamburg
+ */
+class ControllerStateManagementWithID: public cSimpleModule {
+public:
+    ControllerStateManagementWithID() :
+            managerID(nextID++) {
+        WATCH(managerID);
+    }
+
+    const int getMangerID() {
+        return managerID;
+    }
+
+private:
+    static int nextID;
+    const int managerID;
+};
+
 /**
  * SimpleModule to manage controller state @see~ControllerState
  *
@@ -44,7 +68,7 @@ namespace SDN4CoRE {
  * @author Timo Haeckel, for HAW Hamburg
  */
 template<class ManagedType = cModule>
-class ControllerStateManagementBase: public cSimpleModule {
+class ControllerStateManagementBase: public ControllerStateManagementWithID {
 protected:
 
     /**
@@ -266,7 +290,8 @@ private:
      */
     cModule* findSwitchState(openflow::Switch_Info* swinfo) {
         cModule* found = nullptr;
-        int numSwitches = getDynamicModuleVectorSize("switchState", this->getParentModule());
+        int numSwitches = getDynamicModuleVectorSize("switchState",
+                this->getParentModule());
         for (int i = 0; i < numSwitches; i++) {
             cModule* currentModule = this->getParentModule()->getSubmodule(
                     "switchState", i);
@@ -387,7 +412,6 @@ protected:
      * cached might not be valid anymore.
      */
     std::map<std::string, ManagedType*> cachedManagedStates;
-
 };
 
 } // End namespace SDN4CoRE

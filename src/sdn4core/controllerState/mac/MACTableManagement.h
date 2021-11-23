@@ -42,12 +42,6 @@ namespace SDN4CoRE{
  */
 class MACTableManagement : public ControllerStateManagementBase<inet::MACAddressTable> {
 public:
-    MACTableManagement(){
-
-    }
-    virtual ~MACTableManagement(){
-
-    }
 
     /**
      * Updates the MAC table according to the Header Fields provided.
