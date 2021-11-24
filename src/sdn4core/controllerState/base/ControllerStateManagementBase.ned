@@ -27,4 +27,6 @@ simple ControllerStateManagementBase like IControllerStateManagement
     parameters:
         string switchStateModulePath = default (""); // ned path to state module 
         string switchStateModuleName = default (""); // name of the module to hold the state per switch
+        xml config = default(xml("<root/>"));
+        string dumpConfig = default(""); // write configuration into the given config file that can be fed back to speed up subsequent runs (network configurations)
 }

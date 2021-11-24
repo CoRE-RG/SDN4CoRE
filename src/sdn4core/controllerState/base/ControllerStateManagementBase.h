@@ -24,6 +24,8 @@
 #include <string>
 #include <utility>
 #include <algorithm>
+#include <fstream>
+#include <iostream>
 
 #include <sdn4core/controllerState/base/PortModule.h>
 #include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
@@ -69,7 +71,43 @@ private:
  */
 template<class ManagedType = cModule>
 class ControllerStateManagementBase: public ControllerStateManagementWithID {
+public:
+    /**
+     * Read a configuration from the XML and load it into the controller state.
+     * @param configuration the XML configuration to read.
+     * @return true if the controller state has changed.
+     */
+    virtual bool loadConfig(cXMLElement* configuration) {
+        return false;
+    }
+
+    virtual void dumpConfig() {
+        std::string filename = par("dumpConfig").stdstringValue();
+        if(!filename.empty()) {
+            std::ofstream file;
+            file.open(filename.c_str(), std::ios::app);
+            if (!file.is_open())
+                throw cRuntimeError("Cannot open output file");
+            dumpConfigToFile(file);
+            file.close();
+        }
+    }
+
+    virtual void dumpConfigToFile(std::ofstream* file) {
+        file << "<!--not implemented for this manager-->" << std::endl;
+    }
+
 protected:
+
+    virtual void initialize() override {
+        loadConfig(par("config"));
+    }
+    ;
+
+    virtual void finish() override {
+        dumpConfig();
+    }
+    ;
 
     /**
      * Get the switch state compound module for the switch.
@@ -84,7 +122,6 @@ protected:
         }
         return findSwitchState(swinfo);
     }
-    ;
 
     /**
      * Checks whether a given switch is already present else create
@@ -108,7 +145,6 @@ protected:
         }
         return switchModule;
     }
-    ;
 
     /**
      * Function to be executed when a new switch module was successfully created.
@@ -120,7 +156,6 @@ protected:
         setModuleDisplayName(switchModule, swinfo->getMacAddress());
         cachedSwitches[swinfo->getMacAddress()] = switchModule;
     }
-    ;
 
     /**
      * Get the port module of a switch.
@@ -137,7 +172,6 @@ protected:
         }
         return findSwitchPort(swinfo, port);
     }
-    ;
 
     /**
      * Checks whether a portmodule for the given switch port is already present
@@ -165,7 +199,6 @@ protected:
         }
         return portModule;
     }
-    ;
 
     /**
      * Function to be executed when a new port module was successfully created.
@@ -175,13 +208,13 @@ protected:
      */
     virtual void onCreateSwitchPort(PortModule* portModule,
             openflow::Switch_Info* swinfo, int port) {
-        setModulePosition(portModule, MODULE_SPACING*(port+1), MODULE_SPACING);
+        setModulePosition(portModule, MODULE_SPACING * (port + 1),
+                MODULE_SPACING);
         setModuleDisplayName(portModule, "Port " + std::to_string(port));
         portModule->setPort(port);
         cachedSwitchPorts[std::pair<std::string, int>(swinfo->getMacAddress(),
                 port)] = portModule;
     }
-    ;
 
     /**
      * Get the managed state module for the switch.
@@ -196,7 +229,6 @@ protected:
         }
         return findManagedPerSwitchState(swinfo);
     }
-    ;
 
     /**
      * Checks whether the state module already exists for a
@@ -220,7 +252,6 @@ protected:
         }
         return managedState;
     }
-    ;
 
     /**
      * Function to be executed when a new managed state module was successfully created.
@@ -229,10 +260,10 @@ protected:
      */
     virtual void onCreateManagedState(ManagedType* managedState,
             openflow::Switch_Info* swinfo) {
-        setModulePosition(managedState, MODULE_SPACING, MODULE_SPACING*(this->getMangerID()+2));
+        setModulePosition(managedState, MODULE_SPACING,
+                MODULE_SPACING * (this->getMangerID() + 2));
         cachedManagedStates[swinfo->getMacAddress()] = managedState;
     }
-    ;
 
     /**
      * Get a specific state module for the switch.
@@ -245,7 +276,6 @@ protected:
             const char* stateName) {
         return findPerSwitchState(swinfo, stateName);
     }
-    ;
 
     /**
      * Checks whether the managed state module already exists for a
@@ -272,7 +302,6 @@ protected:
         }
         return state;
     }
-    ;
 
     /**
      * Function to be executed when a new managed state module was successfully created.
@@ -282,7 +311,6 @@ protected:
     virtual void onCreatePerSwitchState(cModule* state,
             openflow::Switch_Info* swinfo) {
     }
-    ;
 
 private:
     /**
@@ -309,7 +337,6 @@ private:
         }
         return found;
     }
-    ;
 
     /**
      * Finds the port module for the given switch in the ned module hierarchy.
@@ -338,7 +365,6 @@ private:
         }
         return found;
     }
-    ;
 
     /**
      * Finds the managed switch state for the given switch in the ned module
@@ -356,7 +382,6 @@ private:
         }
         return managedState;
     }
-    ;
 
     /**
      * Finds a certain switch state for the given switch in the ned module
@@ -373,19 +398,17 @@ private:
         }
         return nullptr;
     }
-    ;
 
     void setModuleDisplayName(cModule* module, std::string name) {
-        std::string newDisplayString = "t="+name;
+        std::string newDisplayString = "t=" + name;
         module->getDisplayString().updateWith(newDisplayString.c_str());
     }
-    ;
 
-    void setModulePosition(cModule* module, int x, int y){
-        std::string newDisplayString = "p="+std::to_string(x)+","+std::to_string(y);
+    void setModulePosition(cModule* module, int x, int y) {
+        std::string newDisplayString = "p=" + std::to_string(x) + ","
+                + std::to_string(y);
         module->getDisplayString().updateWith(newDisplayString.c_str());
     }
-    ;
 
 protected:
     /**
