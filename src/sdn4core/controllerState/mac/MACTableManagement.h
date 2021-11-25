@@ -15,24 +15,31 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-
 #ifndef OPENFLOW_REALTIME_CONTROLLERAPPS_MACTABLEMANAGEMENT_H_
 #define OPENFLOW_REALTIME_CONTROLLERAPPS_MACTABLEMANAGEMENT_H_
 
 #include <omnetpp.h>
 #include <sdn4core/controllerState/base/ControllerStateManagementBase.h>
 //STD
-#include <unordered_map>
+#include <vector>
 //INET
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/linklayer/ethernet/switch/MACAddressTable.h"
 //openflow
 #include "openflow/openflow/controller/Switch_Info.h"
 
-
-namespace SDN4CoRE{
+namespace SDN4CoRE {
 
 #define MAC_MANAGER_OUTPORT_FLOOD -1
+
+class MACTableManagement;
+
+/**
+ * Extended MACAddressTable for controller state which has friend class MACTableManagement
+ */
+class FriendMACAddressTable: public inet::MACAddressTable {
+    friend class MACTableManagement;
+};
 
 /**
  * MACTableManagement manages the MAC tables for a controller application.
@@ -40,7 +47,8 @@ namespace SDN4CoRE{
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class MACTableManagement : public ControllerStateManagementBase<inet::MACAddressTable> {
+class MACTableManagement: public ControllerStateManagementBase<
+        FriendMACAddressTable> {
 public:
 
     /**
@@ -50,7 +58,8 @@ public:
      * @param in_port       the in port to update
      * @return True if refreshed. False if it is new.
      */
-    virtual bool update(openflow::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port, int vlan_id=0);
+    virtual bool update(openflow::Switch_Info* sw_info, inet::MACAddress source,
+            uint32_t in_port, int vlan_id = 0);
 
     /**
      * Lookup the output port a destination mac address at a switch.
@@ -59,14 +68,20 @@ public:
      * @return              return the port to output the packet to.
      *                      return -1 if there is no entry in the table.
      */
-    virtual int lookup(openflow::Switch_Info* sw_info, inet::MACAddress destination, int vlan_id=0);
+    virtual int lookup(openflow::Switch_Info* sw_info,
+            inet::MACAddress destination, int vlan_id = 0);
+
+    virtual bool loadConfig(cXMLElement* configuration) override;
+
+    virtual void dumpConfigToStream(std::ostream& stream, int indentTabs = 0)
+            override;
 
 protected:
 
     /**
      * override method from ControllerStateManagementBase to react to srpTable creation
      */
-    virtual void onCreateManagedState(inet::MACAddressTable* managedState,
+    virtual void onCreateManagedState(FriendMACAddressTable* managedState,
             std::string& swMacAddr) override;
 };
 
