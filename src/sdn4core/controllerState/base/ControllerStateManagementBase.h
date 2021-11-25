@@ -88,13 +88,19 @@ public:
             file.open(filename.c_str(), std::ios::app);
             if (!file.is_open())
                 throw cRuntimeError("Cannot open output file");
-            dumpConfigToFile(file);
+            dumpConfigToStream(&file);
             file.close();
         }
     }
 
-    virtual void dumpConfigToFile(std::ofstream* file) {
-        file << "<!--not implemented for this manager-->" << std::endl;
+    /**
+     * Dumps the managed state as formatted XML into the given output stream provided by the user.
+     * @param stream the output stream to write to (can be, e.g., a filestream or stringstream)
+     * @param indentTabs number of tabs to use for base indentation at beginning of each line.
+     */
+    virtual void dumpConfigToStream(std::ostream* stream, int indentTabs = 0) {
+        std::string indent = std::string(indentTabs, '\t');
+        *stream << indent << "<!--not implemented for this manager-->" << std::endl;
     }
 
 protected:
