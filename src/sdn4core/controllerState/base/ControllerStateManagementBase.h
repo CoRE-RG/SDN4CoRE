@@ -84,7 +84,7 @@ public:
      */
     virtual void dumpConfig() {
         std::string filename = par("dumpConfig").stdstringValue();
-        if(!filename.empty()) {
+        if (!filename.empty()) {
             std::ofstream file;
             file.open(filename.c_str(), std::ios::app);
             if (!file.is_open())
@@ -101,7 +101,8 @@ public:
      */
     virtual void dumpConfigToStream(std::ostream& stream, int indentTabs = 0) {
         std::string indent = std::string(indentTabs, '\t');
-        stream << indent << "<!--not implemented for this manager-->" << std::endl;
+        stream << indent << "<!--not implemented for this manager-->"
+                << std::endl;
     }
 
 protected:
@@ -109,12 +110,10 @@ protected:
     virtual void initialize() override {
         loadConfig(par("config"));
     }
-    ;
 
     virtual void finish() override {
         dumpConfig();
     }
-    ;
 
     /**
      * Get the switch state compound module for the switch.
@@ -123,8 +122,7 @@ protected:
      * @return The switch state compound module, nullptr if not found.
      */
     cModule* getSwitch(std::string swMacAddr) {
-        if (cachedSwitches.find(swMacAddr)
-                != cachedSwitches.end()) {
+        if (cachedSwitches.find(swMacAddr) != cachedSwitches.end()) {
             return cachedSwitches[swMacAddr];
         }
         return findSwitchState(swMacAddr);
@@ -172,8 +170,7 @@ protected:
      * @return The switch port module, nullptr if not found.
      */
     PortModule* getSwitchPort(std::string swMacAddr, int port) {
-        std::pair<std::string, int> switchPortPair(swMacAddr,
-                port);
+        std::pair<std::string, int> switchPortPair(swMacAddr, port);
         if (cachedSwitchPorts.find(switchPortPair) != cachedSwitchPorts.end()) {
             return cachedSwitchPorts[switchPortPair];
         }
@@ -199,8 +196,7 @@ protected:
             if (!portModule) {
                 throw cRuntimeError(
                         "Could not create port module %s for switch %s ",
-                        std::to_string(port).c_str(),
-                        swMacAddr.c_str());
+                        std::to_string(port).c_str(), swMacAddr.c_str());
             }
             onCreateSwitchPort(portModule, swMacAddr, port);
         }
@@ -216,11 +212,11 @@ protected:
     virtual void onCreateSwitchPort(PortModule* portModule,
             std::string swMacAddr, int port) {
         setModulePosition(portModule, MODULE_SPACING * (port + 1),
-                MODULE_SPACING);
+        MODULE_SPACING);
         setModuleDisplayName(portModule, "Port " + std::to_string(port));
         portModule->setPort(port);
-        cachedSwitchPorts[std::pair<std::string, int>(swMacAddr,
-                port)] = portModule;
+        cachedSwitchPorts[std::pair<std::string, int>(swMacAddr, port)] =
+                portModule;
     }
 
     /**
@@ -230,11 +226,20 @@ protected:
      * @return the managed state module, nullptr if not found.
      */
     ManagedType* getManagedState(std::string swMacAddr) {
-        if (cachedManagedStates.find(swMacAddr)
-                != cachedManagedStates.end()) {
+        if (cachedManagedStates.find(swMacAddr) != cachedManagedStates.end()) {
             return cachedManagedStates[swMacAddr];
         }
         return findManagedPerSwitchState(swMacAddr);
+    }
+
+    /**
+     * Locates all managed state objects an returns them.
+     *
+     * @return a map of all managed objects with there switch mac address as the key.
+     */
+    const std::map<std::string, ManagedType*>& getAllManagedStates() {
+        refreshCachedManagedStates();
+        return cachedManagedStates;
     }
 
     /**
@@ -249,7 +254,7 @@ protected:
         if (!managedState) {
             managedState = dynamic_cast<ManagedType*>(getOrCreatePerSwitchState(
                     swMacAddr, par("switchStateModulePath").stringValue(),
-                    par("switchStateModuleName").stringValue()));
+                    par("switchStateModuleName").stringValue(), false));
             if (!managedState) {
                 throw cRuntimeError(
                         "Could not create managed switch state module for switch %s ",
@@ -268,7 +273,7 @@ protected:
     virtual void onCreateManagedState(ManagedType* managedState,
             std::string& swMacAddr) {
         setModulePosition(managedState, MODULE_SPACING,
-                MODULE_SPACING * (this->getMangerID() + 2));
+        MODULE_SPACING * (this->getMangerID() + 2));
         cachedManagedStates[swMacAddr] = managedState;
     }
 
@@ -279,8 +284,7 @@ protected:
      * @param stateName The name of the switch state to look for.
      * @return the state module, nullptr if not found
      */
-    cModule* getPerSwitchState(std::string& swMacAddr,
-            const char* stateName) {
+    cModule* getPerSwitchState(std::string& swMacAddr, const char* stateName) {
         return findPerSwitchState(swMacAddr, stateName);
     }
 
@@ -294,12 +298,12 @@ protected:
      * @return the state module that was found/created.
      */
     cModule* getOrCreatePerSwitchState(std::string& swMacAddr,
-            const char* stateModulePath, const char* stateName) {
-        cModule* state = findPerSwitchState(swMacAddr, stateName);
+            const char* stateModulePath, const char* stateName, bool isVector) {
+        cModule* state = getPerSwitchState(swMacAddr, stateName);
         if (!state) {
             if (cModule* switchModule = getOrCreateSwitch(swMacAddr)) {
                 if (!(state = createFinalizeAndScheduleDynamicModule(
-                        stateModulePath, stateName, switchModule, true))) {
+                        stateModulePath, stateName, switchModule, isVector))) {
                     throw cRuntimeError(
                             "Could not create state module %s for switch %s ",
                             stateName, swMacAddr.c_str());
@@ -328,21 +332,27 @@ private:
      * @return the switch state compound module if found, else nullptr.
      */
     cModule* findSwitchState(std::string& swMacAddr) {
-        cModule* found = nullptr;
+        refreshCachedSwitches();
+        auto found = cachedSwitches.find(swMacAddr);
+        if (found != cachedSwitches.end()) {
+            return found->second;
+        }
+        return nullptr;
+    }
+
+    /**
+     * Locates all switches and adds them to the cache.
+     */
+    void refreshCachedSwitches() {
+        cachedSwitches.clear();
         int numSwitches = getDynamicModuleVectorSize("switchState",
                 this->getParentModule());
         for (int i = 0; i < numSwitches; i++) {
             cModule* currentModule = this->getParentModule()->getSubmodule(
                     "switchState", i);
-            if (currentModule->par("switchName").stdstringValue()
-                    == swMacAddr) {
-                found = currentModule;
-                cachedSwitches[swMacAddr] = currentModule;
-                break;
-                std::cout << "result equal" << std::endl;
-            }
+            std::string mac = currentModule->par("switchName").stdstringValue();
+            cachedSwitches[mac] = currentModule;
         }
-        return found;
     }
 
     /**
@@ -352,25 +362,32 @@ private:
      * @return the switch port module if found, else nullptr.
      */
     PortModule* findSwitchPort(std::string& swMacAddr, int port) {
-        PortModule* found = nullptr;
-        if (cModule* switchState = getSwitch(swMacAddr)) {
-            if (auto portVec = switchState->getSubmodule("portModules", 0)) {
-                for (int i = 0; i < portVec->getVectorSize(); i++) {
-                    if ((found =
-                            dynamic_cast<PortModule*>(switchState->getSubmodule(
-                                    "portModules", i)))) {
-                        if (found->getPort() == port) {
-                            cachedSwitchPorts[std::pair<std::string, int>(
-                                    swMacAddr, port)] = found;
-                            break;
-                        } else {
-                            found = nullptr;
-                        }
-                    }
-                }
+        refreshCachedPorts();
+        auto found = cachedSwitchPorts.find(
+                std::pair<std::string, int>(swMacAddr, port));
+        if (found != cachedSwitchPorts.end()) {
+            return found->second;
+        }
+        return nullptr;
+    }
+
+    /**
+     * Locates all switch ports and adds them to the cache.
+     */
+    void refreshCachedPorts() {
+        refreshCachedSwitches();
+        cachedSwitchPorts.clear();
+        for (auto sw : cachedSwitches) {
+            int numPorts = getDynamicModuleVectorSize("portModules", sw.second);
+            for (int i = 0; i < numPorts; i++) {
+                PortModule* currentPort =
+                        dynamic_cast<PortModule*>(sw.second->getSubmodule(
+                                "portModules", i));
+                int port = currentPort->getPort();
+                cachedSwitchPorts[std::pair<std::string, int>(sw.first, port)] =
+                        currentPort;
             }
         }
-        return found;
     }
 
     /**
@@ -381,13 +398,27 @@ private:
      * @return the managed state module if found, else nullptr.
      */
     ManagedType* findManagedPerSwitchState(std::string& swMacAddr) {
-        ManagedType* managedState =
-                dynamic_cast<ManagedType*>(findPerSwitchState(swMacAddr,
-                        par("switchStateModulePath").stringValue()));
-        if (managedState) {
-            cachedManagedStates[swMacAddr] = managedState;
+        auto found = cachedManagedStates.find(swMacAddr);
+        if (found != cachedManagedStates.end()) {
+            return found->second;
         }
-        return managedState;
+        return nullptr;
+    }
+
+    /**
+     * Locates all managed modules for switches and adds them to the cache.
+     */
+    void refreshCachedManagedStates() {
+        refreshCachedSwitches();
+        cachedManagedStates.clear();
+        for (auto sw : cachedSwitches) {
+            ManagedType* managedState =
+                    dynamic_cast<ManagedType*>(sw.second->getSubmodule(
+                            par("switchStateModuleName").stringValue(), 0));
+            if (managedState) {
+                cachedManagedStates[sw.first] = managedState;
+            }
+        }
     }
 
     /**
@@ -398,8 +429,8 @@ private:
      * @paran stateName The name of the switch state to look for.
      * @return the state module if found, else nullptr.
      */
-    cModule* findPerSwitchState(std::string& swMacAddr,
-            const char* stateName, int index = -1) {
+    cModule* findPerSwitchState(std::string& swMacAddr, const char* stateName,
+            int index = -1) {
         if (cModule* switchState = getSwitch(swMacAddr)) {
             return switchState->getSubmodule(stateName, index);
         }
