@@ -19,6 +19,7 @@
 #include <sdn4core/controllerState/mac/MACTableManagement.h>
 
 using namespace inet;
+using namespace std;
 using namespace openflow;
 
 namespace SDN4CoRE{
@@ -27,21 +28,21 @@ Define_Module(MACTableManagement);
 
 bool MACTableManagement::update(openflow::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port, int vlan_id) {
     Enter_Method("update");
-    MACAddressTable* lookupTable = getOrCreateManagedState(sw_info);
+    MACAddressTable* lookupTable = getOrCreateManagedState(sw_info->getMacAddress());
     return lookupTable->updateTableWithAddress(in_port,source,vlan_id);
 }
 
 int MACTableManagement::lookup(openflow::Switch_Info* sw_info, inet::MACAddress destination, int vlan_id) {
     Enter_Method("lookup");
-    if(MACAddressTable* lookupTable = getManagedState(sw_info)){
+    if(MACAddressTable* lookupTable = getManagedState(sw_info->getMacAddress())){
         return lookupTable->getPortForAddress(destination, vlan_id);
     }
     return MAC_MANAGER_OUTPORT_FLOOD;
 }
 
 void MACTableManagement::onCreateManagedState(MACAddressTable* managedState,
-        openflow::Switch_Info* swinfo) {
-    ControllerStateManagementBase<MACAddressTable>::onCreateManagedState(managedState, swinfo);
+        string& swMacAddr) {
+    ControllerStateManagementBase<MACAddressTable>::onCreateManagedState(managedState, swMacAddr);
     managedState->setAgingTime(this->par("agingTime").doubleValue());
 }
 

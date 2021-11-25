@@ -39,7 +39,7 @@ bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
         TalkerAdvertise* talkerAdvertise) {
     Enter_Method("registerTalker");
     //check if we need to create a table for this switch.
-    SRPTable* srpTable = getOrCreateManagedState(swinfo);
+    SRPTable* srpTable = getOrCreateManagedState(swinfo->getMacAddress());
 
     //check if this talker is already known
     PortModule* module = dynamic_cast<PortModule*>(srpTable->getTalkerForStreamId(talkerAdvertise->getStreamID(),
@@ -48,7 +48,7 @@ bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
         //talker is already known to us but with a different port.
         throw std::invalid_argument("Talker already exists on another port");
     } else {
-        module = getOrCreateSwitchPort(swinfo, arrivalPort);
+        module = getOrCreateSwitchPort(swinfo->getMacAddress(), arrivalPort);
     }
 
     SR_CLASS srClass;
@@ -72,7 +72,7 @@ bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo, int arr
         CoRE4INET::ListenerReady* listenerReady) {
     Enter_Method("registerListener");
     //check if there is a table for this switch
-    SRPTable* srpTable = getManagedState(swinfo);
+    SRPTable* srpTable = getManagedState(swinfo->getMacAddress());
     if (!srpTable) {
         return false;
     }
@@ -88,7 +88,7 @@ bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo, int arr
         }
     }
     if (!module) {
-        module = getOrCreateSwitchPort(swinfo, arrivalPort);
+        module = getOrCreateSwitchPort(swinfo->getMacAddress(), arrivalPort);
     }
 
     srpTable->updateListenerWithStreamId(listenerReady->getStreamID(),
@@ -100,7 +100,7 @@ SRPTableManagement::SRPForwardingInfo_t* SRPTableManagement::getForwardingInfoFo
         Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id) {
     Enter_Method("getForwardingInfoForStreamID");
     SRPForwardingInfo_t* fwd = new SRPForwardingInfo_t();
-    SRPTable* srpTable = getManagedState(swinfo);
+    SRPTable* srpTable = getManagedState(swinfo->getMacAddress());
     if (!srpTable) {
         throw cRuntimeError(
                 "Forwarding info for switch requested, but there is no srp table for it.");
@@ -163,7 +163,7 @@ bool SRPTableManagement::importFromXML(Switch_Info* swinfo, cXMLElement* xml) {
             if(strcmp(table->getAttribute("switch_id"),swinfo->getMacAddress().c_str()) == 0) {
                 cXMLElement* srp = table->getFirstChildWithTag("srpTable");
                 if(srp){
-                    return getOrCreateManagedState(swinfo)->importFromXML(srp);
+                    return getOrCreateManagedState(swinfo->getMacAddress())->importFromXML(srp);
                 }
             }
         }
@@ -173,8 +173,8 @@ bool SRPTableManagement::importFromXML(Switch_Info* swinfo, cXMLElement* xml) {
 }
 
 void SRPTableManagement::onCreateManagedState(SRPTable* managedState,
-        openflow::Switch_Info* swinfo) {
-    ControllerStateManagementBase<SRPTable>::onCreateManagedState(managedState, swinfo);
+        std::string& swMacAddr) {
+    ControllerStateManagementBase<SRPTable>::onCreateManagedState(managedState, swMacAddr);
     managedState->par("agingTime").setDoubleValue(this->par("agingTime").doubleValue());
 }
 

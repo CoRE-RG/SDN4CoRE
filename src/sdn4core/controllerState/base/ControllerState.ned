@@ -43,7 +43,7 @@ module ControllerState
 
         // vector for dynamically created switch state
         switchState[0]: ControllerSwitchState {
-         	@display("p=50,150,m,5,50,50");   
+         	@display("p=50,150,m,5,70,70");   
         }
 }
 

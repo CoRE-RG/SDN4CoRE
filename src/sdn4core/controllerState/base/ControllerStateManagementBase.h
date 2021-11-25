@@ -30,9 +30,6 @@
 #include <sdn4core/controllerState/base/PortModule.h>
 #include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
 
-//openflow
-#include "openflow/openflow/controller/Switch_Info.h"
-
 using namespace omnetpp;
 
 namespace SDN4CoRE {
@@ -81,6 +78,10 @@ public:
         return false;
     }
 
+    /**
+     * Interface function to dump XML config to file if specified in the parameter "dumpConfig".
+     * Calls dumpConfigToStream() to get the state as XML from the implementing class.
+     */
     virtual void dumpConfig() {
         std::string filename = par("dumpConfig").stdstringValue();
         if(!filename.empty()) {
@@ -88,7 +89,7 @@ public:
             file.open(filename.c_str(), std::ios::app);
             if (!file.is_open())
                 throw cRuntimeError("Cannot open output file");
-            dumpConfigToStream(&file);
+            dumpConfigToStream(file);
             file.close();
         }
     }
@@ -98,9 +99,9 @@ public:
      * @param stream the output stream to write to (can be, e.g., a filestream or stringstream)
      * @param indentTabs number of tabs to use for base indentation at beginning of each line.
      */
-    virtual void dumpConfigToStream(std::ostream* stream, int indentTabs = 0) {
+    virtual void dumpConfigToStream(std::ostream& stream, int indentTabs = 0) {
         std::string indent = std::string(indentTabs, '\t');
-        *stream << indent << "<!--not implemented for this manager-->" << std::endl;
+        stream << indent << "<!--not implemented for this manager-->" << std::endl;
     }
 
 protected:
@@ -118,26 +119,26 @@ protected:
     /**
      * Get the switch state compound module for the switch.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @return The switch state compound module, nullptr if not found.
      */
-    cModule* getSwitch(openflow::Switch_Info* swinfo) {
-        if (cachedSwitches.find(swinfo->getMacAddress())
+    cModule* getSwitch(std::string swMacAddr) {
+        if (cachedSwitches.find(swMacAddr)
                 != cachedSwitches.end()) {
-            return cachedSwitches[swinfo->getMacAddress()];
+            return cachedSwitches[swMacAddr];
         }
-        return findSwitchState(swinfo);
+        return findSwitchState(swMacAddr);
     }
 
     /**
      * Checks whether a given switch is already present else create
      * the compound module.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @return the compound module that was created/found.
      */
-    cModule* getOrCreateSwitch(openflow::Switch_Info* swinfo) {
-        cModule* switchModule = getSwitch(swinfo);
+    cModule* getOrCreateSwitch(std::string swMacAddr) {
+        cModule* switchModule = getSwitch(swMacAddr);
         if (!switchModule) {
             switchModule = createFinalizeAndScheduleDynamicModule(
                     "sdn4core.controllerState.base.ControllerSwitchState",
@@ -145,9 +146,9 @@ protected:
             if (!switchModule) {
                 throw cRuntimeError(
                         "Could not create state module for switch %s ",
-                        swinfo->getMacAddress().c_str());
+                        swMacAddr.c_str());
             }
-            onCreateSwitch(switchModule, swinfo);
+            onCreateSwitch(switchModule, swMacAddr);
         }
         return switchModule;
     }
@@ -155,42 +156,42 @@ protected:
     /**
      * Function to be executed when a new switch module was successfully created.
      * @param switchModule The newly created switchModule
-     * @param swinfo Info about the created switch.
+     * @param swMacAddr Info about the created switch.
      */
-    void onCreateSwitch(cModule* switchModule, openflow::Switch_Info* swinfo) {
-        switchModule->par("switchName").setStringValue(swinfo->getMacAddress());
-        setModuleDisplayName(switchModule, swinfo->getMacAddress());
-        cachedSwitches[swinfo->getMacAddress()] = switchModule;
+    void onCreateSwitch(cModule* switchModule, std::string swMacAddr) {
+        switchModule->par("switchName").setStringValue(swMacAddr);
+        setModuleDisplayName(switchModule, swMacAddr);
+        cachedSwitches[swMacAddr] = switchModule;
     }
 
     /**
      * Get the port module of a switch.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @param port The port id to look for.
      * @return The switch port module, nullptr if not found.
      */
-    PortModule* getSwitchPort(openflow::Switch_Info* swinfo, int port) {
-        std::pair<std::string, int> switchPortPair(swinfo->getMacAddress(),
+    PortModule* getSwitchPort(std::string swMacAddr, int port) {
+        std::pair<std::string, int> switchPortPair(swMacAddr,
                 port);
         if (cachedSwitchPorts.find(switchPortPair) != cachedSwitchPorts.end()) {
             return cachedSwitchPorts[switchPortPair];
         }
-        return findSwitchPort(swinfo, port);
+        return findSwitchPort(swMacAddr, port);
     }
 
     /**
      * Checks whether a portmodule for the given switch port is already present
      * if not the module will be dynamically created.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @param port The port id to look for.
      * @return the compound module that was created/found.
      */
-    PortModule* getOrCreateSwitchPort(openflow::Switch_Info* swinfo, int port) {
-        PortModule* portModule = getSwitchPort(swinfo, port);
+    PortModule* getOrCreateSwitchPort(std::string swMacAddr, int port) {
+        PortModule* portModule = getSwitchPort(swMacAddr, port);
         if (!portModule) {
-            cModule* switchModule = getOrCreateSwitch(swinfo);
+            cModule* switchModule = getOrCreateSwitch(swMacAddr);
             portModule =
                     dynamic_cast<PortModule*>(createFinalizeAndScheduleDynamicModule(
                             "sdn4core.controllerState.base.PortModule",
@@ -199,9 +200,9 @@ protected:
                 throw cRuntimeError(
                         "Could not create port module %s for switch %s ",
                         std::to_string(port).c_str(),
-                        swinfo->getMacAddress().c_str());
+                        swMacAddr.c_str());
             }
-            onCreateSwitchPort(portModule, swinfo, port);
+            onCreateSwitchPort(portModule, swMacAddr, port);
         }
         return portModule;
     }
@@ -209,52 +210,52 @@ protected:
     /**
      * Function to be executed when a new port module was successfully created.
      * @param portModule The newly created portModule
-     * @param swinfo Info about the created switch.
+     * @param swMacAddr Info about the created switch.
      * @param port The created port id.
      */
     virtual void onCreateSwitchPort(PortModule* portModule,
-            openflow::Switch_Info* swinfo, int port) {
+            std::string swMacAddr, int port) {
         setModulePosition(portModule, MODULE_SPACING * (port + 1),
                 MODULE_SPACING);
         setModuleDisplayName(portModule, "Port " + std::to_string(port));
         portModule->setPort(port);
-        cachedSwitchPorts[std::pair<std::string, int>(swinfo->getMacAddress(),
+        cachedSwitchPorts[std::pair<std::string, int>(swMacAddr,
                 port)] = portModule;
     }
 
     /**
      * Get the managed state module for the switch.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @return the managed state module, nullptr if not found.
      */
-    ManagedType* getManagedState(openflow::Switch_Info* swinfo) {
-        if (cachedManagedStates.find(swinfo->getMacAddress())
+    ManagedType* getManagedState(std::string swMacAddr) {
+        if (cachedManagedStates.find(swMacAddr)
                 != cachedManagedStates.end()) {
-            return cachedManagedStates[swinfo->getMacAddress()];
+            return cachedManagedStates[swMacAddr];
         }
-        return findManagedPerSwitchState(swinfo);
+        return findManagedPerSwitchState(swMacAddr);
     }
 
     /**
      * Checks whether the state module already exists for a
      * given switch if not the module will be dynamically created.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @return the managed state module that was created/found.
      */
-    ManagedType* getOrCreateManagedState(openflow::Switch_Info* swinfo) {
-        ManagedType* managedState = getManagedState(swinfo);
+    ManagedType* getOrCreateManagedState(std::string swMacAddr) {
+        ManagedType* managedState = getManagedState(swMacAddr);
         if (!managedState) {
             managedState = dynamic_cast<ManagedType*>(getOrCreatePerSwitchState(
-                    swinfo, par("switchStateModulePath").stringValue(),
+                    swMacAddr, par("switchStateModulePath").stringValue(),
                     par("switchStateModuleName").stringValue()));
             if (!managedState) {
                 throw cRuntimeError(
                         "Could not create managed switch state module for switch %s ",
-                        swinfo->getMacAddress().c_str());
+                        swMacAddr.c_str());
             }
-            onCreateManagedState(managedState, swinfo);
+            onCreateManagedState(managedState, swMacAddr);
         }
         return managedState;
     }
@@ -262,48 +263,48 @@ protected:
     /**
      * Function to be executed when a new managed state module was successfully created.
      * @param managedState The newly created managed state
-     * @param swinfo Info about the created switch.
+     * @param swMacAddr Info about the created switch.
      */
     virtual void onCreateManagedState(ManagedType* managedState,
-            openflow::Switch_Info* swinfo) {
+            std::string& swMacAddr) {
         setModulePosition(managedState, MODULE_SPACING,
                 MODULE_SPACING * (this->getMangerID() + 2));
-        cachedManagedStates[swinfo->getMacAddress()] = managedState;
+        cachedManagedStates[swMacAddr] = managedState;
     }
 
     /**
      * Get a specific state module for the switch.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @param stateName The name of the switch state to look for.
      * @return the state module, nullptr if not found
      */
-    cModule* getPerSwitchState(openflow::Switch_Info* swinfo,
+    cModule* getPerSwitchState(std::string& swMacAddr,
             const char* stateName) {
-        return findPerSwitchState(swinfo, stateName);
+        return findPerSwitchState(swMacAddr, stateName);
     }
 
     /**
      * Checks whether the managed state module already exists for a
      * given switch if not the module will be dynamically created.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @param stateModulePath ned module path to create a new module.
      * @param stateName The name of the switch state to look for.
      * @return the state module that was found/created.
      */
-    cModule* getOrCreatePerSwitchState(openflow::Switch_Info* swinfo,
+    cModule* getOrCreatePerSwitchState(std::string& swMacAddr,
             const char* stateModulePath, const char* stateName) {
-        cModule* state = findPerSwitchState(swinfo, stateName);
+        cModule* state = findPerSwitchState(swMacAddr, stateName);
         if (!state) {
-            if (cModule* switchModule = getOrCreateSwitch(swinfo)) {
+            if (cModule* switchModule = getOrCreateSwitch(swMacAddr)) {
                 if (!(state = createFinalizeAndScheduleDynamicModule(
                         stateModulePath, stateName, switchModule, true))) {
                     throw cRuntimeError(
                             "Could not create state module %s for switch %s ",
-                            stateName, swinfo->getMacAddress().c_str());
+                            stateName, swMacAddr.c_str());
                 }
-                onCreatePerSwitchState(state, swinfo);
+                onCreatePerSwitchState(state, swMacAddr);
             }
         }
         return state;
@@ -312,10 +313,10 @@ protected:
     /**
      * Function to be executed when a new managed state module was successfully created.
      * @param portModule The newly created portModule
-     * @param swinfo Info about the created switch.
+     * @param swMacAddr Info about the created switch.
      */
     virtual void onCreatePerSwitchState(cModule* state,
-            openflow::Switch_Info* swinfo) {
+            std::string& swMacAddr) {
     }
 
 private:
@@ -323,10 +324,10 @@ private:
      * Finds switch state compound module containing all switch state modules in
      * the ned module hierarchy.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @return the switch state compound module if found, else nullptr.
      */
-    cModule* findSwitchState(openflow::Switch_Info* swinfo) {
+    cModule* findSwitchState(std::string& swMacAddr) {
         cModule* found = nullptr;
         int numSwitches = getDynamicModuleVectorSize("switchState",
                 this->getParentModule());
@@ -334,9 +335,9 @@ private:
             cModule* currentModule = this->getParentModule()->getSubmodule(
                     "switchState", i);
             if (currentModule->par("switchName").stdstringValue()
-                    == swinfo->getMacAddress()) {
+                    == swMacAddr) {
                 found = currentModule;
-                cachedSwitches[swinfo->getMacAddress()] = currentModule;
+                cachedSwitches[swMacAddr] = currentModule;
                 break;
                 std::cout << "result equal" << std::endl;
             }
@@ -347,12 +348,12 @@ private:
     /**
      * Finds the port module for the given switch in the ned module hierarchy.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @return the switch port module if found, else nullptr.
      */
-    PortModule* findSwitchPort(openflow::Switch_Info* swinfo, int port) {
+    PortModule* findSwitchPort(std::string& swMacAddr, int port) {
         PortModule* found = nullptr;
-        if (cModule* switchState = getSwitch(swinfo)) {
+        if (cModule* switchState = getSwitch(swMacAddr)) {
             if (auto portVec = switchState->getSubmodule("portModules", 0)) {
                 for (int i = 0; i < portVec->getVectorSize(); i++) {
                     if ((found =
@@ -360,7 +361,7 @@ private:
                                     "portModules", i)))) {
                         if (found->getPort() == port) {
                             cachedSwitchPorts[std::pair<std::string, int>(
-                                    swinfo->getMacAddress(), port)] = found;
+                                    swMacAddr, port)] = found;
                             break;
                         } else {
                             found = nullptr;
@@ -376,15 +377,15 @@ private:
      * Finds the managed switch state for the given switch in the ned module
      * hierarchy.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @return the managed state module if found, else nullptr.
      */
-    ManagedType* findManagedPerSwitchState(openflow::Switch_Info* swinfo) {
+    ManagedType* findManagedPerSwitchState(std::string& swMacAddr) {
         ManagedType* managedState =
-                dynamic_cast<ManagedType*>(findPerSwitchState(swinfo,
+                dynamic_cast<ManagedType*>(findPerSwitchState(swMacAddr,
                         par("switchStateModulePath").stringValue()));
         if (managedState) {
-            cachedManagedStates[swinfo->getMacAddress()] = managedState;
+            cachedManagedStates[swMacAddr] = managedState;
         }
         return managedState;
     }
@@ -393,13 +394,13 @@ private:
      * Finds a certain switch state for the given switch in the ned module
      * hierarchy.
      *
-     * @param swinfo The info of the switch to look for.
+     * @param swMacAddr The info of the switch to look for.
      * @paran stateName The name of the switch state to look for.
      * @return the state module if found, else nullptr.
      */
-    cModule* findPerSwitchState(openflow::Switch_Info* swinfo,
+    cModule* findPerSwitchState(std::string& swMacAddr,
             const char* stateName, int index = -1) {
-        if (cModule* switchState = getSwitch(swinfo)) {
+        if (cModule* switchState = getSwitch(swMacAddr)) {
             return switchState->getSubmodule(stateName, index);
         }
         return nullptr;
@@ -421,7 +422,7 @@ protected:
      * Known switch state compound modules that are cached on creation
      * and dynamic lookups.
      *
-     * map key is the switches MAC Address as a string from the swinfo.
+     * map key is the switches MAC Address as a string from the swMacAddr.
      * map value is the cached cModule reference of the switch state compound
      * module.
      *
@@ -434,7 +435,7 @@ protected:
     /**
      * Known switch port modules that are cached on creation and dynamic lookups.
      *
-     * map key is the pair of a switches MAC Address as a string from the swinfo
+     * map key is the pair of a switches MAC Address as a string from the swMacAddr
      * and the port index.
      * map value is the cached cModule reference of the switch PortModule.
      *
@@ -448,7 +449,7 @@ protected:
      * Known managed switch state modules that are cached on creation and
      * dynamic lookups.
      *
-     * map key is the switches MAC Address as a string from the swinfo.
+     * map key is the switches MAC Address as a string from the swMacAddr.
      * map value is the cached cModule reference of the switch state compound
      * module.
      *

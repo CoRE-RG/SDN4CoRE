@@ -50,7 +50,7 @@ public:
      * @param in_port       the in port to update
      * @return True if refreshed. False if it is new.
      */
-    bool update(openflow::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port, int vlan_id=0);
+    virtual bool update(openflow::Switch_Info* sw_info, inet::MACAddress source, uint32_t in_port, int vlan_id=0);
 
     /**
      * Lookup the output port a destination mac address at a switch.
@@ -59,7 +59,7 @@ public:
      * @return              return the port to output the packet to.
      *                      return -1 if there is no entry in the table.
      */
-    int lookup(openflow::Switch_Info* sw_info, inet::MACAddress destination, int vlan_id=0);
+    virtual int lookup(openflow::Switch_Info* sw_info, inet::MACAddress destination, int vlan_id=0);
 
 protected:
 
@@ -67,7 +67,7 @@ protected:
      * override method from ControllerStateManagementBase to react to srpTable creation
      */
     virtual void onCreateManagedState(inet::MACAddressTable* managedState,
-            openflow::Switch_Info* swinfo) override;
+            std::string& swMacAddr) override;
 };
 
 } /*end namespace SDN4CoRE*/

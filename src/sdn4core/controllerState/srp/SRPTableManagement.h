@@ -113,7 +113,7 @@ protected:
      * override method from ControllerStateManagementBase to react to srpTable creation
      */
     virtual void onCreateManagedState(CoRE4INET::SRPTable* managedState,
-            openflow::Switch_Info* swinfo) override;
+            std::string& swMacAddr) override;
 
 };
 
