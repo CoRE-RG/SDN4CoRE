@@ -48,9 +48,6 @@ public:
         return _idleTimeout;
     }
 
-    LearningControllerApp();
-    ~LearningControllerApp();
-
 protected:
     void setHardTimeout(int hardTimeout) {
         this->_hardTimeout = hardTimeout;
@@ -62,7 +59,7 @@ protected:
 
     void receiveSignal(cComponent *src, simsignal_t id,
             cObject *obj, cObject *details) override;
-    virtual void initialize();
+    virtual void initialize() override;
     virtual void handleParameterChange(const char* parname) override;
     virtual void finish() override;
 
@@ -108,6 +105,10 @@ private:
      * The cached flow rule HardTimeOut parameter.
      */
     int _hardTimeout;
+    /**
+     *
+     */
+    static const char MACTABLEMANAGERMODULEPATH [];
 };
 
 } /*end namespace SDN4CoRE*/

@@ -34,7 +34,6 @@
 #include "openflow/openflow/protocol/OFMatchFactory.h"
 
 using namespace inet;
-using namespace CoRE4INET;
 using namespace std;
 using namespace openflow;
 
@@ -44,13 +43,6 @@ Define_Module(LearningControllerApp);
 
 const char LearningControllerApp::MACTABLEMANAGERMODULEPATH[] =
         "sdn4core.controllerState.mac.MACTableManagement";
-
-LearningControllerApp::LearningControllerApp() {
-    _macManager = nullptr;
-}
-
-LearningControllerApp::~LearningControllerApp() {
-}
 
 void LearningControllerApp::initialize() {
     AbstractControllerApp::initialize();
@@ -203,9 +195,6 @@ std::string LearningControllerApp::stateToXML() {
             << "<TODO=\"currently not available for inet::MACAddressTable\" />"
             << endl;
     oss << tab << tab << "</macManager>" << endl;
-
-    //srp table
-    oss << _srpManager->exportToXML();
 
     oss << tab << "</controllerapp>" << endl;
     oss << "</config>" << endl;

@@ -29,7 +29,7 @@ import openflow.controllerApps.AbstractControllerApp;
 simple LearningControllerApp like AbstractControllerApp
 {
     parameters:
-        @class(SDN4CoRE::AVBLearningControllerApp);
+        @class(SDN4CoRE::LearningControllerApp);
         @display("i=block/app");
 		//hard timeout for flow entries in seconds
         int flowModHardTimeOut = default(0);
