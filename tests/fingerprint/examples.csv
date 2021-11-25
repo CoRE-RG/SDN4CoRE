@@ -1,30 +1,25 @@
-# workingdir,                                                   args,                                                                    simtimelimit,      fingerprint
-/examples/of_test,                                              -f of_test.ini -c General -r 0,                                          1000s,             23c0-ebba
-/examples/avb_of_test,                                          -f avb_of_test.ini -c General -r 0,                                         1s,             d077-5843                             
-/examples/papers/vtc2019/withoutSDN,                            -f omnetpp.ini -c General -r 0,                                             1s,             4f70-f999
-/examples/papers/vtc2019/withSDN,                               -f vtc2019_with_sdn.ini -c General -r 0,                                    1s,             8130-c014
-/examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c General -r 0,                                            10s,             8fef-67a8
-/examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c OneClientOneServerOneApp -r 0,                           10s,             e053-abda
-/examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c TwoClientOneServer -r 0,                                 10s,             33eb-4c62
-/examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c FiveClientThreeServer -r 0,                              10s,             a123-a219
-/examples/IEEE8021Qbv/of_test,                                  -f IEEE8021Qbv_of_test.ini -c General -r 0,                              1000s,             466b-8af2
-/examples/IEEE8021Qbv/small_network_of,                         -f omnetpp.ini -c General -r 0,                                           0.5s,             6d2c-199d
-/examples/IEEE8021Qbv/small_network_of,                         -f omnetpp.ini -c With_Crosstraffic -r 0,                                 0.5s,             a913-cffa
-/examples/IEEE8021Qbv/small_network_ofnc,                       -f omnetpp.ini -c General -r 0,                                           0.5s,             2a13-1e4f
-/examples/IEEE8021Qbv/small_network_ofnc,                       -f omnetpp.ini -c With_Crosstraffic -r 0,                                 0.5s,             c3e7-55c3
-
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c General -r 0,                                           0.4s,             8875-c154
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c OpenFlow_static_TDMA -r 0,                              0.4s,             a106-ea05
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf -r 0,                                           0.4s,             4582-666a
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart -r 0,                                 0.4s,             cd96-694d
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Transaction -r 0,                               0.4s,             6951-358b
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_Transaction -r 0,                     0.4s,             0857-46e3
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_SyncTransaction -r 0,                           0.4s,             8d07-9bd5
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_SyncTransaction -r 0,                 0.4s,             8566-8725
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_SyncTransaction_SoP -r 0,                       0.4s,             16e5-eec9
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_SyncTransaction_Sop -r 0,             0.4s,             91bb-51ec
-
-/examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c General -r 0,                                            10s,             1ea3-f108
-/examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy -r 0,                                           5s,             8562-7786
-/examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy_WithCT -r 0,                                    5s,             c40e-6c72
-
+# workingdir,                        args,                                          simtimelimit,    fingerprint
+/examples/of_test,                   -f of_test.ini -c General -r 0,                1000s,           23c0-ebba
+/examples/avb_of_test,               -f avb_of_test.ini -c General -r 0,            1s,              d077-5843
+/examples/papers/vtc2019/withoutSDN, -f omnetpp.ini -c General -r 0,                1s,              4f70-f999
+/examples/papers/vtc2019/withSDN,    -f vtc2019_with_sdn.ini -c General -r 0,       1s,              8130-c014
+/examples/netconf_test/netconf_test_standardhost, -f omnetpp.ini -c General -r 0,                10s,             8fef-67a8
+/examples/netconf_test/netconf_test_standardhost, -f omnetpp.ini -c OneClientOneServerOneApp -r 0, 10s,             1cb4-edec
+/examples/netconf_test/netconf_test_standardhost, -f omnetpp.ini -c TwoClientOneServer -r 0,     10s,             c05c-079d
+/examples/netconf_test/netconf_test_standardhost, -f omnetpp.ini -c FiveClientThreeServer -r 0,  10s,             0249-855a
+/examples/IEEE8021Qbv/of_test,       -f IEEE8021Qbv_of_test.ini -c General -r 0,    1000s,           466b-8af2
+/examples/IEEE8021Qbv/small_network_of, -f omnetpp.ini -c General -r 0,                0.5s,            6d2c-199d
+/examples/IEEE8021Qbv/small_network_of, -f omnetpp.ini -c With_Crosstraffic -r 0,      0.5s,            a913-cffa
+/examples/IEEE8021Qbv/small_network_ofnc, -f omnetpp.ini -c General -r 0,                0.5s,            2e36-b9b6
+/examples/IEEE8021Qbv/small_network_ofnc, -f omnetpp.ini -c With_Crosstraffic -r 0,      0.5s,            4faf-22e2
+/examples/tsn/small_network_of,      -f omnetpp.ini -c General -r 0,                0.5s,            f45e-781a
+/examples/tsn/small_network_of,      -f omnetpp.ini -c With_Crosstraffic -r 0,      0.5s,            53c3-cc99
+/examples/tsn/small_network_of,      -f omnetpp.ini -c Without_TDMA -r 0,           0.5s,            a3cd-195f
+/examples/tsn/small_network_of,      -f omnetpp.ini -c With_Qci -r 0,               0.5s,            74bd-9a0f
+/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c General -r 0,                0.5s,            0d99-8693
+/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c With_Crosstraffic -r 0,      0.5s,            9855-4a9e
+/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c Without_TDMA -r 0,           0.5s,            34ec-af35
+/examples/tsn/small_network_ofnc,    -f omnetpp.ini -c With_Qci -r 0,               0.5s,            0660-5c7d
+/examples/papers/omnetsummit2019/configanalysis, -f omnetpp.ini -c General -r 0,                10s,             7695-7fb4
+/examples/papers/omnetsummit2019/configanalysis, -f omnetpp.ini -c CaseStudy -r 0,              5s,              9ec5-4cbe
+/examples/papers/omnetsummit2019/configanalysis, -f omnetpp.ini -c CaseStudy_WithCT -r 0,       5s,              99aa-eafd
