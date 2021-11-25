@@ -27,6 +27,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "inet/common/InitStages.h"
+
 #include <sdn4core/controllerState/base/PortModule.h>
 #include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
 
@@ -106,9 +108,18 @@ public:
     }
 
 protected:
+    //used as a workaround for dynamically created modules during initialization from config
+    virtual int numInitStages() const override {
+        return inet::NUM_INIT_STAGES;
+    }
 
-    virtual void initialize() override {
-        loadConfig(par("config"));
+    virtual void initialize(int stage) override {
+        if (state == 0) {
+            initialize();
+        }
+        else if (stage == inet::INITSTAGE_LAST) {
+            loadConfig(par("config"));
+        }
     }
 
     virtual void finish() override {
