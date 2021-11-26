@@ -23,11 +23,6 @@ namespace SDN4CoRE{
 
 Define_Module(TSNLearningControllerApp);
 
-void TSNLearningControllerApp::initialize()
-{
-    AVBLearningControllerApp::initialize();
-}
-
 void TSNLearningControllerApp::handleParameterChange(const char* parname)
 {
     AVBLearningControllerApp::handleParameterChange(parname);

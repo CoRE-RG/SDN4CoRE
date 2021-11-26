@@ -32,7 +32,6 @@ namespace SDN4CoRE{
 class TSNLearningControllerApp : public virtual AVBLearningControllerApp
 {
   protected:
-    virtual void initialize() override;
 
     /**
      * @brief Indicates a parameter has changed.

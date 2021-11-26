@@ -21,15 +21,10 @@
 //STD
 #include <sstream>
 //inet
-#include "inet/common/ModuleAccess.h"
-#include "inet/linklayer/common/MACAddress.h"
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
-//AUTO_GENERATED MESSAGES
-#include "inet/transportlayer/contract/tcp/TCPCommand_m.h"
 //openflow
 #include "openflow/messages/OFP_Flow_Mod_m.h"
 #include "openflow/messages/OFP_Packet_In_m.h"
-#include "openflow/openflow/controller/OF_Controller.h"
 #include "openflow/openflow/protocol/OFMessageFactory.h"
 #include "openflow/openflow/protocol/OFMatchFactory.h"
 
@@ -92,24 +87,20 @@ void LearningControllerApp::receiveSignal(cComponent* src, simsignal_t id,
 
 void LearningControllerApp::finish() {
     AbstractControllerApp::finish();
-    cout << stateToXML();
-}
 
-oxm_basic_match LearningControllerApp::createMatchFromPacketIn(
-        OFP_Packet_In* packetIn) {
-    CommonHeaderFields headerFields = extractCommonHeaderFields(packetIn);
-
-    auto builder = OFMatchFactory::getBuilder();
-    builder->setField(OFPXMT_OFB_ETH_DST, &headerFields.dst_mac);
-    builder->setField(OFPXMT_OFB_ETH_TYPE, &headerFields.eth_type);
-    builder->setField(OFPXMT_OFB_ETH_SRC, &headerFields.src_mac);
-    builder->setField(OFPXMT_OFB_IN_PORT, &headerFields.inport);
-    oxm_basic_match match = builder->build();
-
-    return match;
+    string filename = par("dumpConfig").stdstringValue();
+    if (!filename.empty()) {
+        ofstream file;
+        file.open(filename.c_str(), ios::app);
+        if (!file.is_open())
+            throw cRuntimeError("Cannot open output file");
+        file << stateToXML();
+        file.close();
+    }
 }
 
 void LearningControllerApp::doSwitching(OFP_Packet_In* packet_in_msg) {
+    Enter_Method("doSwitching()");
     CommonHeaderFields headerFields = extractCommonHeaderFields(packet_in_msg);
     //search map for source mac address and enter
     _macManager->update(headerFields.swInfo, headerFields.src_mac,
@@ -128,76 +119,37 @@ void LearningControllerApp::doSwitching(OFP_Packet_In* packet_in_msg) {
     }
 }
 
+oxm_basic_match LearningControllerApp::createMatchFromPacketIn(
+        OFP_Packet_In* packetIn) {
+    CommonHeaderFields headerFields = extractCommonHeaderFields(packetIn);
+
+    auto builder = OFMatchFactory::getBuilder();
+    builder->setField(OFPXMT_OFB_ETH_DST, &headerFields.dst_mac);
+    builder->setField(OFPXMT_OFB_ETH_TYPE, &headerFields.eth_type);
+    builder->setField(OFPXMT_OFB_ETH_SRC, &headerFields.src_mac);
+    builder->setField(OFPXMT_OFB_IN_PORT, &headerFields.inport);
+    oxm_basic_match match = builder->build();
+
+    return match;
+}
+
 bool LearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
+    Enter_Method("loadOfflineConfigFromXML()");
     //load XML config if specified.
     bool changed = false;
     cXMLElement* xmlDoc = par("configXML").xmlValue();
     if (xmlDoc) { //we got an XML document for config set.
-        cXMLElement* controllerXML = xmlDoc->getFirstChildWithAttribute(
-                "controllerapp", "type", "AVBLearningControllerApp");
-        if (controllerXML) { //the XML document contains config for this type of controller app.
-                             //get the switch ids.
-            cXMLElement* macManagerXML = controllerXML->getFirstChildWithTag(
-                    "macManager");
-            if (macManagerXML) {
-
-                cXMLElement* switchXML =
-                        macManagerXML->getFirstChildWithAttribute("mactable",
-                                "switch_id", info->getMacAddress().c_str());
-                if (switchXML) {
-                    cXMLElementList macTableXML =
-                            switchXML->getChildrenByTagName("entry");
-                    if (!macTableXML.empty()) { // we git mac entries for this switch.
-                                                //check if there already is a mac table for the switch
-//                        std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> >* lut = _macManager->getLookupTable();
-                    //fill the map.
-                        for (size_t i = 0; i < macTableXML.size(); i++) {
-                            MACAddress mac = MACAddress(
-                                    macTableXML[i]->getAttribute("mac"));
-                            if (!mac.isUnspecified()) {
-                                if (const char * portC =
-                                        macTableXML[i]->getAttribute("port")) {
-                                    uint32_t port = atoi(portC);
-
-                                    changed |= _macManager->update(info, mac,
-                                            port);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        changed |= _macManager->loadConfigForSwitch(info->getMacAddress(), xmlDoc);
     }
     return changed;
 }
 
-std::string LearningControllerApp::stateToXML() {
-
+string LearningControllerApp::stateToXML() {
     ostringstream oss;
-    string tab = "    ";
-    oss << "<config>" << endl;
-    oss << tab << "<controllerapp type=\"AVBLearningControllerApp\">" << endl;
-
-    //mac table
-    oss << tab << tab << "<macManager>" << endl;
-//    std::unordered_map<Switch_Info*, std::map<inet::MACAddress, uint32_t> >* lut = _macManager->getLookupTable();
-//    for(auto switchMap =lut->begin();switchMap != lut->end();++switchMap){
-//        oss << tab << tab << tab << "<mactable switch_id=\"" << switchMap->first->getMacAddress() << "\">" << endl;
-//
-//        for(auto macToPortMap =switchMap->second.begin();macToPortMap != switchMap->second.end();++macToPortMap){
-//            oss << tab << tab << tab << tab << "<entry mac=\"" << macToPortMap->first.str() << "\" port=\"" << macToPortMap->second << "\" />" << endl;
-//        }
-//
-//        oss << tab << tab << tab << "</mactable>" << endl;
-//    }
-    oss << tab << tab << tab
-            << "<TODO=\"currently not available for inet::MACAddressTable\" />"
-            << endl;
-    oss << tab << tab << "</macManager>" << endl;
-
-    oss << tab << "</controllerapp>" << endl;
-    oss << "</config>" << endl;
+    string tab = "\t";
+    oss << "<controller>" << endl;
+    _macManager->dumpConfigToStream(oss, 2);
+    oss << "</controller>" << endl;
     return oss.str();
 }
 

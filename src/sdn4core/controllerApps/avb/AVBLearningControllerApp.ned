@@ -17,7 +17,7 @@
 
 package sdn4core.controllerApps.avb;
 
-import openflow.controllerApps.AbstractControllerApp;
+import sdn4core.controllerApps.base.LearningControllerApp;
 
 //
 // AVBLearningControllerApp is an SDN controller application that handles 
@@ -25,18 +25,10 @@ import openflow.controllerApps.AbstractControllerApp;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple AVBLearningControllerApp like AbstractControllerApp
+simple AVBLearningControllerApp extends LearningControllerApp
 {
     parameters:
         @class(SDN4CoRE::AVBLearningControllerApp);
-        @display("i=block/app");
-		//hard timeout for flow entries
-        int flowModHardTimeOut = default(0);
-        //idle timeout for flow entries
-        int flowModIdleTimeOut = default(10);
         //path to the srp table module.
         string srpTable = default("^.srpTable");
-        //offline configuration containing mac and srp information.
-        xml configXML = default(xml("<root/>"));
-        int priority = default(1);
 }

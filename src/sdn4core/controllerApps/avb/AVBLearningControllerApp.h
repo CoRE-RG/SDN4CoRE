@@ -18,15 +18,12 @@
 #ifndef __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_
 #define __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_
 
+#include "sdn4core/controllerApps/base/LearningControllerApp.h"
 #include "sdn4core/controllerState/srp/SRPTableManagement.h"
-#include "sdn4core/controllerState/mac/MACTableManagement.h"
 //STD
 #include <vector>
-#include <string>
-//openflow
-#include <openflow/openflow/protocol/OpenFlow.h>
-#include "openflow/openflow/controller/Switch_Info.h"
-#include "openflow/controllerApps/AbstractControllerApp.h"
+
+using namespace omnetpp;
 
 namespace SDN4CoRE{
 
@@ -36,38 +33,14 @@ namespace SDN4CoRE{
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class AVBLearningControllerApp : public openflow::AbstractControllerApp
+class AVBLearningControllerApp : public LearningControllerApp
 {
 public:
-    int getHardTimeout() const {
-        return _hardTimeout;
-    }
-
-    int getIdleTimeout() const {
-        return _idleTimeout;
-    }
-
-    AVBLearningControllerApp();
-    ~AVBLearningControllerApp();
-
-    virtual void finish() override;
 
 
   protected:
-    void receiveSignal(omnetpp::cComponent *src, omnetpp::simsignal_t id, omnetpp::cObject *obj, omnetpp::cObject *details) override;
-    virtual void initialize();
-
-    /**
-     * @brief Indicates a parameter has changed.
-     *
-     * @param parname Name of the changed parameter or nullptr if multiple parameter changed.
-     */
-    virtual void handleParameterChange(const char* parname) override;
-    /**
-     * Implements the main switching engine for best effort packets.
-     * @param packet_in_msg Packet in the be switched.
-     */
-    virtual void doSwitching(openflow::OFP_Packet_In *packet_in_msg);
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details) override;
+    virtual void initialize() override;
 
     /**
      * Implements how to process SRP packets.
@@ -92,69 +65,31 @@ public:
      */
     virtual void forwardSRPPacket(openflow::OFP_Packet_In *packet_in_msg);
 
-    void setHardTimeout(int hardTimeout) {
-        this->_hardTimeout = hardTimeout;
-    }
-
-    void setIdleTimeout(int idleTimeout) {
-        this->_idleTimeout = idleTimeout;
-    }
-
     /**
      * Loads an offline Configuration for the controller app regarding a connected switch
      * containing MAC and SRP Table.
      * @param info  The switch to load the offline config for.
      * @return      true if a config was loaded.
      */
-    bool loadOfflineConfigFromXML(openflow::Switch_Info* info);
+    virtual bool loadOfflineConfigFromXML(openflow::Switch_Info* info) override;
 
     /**
      * Exports the current state of the MAC and SRP table and creates an XML formatted string.
      * @return      The current state as an XML formatted string
      */
-    std::string stateToXML ();
-
-    /**
-     *  Creates a match from an packet in message, setting as many match fields as possible.
-     * @param packetIn  The packet in message to create a match for.
-     * @return          The match created.
-     */
-    virtual openflow::oxm_basic_match createMatchFromPacketIn(openflow::OFP_Packet_In* packetIn);
+    virtual std::string stateToXML () override;
 
     /**
      * A management module handling all SRP operations.
      */
     SRPTableManagement* _srpManager;
 
-    /**
-     * A management module handling all MAC operations.
-     */
-    MACTableManagement* _macManager;
-
-  private:
-    /**
-     * The cached IdleTimeOut parameter.
-     */
-    int _idleTimeout;
-    /**
-     * The cached HardTimeOut parameter.
-     */
-    int _hardTimeout;
-
-    /**
-     * The MAC table associated with each SDN switch in the network.
-     */
-    std::map<openflow::Switch_Info *,std::map<std::string, int>> unknownMacs;
+private:
 
     /**
      * Path to the ned module of the SRPTableManagement.
      */
     static const char SRPTABLEMANAGERMODULEPATH [];
-
-    /**
-     * Path to the ned module of the MACTableManagement.
-     */
-    static const char MACTABLEMANAGERMODULEPATH [];
 };
 
 } /*end namespace SDN4CoRE*/

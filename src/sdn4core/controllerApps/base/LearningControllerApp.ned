@@ -30,12 +30,13 @@ simple LearningControllerApp like AbstractControllerApp
 {
     parameters:
         @class(SDN4CoRE::LearningControllerApp);
-        @display("i=block/app");
 		//hard timeout for flow entries in seconds
         int flowModHardTimeOut = default(0);
         //idle timeout for flow entries in seconds
         int flowModIdleTimeOut = default(10);
         //offline configuration containing mac and srp information.
         xml configXML = default(xml("<root/>"));
+        // write configuration into the given config file that can be fed back
+        string dumpConfig = default("");
         int priority = default(1);
 }

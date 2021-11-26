@@ -240,9 +240,9 @@ bool SRPTableManagement::readSRPTableFromXML(cXMLElement* srp, const string& swM
     }
     if(cXMLElement* listenerTable = srp->getFirstChildWithTag("listenerTable")){
         for(auto listenerEntry : listenerTable->getChildrenByTagName("listenerEntry")){
-            if(const char* value = listenerTable->getAttribute("vlan_id")){
+            if(const char* value = listenerEntry->getAttribute("vlan_id")){
                 uint16_t vlan_id = atoi(value);
-                if(const char* value = listenerTable->getAttribute("stream_id")){
+                if(const char* value = listenerEntry->getAttribute("stream_id")){
                     uint64_t stream_id = atoi(value);
                     if(const char* value = listenerEntry->getAttribute("port")){
                         int port = atoi(value);

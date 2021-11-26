@@ -15,12 +15,11 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-#ifndef __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_
-#define __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_
+#ifndef __SDN4CORE_LEARNINGCONTROLLERAPP_H_
+#define __SDN4CORE_LEARNINGCONTROLLERAPP_H_
 
 #include "sdn4core/controllerState/mac/MACTableManagement.h"
 //STD
-#include <vector>
 #include <string>
 //openflow
 #include <openflow/openflow/protocol/OpenFlow.h>
@@ -70,20 +69,6 @@ protected:
     virtual void doSwitching(openflow::OFP_Packet_In *packet_in_msg);
 
     /**
-     * Loads an offline Configuration for the controller app regarding a connected switch
-     * containing MAC and SRP Table.
-     * @param info  The switch to load the offline config for.
-     * @return      true if a config was loaded.
-     */
-    bool loadOfflineConfigFromXML(openflow::Switch_Info* info);
-
-    /**
-     * Exports the current state of the MAC and SRP table and creates an XML formatted string.
-     * @return      The current state as an XML formatted string
-     */
-    std::string stateToXML();
-
-    /**
      *  Creates a match from an packet in message.
      * @param packetIn  The packet in message to create a match for.
      * @return          The match created.
@@ -91,6 +76,21 @@ protected:
     virtual openflow::oxm_basic_match createMatchFromPacketIn(
             openflow::OFP_Packet_In* packetIn);
 
+    /**
+     * Loads an offline Configuration for the controller app regarding a connected switch
+     * containing MAC and SRP Table.
+     * @param info  The switch to load the offline config for.
+     * @return      true if a config was loaded.
+     */
+    virtual bool loadOfflineConfigFromXML(openflow::Switch_Info* info);
+
+    /**
+     * Exports the current state of the MAC and SRP table and creates an XML formatted string.
+     * @return      The current state as an XML formatted string
+     */
+    virtual std::string stateToXML();
+
+protected:
     /**
      * A management module handling all MAC operations.
      */
@@ -113,4 +113,4 @@ private:
 
 } /*end namespace SDN4CoRE*/
 
-#endif /* __OPENFLOW_AVB_AVBLEARNINGCONTROLLERAPP_H_ */
+#endif /* __SDN4CORE_LEARNINGCONTROLLERAPP_H_ */
