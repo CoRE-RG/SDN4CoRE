@@ -26,7 +26,6 @@
 //CoRE4INET
 #include "core4inet/base/avb/AVBDefs.h"
 
-
 using namespace std;
 using namespace openflow;
 using namespace CoRE4INET;
@@ -37,13 +36,15 @@ Define_Module(SRPTableManagement);
 
 bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
         TalkerAdvertise* talkerAdvertise) {
-    Enter_Method("registerTalker");
+    Enter_Method ("registerTalker");
     //check if we need to create a table for this switch.
     SRPTable* srpTable = getOrCreateManagedState(swinfo->getMacAddress());
 
     //check if this talker is already known
-    PortModule* module = dynamic_cast<PortModule*>(srpTable->getTalkerForStreamId(talkerAdvertise->getStreamID(),
-            talkerAdvertise->getVlan_identifier()));
+    PortModule* module =
+            dynamic_cast<PortModule*>(srpTable->getTalkerForStreamId(
+                    talkerAdvertise->getStreamID(),
+                    talkerAdvertise->getVlan_identifier()));
     if (module && module->getPort() != arrivalPort) {
         //talker is already known to us but with a different port.
         throw std::invalid_argument("Talker already exists on another port");
@@ -63,14 +64,16 @@ bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
     //only take first 3 bit and shift them to fit the uint8_t
     uint8_t pcp = (talkerAdvertise->getPriorityAndRank() & 0xE0) >> 5;
 
-    return srpTable->updateTalkerWithStreamId(talkerAdvertise->getStreamID(), module,
-            talkerAdvertise->getDestination_address(), srClass, talkerAdvertise->getMaxFrameSize(),
-            talkerAdvertise->getMaxIntervalFrames(), talkerAdvertise->getVlan_identifier(), pcp, false);
+    return srpTable->updateTalkerWithStreamId(talkerAdvertise->getStreamID(),
+            module, talkerAdvertise->getDestination_address(), srClass,
+            talkerAdvertise->getMaxFrameSize(),
+            talkerAdvertise->getMaxIntervalFrames(),
+            talkerAdvertise->getVlan_identifier(), pcp, false);
 }
 
-bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo, int arrivalPort,
-        CoRE4INET::ListenerReady* listenerReady) {
-    Enter_Method("registerListener");
+bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo,
+        int arrivalPort, CoRE4INET::ListenerReady* listenerReady) {
+    Enter_Method ("registerListener");
     //check if there is a table for this switch
     SRPTable* srpTable = getManagedState(swinfo->getMacAddress());
     if (!srpTable) {
@@ -78,11 +81,11 @@ bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo, int arr
     }
     //check if this listener is already known
     PortModule* module = nullptr;
-    std::list<cModule*> listeners = srpTable->getListenersForStreamId(listenerReady->getStreamID(),
-            listenerReady->getVlan_identifier());
-    for(auto listener : listeners){
+    std::list<cModule*> listeners = srpTable->getListenersForStreamId(
+            listenerReady->getStreamID(), listenerReady->getVlan_identifier());
+    for (auto listener : listeners) {
         PortModule* port = dynamic_cast<PortModule*>(listener);
-        if(port->getPort() == arrivalPort) {
+        if (port->getPort() == arrivalPort) {
             module = port;
             break;
         }
@@ -91,14 +94,14 @@ bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo, int arr
         module = getOrCreateSwitchPort(swinfo->getMacAddress(), arrivalPort);
     }
 
-    srpTable->updateListenerWithStreamId(listenerReady->getStreamID(),
-            module, listenerReady->getVlan_identifier());
+    srpTable->updateListenerWithStreamId(listenerReady->getStreamID(), module,
+            listenerReady->getVlan_identifier());
     return true;
 }
 
 SRPTableManagement::SRPForwardingInfo_t* SRPTableManagement::getForwardingInfoForStreamID(
         Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id) {
-    Enter_Method("getForwardingInfoForStreamID");
+    Enter_Method ("getForwardingInfoForStreamID");
     SRPForwardingInfo_t* fwd = new SRPForwardingInfo_t();
     SRPTable* srpTable = getManagedState(swinfo->getMacAddress());
     if (!srpTable) {
@@ -110,7 +113,8 @@ SRPTableManagement::SRPForwardingInfo_t* SRPTableManagement::getForwardingInfoFo
     fwd->streamID = streamID;
     fwd->vlanID = vlan_id;
     //get talker
-    SRPTable::TalkerEntry* talker = srpTable->getTalkerEntryForStreamId(streamID, vlan_id);
+    SRPTable::TalkerEntry* talker = srpTable->getTalkerEntryForStreamId(
+            streamID, vlan_id);
     if (talker) {
         fwd->srClass = (uint8_t) talker->srClass;
         fwd->dest = talker->address;
@@ -122,9 +126,10 @@ SRPTableManagement::SRPForwardingInfo_t* SRPTableManagement::getForwardingInfoFo
     }
 
     //get listerners
-    std::list<cModule*>  listeners = srpTable->getListenersForStreamId(streamID, vlan_id);
+    std::list<cModule*> listeners = srpTable->getListenersForStreamId(streamID,
+            vlan_id);
     //fill the output info for each listener.
-    for(auto listener : listeners){
+    for (auto listener : listeners) {
         PortModule* port = dynamic_cast<PortModule*>(listener);
         if (std::find(fwd->outports.begin(), fwd->outports.end(),
                 port->getPort()) != fwd->outports.end()) {
@@ -137,45 +142,150 @@ SRPTableManagement::SRPForwardingInfo_t* SRPTableManagement::getForwardingInfoFo
     return fwd;
 }
 
-std::string SRPTableManagement::exportToXML() {
+void SRPTableManagement::dumpConfigToStream(std::ostream& stream,
+        int indentTabs) {
+    Enter_Method_Silent ("dumpConfigToStream");
     ostringstream oss;
-    oss << "<srpManager>" << endl;
-
-    for (auto iter = cachedManagedStates.begin(); iter != cachedManagedStates.end(); ++iter) {
-        // start srp table
-        oss << "<table switch_id=\"" << iter->first << ">" << endl;
-
-        oss << iter->second->exportToXML();
-
-        oss << "</table>" << endl;
+    stream << string(indentTabs, '\t') << "<srpManager>" << endl;
+    const map<string, SRPTable*>& managedStates = getAllManagedStates();
+    for (auto table : managedStates) {
+        stream << exportSRPTableToXML(table.second, table.first, indentTabs + 1);
     }
-
-    oss << "</srpManager>" << endl;
-
-    return oss.str();
+    stream << string(indentTabs, '\t') << "</srpManager>" << endl;
 }
 
-bool SRPTableManagement::importFromXML(Switch_Info* swinfo, cXMLElement* xml) {
+bool SRPTableManagement::loadConfig(cXMLElement* configuration) {
+    Enter_Method_Silent ("loadConfig");
+    bool changed = false;
+    if (cXMLElement* srpManagerXML = locateSrpManagerInXML(configuration)) {
+        for (cXMLElement* table : srpManagerXML->getChildrenByTagName("srpTable")) {
+            if (const char* swMac = table->getAttribute("switch_id")) {
+                changed |= readSRPTableFromXML(table, swMac);
+            }
+        }
+    }
+    return changed;
+}
 
-    if(xml && (strcmp(xml->getName(), "srpManager")== 0)){
-        cXMLElementList tables = xml->getChildrenByTagName("table");
-        for(cXMLElement* table : tables){
-            if(strcmp(table->getAttribute("switch_id"),swinfo->getMacAddress().c_str()) == 0) {
-                cXMLElement* srp = table->getFirstChildWithTag("srpTable");
-                if(srp){
-                    return getOrCreateManagedState(swinfo->getMacAddress())->importFromXML(srp);
+bool SRPTableManagement::loadConfigForSwitch(const string& swMacAddr,
+        cXMLElement* configuration) {
+    Enter_Method_Silent ("loadConfigForSwitch");
+    if (cXMLElement* srpManagerXML = locateSrpManagerInXML(configuration)) {
+        for (cXMLElement* table : srpManagerXML->getChildrenByTagName("srpTable")) {
+            if (const char* swMac = table->getAttribute("switch_id")) {
+                if (strcmp(swMac, swMacAddr.c_str()) == 0) {
+                    return readSRPTableFromXML(table, swMac);
                 }
             }
         }
     }
-
     return false;
 }
 
 void SRPTableManagement::onCreateManagedState(SRPTable* managedState,
         std::string& swMacAddr) {
-    ControllerStateManagementBase<SRPTable>::onCreateManagedState(managedState, swMacAddr);
-    managedState->par("agingTime").setDoubleValue(this->par("agingTime").doubleValue());
+    ControllerStateManagementBase<SRPTable>::onCreateManagedState(managedState,
+            swMacAddr);
+    managedState->par("agingTime").setDoubleValue(
+            this->par("agingTime").doubleValue());
+}
+
+cXMLElement* SRPTableManagement::locateSrpManagerInXML(cXMLElement* configuration) {
+    if (!configuration) {
+        return nullptr;
+    }
+    if (configuration->isName("srpManager")) {
+        return configuration;
+    } else {
+        return configuration->getFirstChildWithTag("srpManager");
+    }
+}
+
+bool SRPTableManagement::readSRPTableFromXML(cXMLElement* srp, const string& swMac) {
+    bool changed = false;
+    SRPTable* srpTable = getOrCreateManagedState(swMac);
+    if(cXMLElement* talkerTable = srp->getFirstChildWithTag("talkerTable")) {
+        for(auto talkerEntry : talkerTable->getChildrenByTagName("talkerEntry")){
+            if(const char* value = talkerEntry->getAttribute("vlan_id")){
+                uint16_t vlan_id = atoi(value);
+                if(const char* value = talkerEntry->getAttribute("stream_id")){
+                    uint64_t stream_id = atoi(value);
+                    if(const char* value = talkerEntry->getAttribute("srClass")){
+                        SR_CLASS srClass = SR_CLASS::A;
+                        if (!strcmp(value, "B")){
+                            srClass = SR_CLASS::B;
+                        }
+                        if(const char* value = talkerEntry->getAttribute("address")){
+                            inet::MACAddress address = inet::MACAddress(value);
+                            if(const char* value = talkerEntry->getAttribute("framesize")){
+                                size_t framesize = atoi(value);
+                                if(const char* value = talkerEntry->getAttribute("intervalFrames")){
+                                    uint16_t intervalFrames = atoi(value);
+                                        if(const char* value = talkerEntry->getAttribute("pcp")){
+                                        uint8_t pcp = atoi(value);
+                                        if(const char* value = talkerEntry->getAttribute("port")){
+                                            int port = atoi(value);
+                                            PortModule* module = getOrCreateSwitchPort(swMac, port);
+                                            //all values are set correctly --> insert talker.
+                                            changed |= srpTable->updateTalkerWithStreamId(stream_id, module, address, srClass, framesize, intervalFrames, vlan_id, pcp, true);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if(cXMLElement* listenerTable = srp->getFirstChildWithTag("listenerTable")){
+        for(auto listenerEntry : listenerTable->getChildrenByTagName("listenerEntry")){
+            if(const char* value = listenerTable->getAttribute("vlan_id")){
+                uint16_t vlan_id = atoi(value);
+                if(const char* value = listenerTable->getAttribute("stream_id")){
+                    uint64_t stream_id = atoi(value);
+                    if(const char* value = listenerEntry->getAttribute("port")){
+                        int port = atoi(value);
+                        PortModule* module = getOrCreateSwitchPort(swMac, port);
+                        //all values are set correctly --> insert listener.
+                        changed |= srpTable->updateListenerWithStreamId(stream_id, module, vlan_id,true);
+                    }
+                }
+            }
+        }
+    }
+    return changed;
+}
+
+string SRPTableManagement::exportSRPTableToXML (SRPTable* table, const string& swMac, int indentTabs) {
+    ostringstream oss;
+    oss << string(indentTabs, '\t') << "<srpTable switch_id=\""
+                << swMac << "\" >" << endl;
+    oss << string(indentTabs+1, '\t') << "<talkerTable>" << endl;
+    for(auto& talkerEntry : table->getTalkerEntries()){
+        oss << string(indentTabs+2, '\t') << "<talkerEntry";
+        oss << " stream_id=\"" << talkerEntry.streamId << "\"";
+        oss << " vlan_id=\"" << talkerEntry.vlan_id << "\"";
+        oss << " srClass=\"" << SR_CLASStoString[talkerEntry.srClass] << "\"";
+        oss << " address=\"" << talkerEntry.address.str() << "\"";
+        oss << " port=\"" << dynamic_cast<PortModule*>(talkerEntry.module)->getPort() << "\"";
+        oss << " framesize=\"" << talkerEntry.framesize << "\"";
+        oss << " intervalFrames=\"" << talkerEntry.intervalFrames << "\"";
+        oss << " pcp=\"" << static_cast<int>(talkerEntry.pcp) << "\"";
+        oss << " />" << endl;
+    }
+    oss << string(indentTabs+1, '\t') << "</talkerTable>" << endl;
+    oss << string(indentTabs+1, '\t') << "<listenerTable>" << endl;
+    for(auto& listenerEntry : table->getListenerEntries()){
+        oss << string(indentTabs+2, '\t') << "<listenerEntry";
+        oss << " stream_id=\"" << listenerEntry.streamId << "\"";
+        oss << " vlan_id=\"" << listenerEntry.vlan_id << "\"";
+        oss << " port=\"" << dynamic_cast<PortModule*>(listenerEntry.module)->getPort() << "\"";
+        oss << " />" << endl;
+    }
+    oss << string(indentTabs+1, '\t') << "</listenerTable>" << endl;
+    oss << string(indentTabs, '\t') << "</srpTable>" << endl;
+    return oss.str();
 }
 
 } /*end namespace SDN4CoRE*/

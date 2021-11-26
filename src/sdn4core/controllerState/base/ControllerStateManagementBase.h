@@ -81,6 +81,17 @@ public:
     }
 
     /**
+     * Read a configuration for one specific switch from the XML and load it
+     * into the controller state.
+     * @param configuration the XML configuration to read.
+     * @return true if the controller state has changed.
+     */
+    virtual bool loadConfigForSwitch(const std::string& swMacAddr,
+            cXMLElement* configuration) {
+        return false;
+    }
+
+    /**
      * Interface function to dump XML config to file if specified in the parameter "dumpConfig".
      * Calls dumpConfigToStream() to get the state as XML from the implementing class.
      */
@@ -113,11 +124,12 @@ protected:
         return inet::NUM_INIT_STAGES;
     }
 
+    virtual void initialize() override {}
+
     virtual void initialize(int stage) override {
-        if (state == 0) {
+        if (stage == 0) {
             initialize();
-        }
-        else if (stage == inet::INITSTAGE_LAST) {
+        } else if (stage == inet::INITSTAGE_LAST) {
             loadConfig(par("config"));
         }
     }
@@ -186,6 +198,16 @@ protected:
             return cachedSwitchPorts[switchPortPair];
         }
         return findSwitchPort(swMacAddr, port);
+    }
+
+    /**
+     * Locates all switch port objects an returns them.
+     *
+     * @return a map of all switch ports with there switch mac address and port as the key.
+     */
+    const std::map<std::pair<std::string, int>, PortModule*>& getAllSwitchPorts() {
+        refreshCachedPorts();
+        return cachedSwitchPorts;
     }
 
     /**

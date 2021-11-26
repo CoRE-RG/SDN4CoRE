@@ -29,7 +29,8 @@ Define_Module(MACTableManagement);
 
 bool MACTableManagement::update(openflow::Switch_Info* sw_info,
         inet::MACAddress source, uint32_t in_port, int vlan_id) {
-    Enter_Method ("update");
+    Enter_Method
+    ("update");
     FriendMACAddressTable* lookupTable = getOrCreateManagedState(
             sw_info->getMacAddress());
     return lookupTable->updateTableWithAddress(in_port, source, vlan_id);
@@ -37,7 +38,8 @@ bool MACTableManagement::update(openflow::Switch_Info* sw_info,
 
 int MACTableManagement::lookup(openflow::Switch_Info* sw_info,
         inet::MACAddress destination, int vlan_id) {
-    Enter_Method ("lookup");
+    Enter_Method
+    ("lookup");
     if (FriendMACAddressTable* lookupTable = getManagedState(
             sw_info->getMacAddress())) {
         return lookupTable->getPortForAddress(destination, vlan_id);
@@ -46,7 +48,8 @@ int MACTableManagement::lookup(openflow::Switch_Info* sw_info,
 }
 
 bool MACTableManagement::loadConfig(cXMLElement* configuration) {
-    Enter_Method ("loadConfig");
+    Enter_Method
+    ("loadConfig");
     bool changed = false;
     if (configuration) {
         cXMLElement* macManagerXML;
@@ -94,9 +97,63 @@ bool MACTableManagement::loadConfig(cXMLElement* configuration) {
     return changed;
 }
 
+bool MACTableManagement::loadConfigForSwitch(const string& swMacAddr,
+        cXMLElement* configuration) {
+    Enter_Method
+    ("loadConfig");
+    bool changed = false;
+    if (configuration) {
+        cXMLElement* macManagerXML;
+        if (configuration->isName("macManager")) {
+            macManagerXML = configuration;
+        } else {
+            macManagerXML = configuration->getFirstChildWithTag("macManager");
+        }
+        if (macManagerXML) {
+            cXMLElementList switchesXML = macManagerXML->getChildrenByTagName(
+                    "mactable");
+            for (cXMLElement* switchXML : switchesXML) {
+                if (const char * swMac = switchXML->getAttribute("switch_id")) {
+                    if (strcmp(swMac, swMacAddr.c_str()) == 0) {
+                        cXMLElementList macTableXML =
+                                switchXML->getChildrenByTagName("entry");
+                        if (!macTableXML.empty()) {
+                            for (size_t i = 0; i < macTableXML.size(); i++) {
+                                MACAddress mac = MACAddress(
+                                        macTableXML[i]->getAttribute("mac"));
+                                if (!mac.isUnspecified()) {
+                                    if (const char * portC =
+                                            macTableXML[i]->getAttribute(
+                                                    "port")) {
+                                        int port = atoi(portC);
+                                        int vlanId = 0;
+                                        if (const char * vlanIdC =
+                                                macTableXML[i]->getAttribute(
+                                                        "vlan_id")) {
+                                            vlanId = atoi(vlanIdC);
+                                        }
+                                        FriendMACAddressTable* lookupTable =
+                                                this->getOrCreateManagedState(
+                                                        swMac);
+                                        changed |=
+                                                lookupTable->updateTableWithAddress(
+                                                        port, mac, vlanId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return changed;
+}
+
 void MACTableManagement::dumpConfigToStream(std::ostream& stream,
         int indentTabs) {
-    Enter_Method ("dumpConfigToStream");
+    Enter_Method
+    ("dumpConfigToStream");
     string indent = string(indentTabs, '\t');
     stream << indent << "<macManager>" << endl;
     const map<string, FriendMACAddressTable*>& managedStates =

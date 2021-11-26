@@ -73,6 +73,9 @@ public:
 
     virtual bool loadConfig(cXMLElement* configuration) override;
 
+    virtual bool loadConfigForSwitch(const std::string& swMacAddr,
+            cXMLElement* configuration) override;
+
     virtual void dumpConfigToStream(std::ostream& stream, int indentTabs = 0)
             override;
 

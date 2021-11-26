@@ -91,21 +91,13 @@ public:
     virtual SRPForwardingInfo_t* getForwardingInfoForStreamID(
             openflow::Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id);
 
-    /**
-     * @brief creates an XML string with the contents of the SRP Table.
-     * This string can be used to fill the SRP Table with importFromXML.
-     * @return  returns the XML string
-     */
-    std::string exportToXML();
+    virtual bool loadConfig(cXMLElement* configuration) override;
 
-    /**
-     * @brief Imports entries from an XMLdocument.
-     * The root element needs to be <srpTable>
-     * @param swinfo    the switch to be updated
-     * @param xml   the xml document to import from.
-     * @return  true if it was updated.
-     */
-    bool importFromXML(openflow::Switch_Info* swinfo, cXMLElement* xml);
+    virtual bool loadConfigForSwitch(const std::string& swMacAddr,
+            cXMLElement* configuration) override;
+
+    virtual void dumpConfigToStream(std::ostream& stream, int indentTabs = 0)
+            override;
 
 protected:
 
@@ -114,6 +106,35 @@ protected:
      */
     virtual void onCreateManagedState(CoRE4INET::SRPTable* managedState,
             std::string& swMacAddr) override;
+
+private:
+
+    /** Helper function to locate the srpManager tag in the XML configuration.
+     *
+     * @param configuration the xml configuration
+     * @return the srpManager xml element if found, else nullptr
+     */
+    cXMLElement* locateSrpManagerInXML(cXMLElement* configuration);
+
+    /**
+     * Helper function to parse the xml of one srp table.
+     * This is needed as the SRPTable class importFromXML function requires
+     * valid ports which have not yet been created from the manager.
+     * @param srp the SRPTable xml to read
+     * @param swMac the switch mac the table belongs to
+     * @return true if the table has been updated, else false
+     */
+    bool readSRPTableFromXML(cXMLElement* srp, const std::string& swMac);
+
+    /**
+     * Helper function to export one srp table to xml.
+     * This is needed as the SRPTable class exportToXML function uses
+     * the port modules dynamically created. @see~readSRPTableFromXML()
+     * @param table the SRP table to export
+     * @param indentTabs optional additional indentation for each line.
+     * @return the created XML string
+     */
+    std::string exportSRPTableToXML(CoRE4INET::SRPTable* table, const std::string& swMac, int indentTabs=0);
 
 };
 
