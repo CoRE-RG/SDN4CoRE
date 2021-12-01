@@ -49,8 +49,7 @@ const char AVBLearningControllerApp::SRPTABLEMANAGERMODULEPATH[] = "sdn4core.con
 void AVBLearningControllerApp::initialize() {
     LearningControllerApp::initialize();
     // try to locate the macTableManager
-    _srpManager = dynamic_cast<SRPTableManagement*>(this->getParentModule()->getSubmodule(
-                        "controllerState")->getSubmodule("srpTableManagement"));
+    _srpManager = tryLocateStateManager<SRPTableManagement*>("srpTableManagement");
     if(!_srpManager) {
             // create the mac manager
         _srpManager = dynamic_cast<SRPTableManagement*>(
@@ -62,23 +61,15 @@ void AVBLearningControllerApp::initialize() {
     }
 }
 
-void AVBLearningControllerApp::receiveSignal(cComponent* src, simsignal_t id,
-        cObject* obj, cObject* details) {
-    bool handled = false;
-    if (id == PacketInSignalId) {
-        if (OFP_Packet_In *packet_in = dynamic_cast<OFP_Packet_In *>(obj)) {
-            if (dynamic_cast<CoRE4INET::SRPFrame *>(packet_in->getEncapsulatedPacket())) {
-                handled = true;
-                doSRP(packet_in);
-            } else if (dynamic_cast<CoRE4INET::AVBFrame *>(packet_in->getEncapsulatedPacket())) {
-                // do nothing because the rule should be implemented allready.
-                //throw cRuntimeError("Controller Received AVB Frame, this should never happen.");
-                handled = true;
-            }
-        }
-    }
-    if(!handled) {
-        LearningControllerApp::receiveSignal(src, id, obj, details);
+void AVBLearningControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
+    Enter_Method("processPacketIn()");
+    if (dynamic_cast<CoRE4INET::SRPFrame *>(packet_in_msg->getEncapsulatedPacket())) {
+        doSRP(packet_in_msg);
+    } else if (dynamic_cast<CoRE4INET::AVBFrame *>(packet_in_msg->getEncapsulatedPacket())) {
+        // do nothing because the rule should be implemented allready.
+        //throw cRuntimeError("Controller Received AVB Frame, this should never happen.");
+    } else {
+        LearningControllerApp::processPacketIn(packet_in_msg);
     }
 }
 

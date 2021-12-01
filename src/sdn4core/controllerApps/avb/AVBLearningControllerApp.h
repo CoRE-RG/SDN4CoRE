@@ -39,8 +39,17 @@ public:
 
 
   protected:
-    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details) override;
     virtual void initialize() override;
+
+    /**
+     * Main processing engine of packet_in messages.
+     *
+     * Checks whether packet in is an srp or avb frame and handles them,
+     * else the learning controller can handle it.
+     *
+     * @param packet_in_msg The packet in message
+     */
+    virtual void processPacketIn(openflow::OFP_Packet_In *packet_in_msg) override;
 
     /**
      * Implements how to process SRP packets.

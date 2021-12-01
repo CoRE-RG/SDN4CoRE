@@ -12,22 +12,27 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
-// c Timo Haeckel, for HAW Hamburg
-// 
 
 package sdn4core.controllerApps.base;
 
-import sdn4core.controllerApps.base.PacketProcessorBase;
+import openflow.controllerApps.AbstractControllerApp;
 
 //
-// LearningControllerApp is an SDN controller application that handles 
-// best effort MAC switching. It uses the @see~MACTableManagement for 
-// L2 Address learning.
+// Base controller application for packet processors.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple LearningControllerApp extends PacketProcessorBase
+simple PacketProcessorBase like AbstractControllerApp
 {
     parameters:
-        @class(SDN4CoRE::LearningControllerApp);
+		//hard timeout for flow entries in seconds
+        int flowModHardTimeOut = default(0);
+        //idle timeout for flow entries in seconds
+        int flowModIdleTimeOut = default(10);
+        //offline configuration containing mac and srp information.
+        xml configXML = default(xml("<root/>"));
+        // write configuration into the given config file that can be fed back
+        string dumpConfig = default("");
+        // priority of a flow created by this application
+        int priority = default(1);
 }

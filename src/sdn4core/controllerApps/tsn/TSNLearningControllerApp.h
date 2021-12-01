@@ -51,7 +51,7 @@ class TSNLearningControllerApp : public virtual AVBLearningControllerApp
      * Implements the main switching engine for best effort packets.
      * @param packet_in_msg Packet in the be switched.
      */
-    virtual void doSwitching(openflow::OFP_Packet_In *packet_in_msg) override;
+    virtual void processPacketIn(openflow::OFP_Packet_In *packet_in_msg) override;
 
     /**
      * priorities that should not be dynamically forwarded, e.g., if they are scheduled

@@ -40,11 +40,9 @@ const char LearningControllerApp::MACTABLEMANAGERMODULEPATH[] =
         "sdn4core.controllerState.mac.MACTableManagement";
 
 void LearningControllerApp::initialize() {
-    AbstractControllerApp::initialize();
+    PacketProcessorBase::initialize();
     // try to locate the macTableManager
-    _macManager =
-            dynamic_cast<MACTableManagement*>(this->getParentModule()->getSubmodule(
-                    "controllerState")->getSubmodule("macTableManagement"));
+    _macManager = tryLocateStateManager<MACTableManagement*>("macTableManagement");
     if(!_macManager) {
         // create the mac manager
         _macManager =
@@ -58,49 +56,8 @@ void LearningControllerApp::initialize() {
     }
 }
 
-void LearningControllerApp::handleParameterChange(const char* parname) {
-    AbstractControllerApp::handleParameterChange(parname);
-    if (!parname || !strcmp(parname, "flowModIdleTimeOut")) {
-        _idleTimeout = par("flowModIdleTimeOut");
-    }
-    if (!parname || !strcmp(parname, "flowModHardTimeOut")) {
-        _hardTimeout = par("flowModHardTimeOut");
-    }
-}
-
-void LearningControllerApp::receiveSignal(cComponent* src, simsignal_t id,
-        cObject* obj, cObject* details) {
-    if (id == PacketInSignalId) {
-        EV << "LearningSwitch::PacketIn" << endl;
-        if (OFP_Packet_In *packet_in = dynamic_cast<OFP_Packet_In *>(obj)) {
-            doSwitching(packet_in);
-        }
-    } else if (id == PacketFeatureReplySignalId) {
-        if (Open_Flow_Message *msg = dynamic_cast<Open_Flow_Message *>(obj)) {
-            //new switch registered check if we allready got a offline config for it.
-            loadOfflineConfigFromXML(controller->findSwitchInfoFor(msg));
-        }
-    } else {
-        AbstractControllerApp::receiveSignal(src, id, obj, details);
-    }
-}
-
-void LearningControllerApp::finish() {
-    AbstractControllerApp::finish();
-
-    string filename = par("dumpConfig").stdstringValue();
-    if (!filename.empty()) {
-        ofstream file;
-        file.open(filename.c_str(), ios::app);
-        if (!file.is_open())
-            throw cRuntimeError("Cannot open output file");
-        file << stateToXML();
-        file.close();
-    }
-}
-
-void LearningControllerApp::doSwitching(OFP_Packet_In* packet_in_msg) {
-    Enter_Method("doSwitching()");
+void LearningControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
+    Enter_Method("processPacketIn()");
     CommonHeaderFields headerFields = extractCommonHeaderFields(packet_in_msg);
     //search map for source mac address and enter
     _macManager->update(headerFields.swInfo, headerFields.src_mac,
@@ -113,8 +70,8 @@ void LearningControllerApp::doSwitching(OFP_Packet_In* packet_in_msg) {
     } else {
         oxm_basic_match match = createMatchFromPacketIn(packet_in_msg);
         TCPSocket * socket = controller->findSocketFor(packet_in_msg);
-        sendFlowModMessage(OFPFC_ADD, match, outport, socket, _idleTimeout,
-                _hardTimeout);
+        sendFlowModMessage(OFPFC_ADD, match, outport, socket, getIdleTimeout(),
+                getHardTimeout());
         sendPacket(packet_in_msg, outport);
     }
 }

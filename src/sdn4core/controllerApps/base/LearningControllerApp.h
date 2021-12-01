@@ -18,13 +18,8 @@
 #ifndef __SDN4CORE_LEARNINGCONTROLLERAPP_H_
 #define __SDN4CORE_LEARNINGCONTROLLERAPP_H_
 
+#include "sdn4core/controllerApps/base/PacketProcessorBase.h"
 #include "sdn4core/controllerState/mac/MACTableManagement.h"
-//STD
-#include <string>
-//openflow
-#include <openflow/openflow/protocol/OpenFlow.h>
-#include "openflow/openflow/controller/Switch_Info.h"
-#include "openflow/controllerApps/AbstractControllerApp.h"
 
 using namespace omnetpp;
 
@@ -37,36 +32,17 @@ namespace SDN4CoRE {
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class LearningControllerApp: public openflow::AbstractControllerApp {
-public:
-    int getHardTimeout() const {
-        return _hardTimeout;
-    }
-
-    int getIdleTimeout() const {
-        return _idleTimeout;
-    }
+class LearningControllerApp: public PacketProcessorBase {
 
 protected:
-    void setHardTimeout(int hardTimeout) {
-        this->_hardTimeout = hardTimeout;
-    }
-
-    void setIdleTimeout(int idleTimeout) {
-        this->_idleTimeout = idleTimeout;
-    }
-
-    void receiveSignal(cComponent *src, simsignal_t id,
-            cObject *obj, cObject *details) override;
     virtual void initialize() override;
-    virtual void handleParameterChange(const char* parname) override;
-    virtual void finish() override;
 
     /**
      * Implements the main switching engine for best effort packets.
      * @param packet_in_msg Packet in the be switched.
      */
-    virtual void doSwitching(openflow::OFP_Packet_In *packet_in_msg);
+    virtual void processPacketIn(openflow::OFP_Packet_In *packet_in_msg)
+            override;
 
     /**
      *  Creates a match from an packet in message.
@@ -82,13 +58,13 @@ protected:
      * @param info  The switch to load the offline config for.
      * @return      true if a config was loaded.
      */
-    virtual bool loadOfflineConfigFromXML(openflow::Switch_Info* info);
+    virtual bool loadOfflineConfigFromXML(openflow::Switch_Info* info) override;
 
     /**
      * Exports the current state of the MAC and SRP table and creates an XML formatted string.
      * @return      The current state as an XML formatted string
      */
-    virtual std::string stateToXML();
+    virtual std::string stateToXML() override;
 
 protected:
     /**
@@ -98,17 +74,9 @@ protected:
 
 private:
     /**
-     * The cached flow rule IdleTimeOut parameter.
+     * NED path to the mac table manager for creation during runtime.
      */
-    int _idleTimeout;
-    /**
-     * The cached flow rule HardTimeOut parameter.
-     */
-    int _hardTimeout;
-    /**
-     *
-     */
-    static const char MACTABLEMANAGERMODULEPATH [];
+    static const char MACTABLEMANAGERMODULEPATH[];
 };
 
 } /*end namespace SDN4CoRE*/

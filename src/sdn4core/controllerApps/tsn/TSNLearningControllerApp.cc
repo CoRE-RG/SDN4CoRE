@@ -54,8 +54,9 @@ oxm_basic_match TSNLearningControllerApp::createMatchFromPacketIn(
     }
 }
 
-void TSNLearningControllerApp::doSwitching(OFP_Packet_In* packet_in_msg)
+void TSNLearningControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg)
 {
+    Enter_Method("processPacketIn()");
     if(CoRE4INET::EthernetIIFrameWithQTag* qframe = dynamic_cast<CoRE4INET::EthernetIIFrameWithQTag *>(packet_in_msg->getEncapsulatedPacket()))
     {
         for(int staticPriority: _staticPriorities){
@@ -65,7 +66,7 @@ void TSNLearningControllerApp::doSwitching(OFP_Packet_In* packet_in_msg)
             }
         }
     }
-    AVBLearningControllerApp::doSwitching(packet_in_msg);
+    AVBLearningControllerApp::processPacketIn(packet_in_msg);
 }
 
 } /*end namespace SDN4CoRE*/
