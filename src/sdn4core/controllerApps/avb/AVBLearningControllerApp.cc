@@ -62,7 +62,6 @@ void AVBLearningControllerApp::initialize() {
 }
 
 void AVBLearningControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
-    Enter_Method("processPacketIn()");
     if (dynamic_cast<CoRE4INET::SRPFrame *>(packet_in_msg->getEncapsulatedPacket())) {
         doSRP(packet_in_msg);
     } else if (dynamic_cast<CoRE4INET::AVBFrame *>(packet_in_msg->getEncapsulatedPacket())) {
@@ -74,7 +73,6 @@ void AVBLearningControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
 }
 
 void AVBLearningControllerApp::doSRP(OFP_Packet_In* packet_in_msg) {
-    Enter_Method("doSRP()");
     bool updated = true;
 
     Switch_Info * swInfo = controller->findSwitchInfoFor(packet_in_msg);

@@ -57,7 +57,6 @@ void LearningControllerApp::initialize() {
 }
 
 void LearningControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
-    Enter_Method("processPacketIn()");
     CommonHeaderFields headerFields = extractCommonHeaderFields(packet_in_msg);
     //search map for source mac address and enter
     _macManager->update(headerFields.swInfo, headerFields.src_mac,
