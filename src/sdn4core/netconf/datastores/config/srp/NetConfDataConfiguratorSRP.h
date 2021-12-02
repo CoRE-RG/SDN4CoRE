@@ -20,7 +20,6 @@
 
 //SDN4CoRE
 #include <sdn4core/netconf/datastores/config/base/NetConfDataConfiguratorBase.h>
-#include <sdn4core/switch/avb/services/avb/SRP/OF_SRProtocol.h>
 #include <sdn4core/netconf/messages/NetConfOperation_m.h>
 #include <sdn4core/netconf/datastructures/srp/NetConfConfigSRP.h>
 

@@ -17,7 +17,6 @@
 
 //SDN4CoRE
 #include <sdn4core/switch/avb/engine/AVB_OF_RelayUnit.h>
-#include <sdn4core/switch/avb/services/avb/SRP/OF_SRProtocol.h>
 //STD
 #include <sstream>
 #include <string>

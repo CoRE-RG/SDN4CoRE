@@ -19,9 +19,8 @@ package sdn4core.switch.avb;
 
 //CoRE4INET
 import core4inet.services.avb.SRP.SRPTable;
+import core4inet.services.avb.SRP.SRProtocol;
 
-
-import sdn4core.switch.avb.services.avb.SRP.OF_SRProtocol;
 import sdn4core.switch.base.OpenFlowSwitch;
 
 
@@ -50,10 +49,8 @@ module AVBOpenFlowSwitch extends OpenFlowSwitch
         }
 
 		// Stream Reservation Protocol implementation
-        srpProtocol: OF_SRProtocol {
+        srpProtocol: SRProtocol {
             portModule = "etherMAC";
-            macModulePath = ".phy.mac";
-            shaperModulePath = ".phy.shaper";
 			srpEncap = pathSwitchAgent;
             @display("p=325,241");
         }
