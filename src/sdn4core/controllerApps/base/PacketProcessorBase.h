@@ -18,7 +18,9 @@
 
 #include <omnetpp.h>
 //STD
+#include <map>
 #include <string>
+#include <vector>
 //openflow
 #include <openflow/openflow/protocol/OpenFlow.h>
 #include "openflow/openflow/controller/Switch_Info.h"
@@ -35,6 +37,44 @@ namespace SDN4CoRE {
  */
 class PacketProcessorBase: public openflow::AbstractControllerApp {
 public:
+
+    /**
+     * Packet Filter is a map of a string key and a string value list.
+     */
+    class PacketFilter : public std::map<std::string, std::vector<std::string>> {
+    public:
+        /**
+         * Initializes the PacketFilter map from a parameter string value.
+         *
+         * Syntax: "<key1>=<value11>,<value12>; ...; <keyK>=<valueK1>,...,<valueKV>"
+         * A list of filters separated by semicolon ";". Each filter contains
+         * exactly one key followed by "=" and a list of values separated with a comma ",".
+         * accepted values keys are:
+         *      key: "ethSrc" values: MAC address, e.g., AA-AA-AA-AA-AA-AA
+         *      key: "ethDst" values: MAC address, e.g., AA-AA-AA-AA-AA-AA
+         *      key: "etherType" values: etherType number, e.g., 0x0800 or 2048
+         *      key: "vlanId" values: VLAN identifier, e.g., 42
+         *      key: "vlanPcp" values: VLAN priority code points (0-7), e.g., 3
+         *      key: "ipSrc" values: IP address with optional netmask, e.g., 192.168.178.42 or 192.168.178.1/24
+         *      key: "ipDst" values: IP address with optional netmask, e.g., 192.168.178.42 or 192.168.178.1/24
+         *      key: "ipProto" values: IP protocol, e.g. 0x11 or 17
+         *      key: "udpSrc" values: UDP port, e.g., 1234
+         *      key: "udpDst" values: UDP port, e.g., 1234
+         *      key: "tcpSrc" values: TCP port, e.g., 1234
+         *      key: "tcpDst" values: TCP port, e.g., 1234
+         *
+         * @param parameterValue The string from cPar::stdStringValue() to be parsed
+         */
+        void initializeFromPar(const std::string& parameterValue);
+
+        bool matchesIntValue(std::string key, int value);
+        bool matchesStringValue(std::string key, std::string value);
+        bool matchesMACAddressValue(std::string key, inet::MACAddress value);
+        bool matchesL3AddressValue(std::string key, inet::L3Address value);
+
+        bool matchesPacketIn(openflow::OFP_Packet_In *packet_in_msg);
+    };
+
     int getHardTimeout() const {
         return _hardTimeout;
     }
@@ -73,6 +113,15 @@ protected:
     void receiveSignal(cComponent *src, simsignal_t id, cObject *obj,
             cObject *details) override;
     virtual void finish() override;
+
+    /**
+     * Checks whether the packetIn is filtered.
+     * This is the case, if the packet either does not match any of the entries in a
+     * non empty whitelist or it does match one entry in a non empty blacklist.
+     * @param packet_in_msg the packet information to check for filtering
+     * @return True if the packet is filtered, false indicates that it should be processed.
+     */
+    virtual bool isFiltered(openflow::OFP_Packet_In *packet_in_msg);
 
 // --------------------- INTERFACE FUNCTIONS ----------------------//
     /**
@@ -129,6 +178,14 @@ protected:
      * The cached flow rule HardTimeOut parameter.
      */
     int _hardTimeout;
+    /**
+     * A map with whitelisted packet filters cached from parameter.
+     */
+    PacketFilter _whitelist;
+    /**
+     * A map with blacklisted packet filters cached from parameter.
+     */
+    PacketFilter _blacklist;
 };
 
 } /*end namespace SDN4CoRE*/
