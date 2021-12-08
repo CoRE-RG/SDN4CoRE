@@ -32,13 +32,16 @@ void TransactionApp::initialize(){
     controllerProcessingTime = this->par("controllerProcessingTime").doubleValue();
     resultOfTransaction = registerSignal("transactionResult");
     transactionDuration = registerSignal("transactionDuration");
-    lockPhase = registerSignal("lockPhase");
-    changePhase = registerSignal("changePhase");
-    confirmationPhase = registerSignal("confirmationPhase");
-    unlockPhase = registerSignal("unlockPhase");
+    enterNewPhase = registerSignal("enterNewPhase");
 
     numSent = registerSignal("numSentMsgs");
     numReceived = registerSignal("numReceivedMsgs");
+
+    WATCH(this->result);
+    WATCH(this->transactionState);
+
+    //cDisplayString& parentDispStr = getParentModule()->getDisplayString();
+
 
     cXMLElement* xmlServerConnections = par("serverConnections").xmlValue();
     if (xmlServerConnections) {
@@ -325,7 +328,7 @@ void TransactionApp::checkEventHandled(bool eventHandled, cMessage* msg){
 bool TransactionApp::handleMessageInBeginOfTransaction(cMessage* msg){
     if(isStartTransactionEvent(msg)){
         emit(transactionDuration, true);
-        emit(lockPhase, true);
+        emit(enterNewPhase,TransactionApp::Phase::LOCK);
         determineLockOrder();
         transitionToState(TransactionAppState::WaitOnLockResponse);
         return true;
@@ -347,8 +350,7 @@ bool TransactionApp::handleMessageInWaitOnLockResponse(cMessage* msg){
                     return true;
                 }
                 else if(lockedSwitches.size() == switchStates.size()){
-                    emit(lockPhase, true);
-                    emit(changePhase,true);
+                    emit(enterNewPhase,TransactionApp::Phase::CHANGE);
                     // send_copy_config
                     Connection_t* connection;
                     Configuration_t* config;
@@ -577,9 +579,8 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
                         Configuration_t* config = new Configuration_t();
                         config->type = Configuration_t::NetConfMessageType_t::NetConfMessageType_Commit;
                         NetConfMessage_RPC* s_Commit_freigeben = createNetConfRPCForConfiguration(connection, config, COMMIT_APPROVED_MSG_ID);
-                        emit(changePhase,true);
                         sendDelayed(s_Commit_freigeben, controllerProcessingTime, gate("applicationOut"));
-                        emit(confirmationPhase,true);
+                        emit(enterNewPhase,TransactionApp::Phase::CONFIRMATION);
                     }
                 }
                 transitionToState(TransactionAppState::WaitOnCommitExecution);
@@ -624,8 +625,9 @@ bool TransactionApp::handleMessageInWaitOnCommitExecution(cMessage* msg){
                     transitionToState(TransactionAppState::WaitOnCommitExecution);
                     return true;
                 }else if(switchStates.size() == commitedSwitches.size()){
-                    emit(confirmationPhase,true);
-                    emit(unlockPhase, true);
+
+                    emit(enterNewPhase,TransactionApp::Phase::UNLOCK);
+
                     // send_delete_old_configuration
                     Connection_t* connection;
                     Configuration_t* config;
@@ -637,7 +639,7 @@ bool TransactionApp::handleMessageInWaitOnCommitExecution(cMessage* msg){
                             config->target = "candidate";
                             NetConfMessage_RPC* s_alte_Konfig_loeschen = createNetConfRPCForConfiguration(connection, config, DELETE_OLD_CONFIG_MSG_ID);
                             sendDelayed(s_alte_Konfig_loeschen, controllerProcessingTime, gate("applicationOut"));
-                            emit(numSent, 1L);
+                            (numSent, 1L);
                         }
                     }
                     transitionToState(TransactionAppState::WaitOnDeleteOldConfiguration);
@@ -744,7 +746,7 @@ bool TransactionApp::handleMessageInWaitOnUnlock(cMessage* msg){
                     transitionToState(TransactionAppState::WaitOnUnlock);
                     return true;
                 }else if(unlockedSwitches.size() == switchStates.size()){
-                    emit(unlockPhase, true);
+                    emit(enterNewPhase,TransactionApp::Phase::UNLOCK);
                     transitionToState(TransactionAppState::EndOfTransaction);
                     return true;
                 }

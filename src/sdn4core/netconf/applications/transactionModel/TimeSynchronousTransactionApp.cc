@@ -231,9 +231,8 @@ bool TimeSynchronousTransactionApp::handleMessageInWaitOnChangeConfirmation(cMes
                         if(connection){
                             Configuration_t* config = getCommitTimestampConfig(timestamp);
                             NetConfMessage_RPC* s_Zeitstempel = createNetConfRPCForConfiguration(connection, config, TIMESTAMP_MSG_ID);
-                            emit(changePhase,true);
                             sendDelayed(s_Zeitstempel, controllerProcessingTime, gate("applicationOut"));
-                            emit(confirmationPhase,true);
+                            emit(enterNewPhase,TransactionApp::Phase::CONFIRMATION);
                             emit(numSent, 1L);
                         }
                     }

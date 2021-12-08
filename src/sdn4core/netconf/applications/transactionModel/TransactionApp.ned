@@ -30,19 +30,14 @@ simple TransactionApp extends NetConfApplicationBase
         @statistic[transactionResult](title="Result of Transaction";record=vector?;interpolationmode=none);
         @signal[transactionDuration](type="bool");
         @statistic[transactionDuration](title="Duration of transaction";record=vector?;interpolationmode=none);
-        @signal[lockPhase]();
-        @statistic[lockPhase](title="Duration of lock phase";record=vector?;interpolationmode=none);
-        @signal[changePhase]();
-        @statistic[changePhase](title="Duration of change phase";record=vector?;interpolationmode=none);
-        @signal[confirmationPhase]();
-        @statistic[confirmationPhase](title="Duration of confirmation phase";record=vector?;interpolationmode=none);
-        @signal[unlockPhase]();
-        @statistic[unlockPhase](title="Duration of unlock phase";record=vector?;interpolationmode=none);
-        
+               
         @signal[numSentMsgs]();
         @statistic[numSentMsgs](title="Number of sent messages";record=vector?;interpolationmode=none);
         @signal[numReceivedMsgs]();
         @statistic[numReceivedMsgs](title="Number of received messages";record=vector?;interpolationmode=none);
+        
+		@signal[enterNewPhase](type="long");
+        @statistic[enterNewPhase](title="Phase changes";enum="LOCK=0,CHANGE=1,CONFIRMATION=2,UNLOCK=3";record=vector?;interpolationmode=sample-hold  );        
         
         double controllerProcessingTime @unit(s); // the processing time of a controller
         double startHelloHandshake @unit(s) = default(0s); // the begin of NetConf Hello Handshake
