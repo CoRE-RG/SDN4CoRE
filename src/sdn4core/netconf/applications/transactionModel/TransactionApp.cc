@@ -40,8 +40,6 @@ void TransactionApp::initialize(){
     WATCH(this->result);
     WATCH(this->transactionState);
 
-    //cDisplayString& parentDispStr = getParentModule()->getDisplayString();
-
 
     cXMLElement* xmlServerConnections = par("serverConnections").xmlValue();
     if (xmlServerConnections) {
@@ -67,6 +65,25 @@ void TransactionApp::initialize(){
         }
     }
     scheduleNextConnection();
+}
+
+void TransactionApp::updatePhase(Phase newPhase){
+    emit(enterNewPhase,newPhase);
+    cDisplayString& parentDispStr = getParentModule()->getParentModule()->getDisplayString();
+    switch(newPhase){
+        case Phase::LOCK:
+            parentDispStr.setTagArg("i", 1, "red");
+            parentDispStr.setTagArg("t", 0, "Lock Phase");
+            break;
+        case Phase::CHANGE:
+            parentDispStr.setTagArg("i", 1, "yellow");
+            parentDispStr.setTagArg("t", 0, "Change Phase");
+            break;
+        case Phase::CONFIRMATION:
+            parentDispStr.setTagArg("i", 1, "green");
+            parentDispStr.setTagArg("t", 0, "Confirmation Phase");
+            break;
+    }
 }
 
 void TransactionApp::handleMessage(cMessage* msg){
@@ -328,7 +345,7 @@ void TransactionApp::checkEventHandled(bool eventHandled, cMessage* msg){
 bool TransactionApp::handleMessageInBeginOfTransaction(cMessage* msg){
     if(isStartTransactionEvent(msg)){
         emit(transactionDuration, true);
-        emit(enterNewPhase,TransactionApp::Phase::LOCK);
+       updatePhase(Phase::LOCK);
         determineLockOrder();
         transitionToState(TransactionAppState::WaitOnLockResponse);
         return true;
@@ -350,7 +367,7 @@ bool TransactionApp::handleMessageInWaitOnLockResponse(cMessage* msg){
                     return true;
                 }
                 else if(lockedSwitches.size() == switchStates.size()){
-                    emit(enterNewPhase,TransactionApp::Phase::CHANGE);
+                    updatePhase(Phase::CHANGE);
                     // send_copy_config
                     Connection_t* connection;
                     Configuration_t* config;
@@ -580,7 +597,7 @@ bool TransactionApp::handleMessageInWaitOnChangeConfirmation(cMessage* msg){
                         config->type = Configuration_t::NetConfMessageType_t::NetConfMessageType_Commit;
                         NetConfMessage_RPC* s_Commit_freigeben = createNetConfRPCForConfiguration(connection, config, COMMIT_APPROVED_MSG_ID);
                         sendDelayed(s_Commit_freigeben, controllerProcessingTime, gate("applicationOut"));
-                        emit(enterNewPhase,TransactionApp::Phase::CONFIRMATION);
+                        updatePhase(Phase::CONFIRMATION);
                     }
                 }
                 transitionToState(TransactionAppState::WaitOnCommitExecution);
@@ -626,7 +643,7 @@ bool TransactionApp::handleMessageInWaitOnCommitExecution(cMessage* msg){
                     return true;
                 }else if(switchStates.size() == commitedSwitches.size()){
 
-                    emit(enterNewPhase,TransactionApp::Phase::UNLOCK);
+                    updatePhase(Phase::UNLOCK);
 
                     // send_delete_old_configuration
                     Connection_t* connection;
@@ -746,7 +763,7 @@ bool TransactionApp::handleMessageInWaitOnUnlock(cMessage* msg){
                     transitionToState(TransactionAppState::WaitOnUnlock);
                     return true;
                 }else if(unlockedSwitches.size() == switchStates.size()){
-                    emit(enterNewPhase,TransactionApp::Phase::UNLOCK);
+                    updatePhase(Phase::UNLOCK);
                     transitionToState(TransactionAppState::EndOfTransaction);
                     return true;
                 }

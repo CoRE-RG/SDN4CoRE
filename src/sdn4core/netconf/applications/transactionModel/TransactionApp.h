@@ -180,6 +180,12 @@ public:
 
 protected:
     /**
+     * update statistics and displaystring of Switch
+     * @param Phase    new phase
+     */
+    void updatePhase(Phase newPhase);
+
+    /**
      * sets the timestamp as data for the configuration
      * @param timestamp    the timestamp.
      * @return the Configurations
