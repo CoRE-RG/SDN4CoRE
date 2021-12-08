@@ -64,6 +64,13 @@ public:
         }
     };
 
+    enum Phase{
+        LOCK,
+        CHANGE,
+        CONFIRMATION,
+        UNLOCK
+    };
+
     struct TransactionAppState{
         static const int BeginOfTransaction = 0;
         static const int WaitOnLockResponse = 1;
@@ -379,26 +386,6 @@ protected:
     simsignal_t transactionDuration;
 
     /**
-     * Signal to emit the lockphase
-     */
-    simsignal_t lockPhase;
-
-    /**
-     * Signal to emit the changephase
-     */
-    simsignal_t changePhase;
-
-    /**
-     * Signal to emit the confirmationphase
-     */
-    simsignal_t confirmationPhase;
-
-    /**
-     * Signal to emit the unlockphase
-     */
-    simsignal_t unlockPhase;
-
-    /**
      * Signal that is emitted to count sent messages
      */
     simsignal_t numSent;
@@ -407,6 +394,11 @@ protected:
      * Signal that is emitted to count received messages
      */
     simsignal_t numReceived;
+
+    /**
+     * Signal that is emitted when anew phase is entered
+     */
+    simsignal_t enterNewPhase;
 };
 
 } // namespace SDN4CoRE
