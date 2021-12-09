@@ -31,6 +31,7 @@
 #include "openflow/openflow/protocol/OFMatchFactory.h"
 //CoRE4INET
 #include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
+#include "core4inet/utilities/customWatch.h"
 
 using namespace inet;
 using namespace std;
@@ -38,6 +39,10 @@ using namespace openflow;
 using namespace CoRE4INET;
 
 namespace SDN4CoRE {
+
+
+simsignal_t PacketProcessorBase::packetFilteredSignal = registerSignal("packetFiltered");
+simsignal_t PacketProcessorBase::packetProcessedSignal = registerSignal("packetProcessed");
 
 void PacketProcessorBase::PacketFilter::initializeFromPar(
         const string& parameterValue) {
@@ -198,6 +203,8 @@ bool PacketProcessorBase::PacketFilter::matchesPacketIn(
 
 void PacketProcessorBase::initialize() {
     AbstractControllerApp::initialize();
+    WATCH_LISTMAP(_whitelist);
+    WATCH_LISTMAP(_blacklist);
 }
 
 void PacketProcessorBase::handleParameterChange(const char* parname) {
@@ -224,6 +231,9 @@ void PacketProcessorBase::receiveSignal(cComponent* src, simsignal_t id,
         if (OFP_Packet_In *packet_in = dynamic_cast<OFP_Packet_In *>(obj)) {
             if (!isFiltered(packet_in)) {
                 processPacketIn(packet_in);
+                emit(packetProcessedSignal,packet_in);
+            } else {
+                emit(packetFilteredSignal,packet_in);
             }
         }
     } else if (id == PacketFeatureReplySignalId) {

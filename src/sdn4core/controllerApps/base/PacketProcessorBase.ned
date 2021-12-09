@@ -59,4 +59,8 @@ simple PacketProcessorBase like AbstractControllerApp
         string packetFilterWhitelist = default(""); // an empty whilelist means only blacklisted packets are filtered
         // blacklist filter for packets that shall be processed by the application
         string packetfilterBlacklist = default(""); // an empty blacklist means only non whitelisted packets are filtered
+        
+        @signal[packetFiltered](type=cPacket);
+        @signal[packetProcessed](type=cPacket);
+        
 }

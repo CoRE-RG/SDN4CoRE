@@ -37,6 +37,8 @@ namespace SDN4CoRE {
  */
 class PacketProcessorBase: public openflow::AbstractControllerApp {
 public:
+    static simsignal_t packetFilteredSignal;
+    static simsignal_t packetProcessedSignal;
 
     /**
      * Packet Filter is a map of a string key and a string value list.
