@@ -69,6 +69,9 @@ public:
          */
         void initializeFromPar(const std::string& parameterValue);
 
+        bool addPacketFilter(std::string key, std::string value);
+        bool addPacketFilters(std::string key, std::vector<std::string> values);
+
         bool matchesIntValue(std::string key, int value);
         bool matchesStringValue(std::string key, std::string value);
         bool matchesMACAddressValue(std::string key, inet::MACAddress value);

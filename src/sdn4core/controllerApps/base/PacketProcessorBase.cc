@@ -73,6 +73,35 @@ void PacketProcessorBase::PacketFilter::initializeFromPar(
     }
 }
 
+bool PacketProcessorBase::PacketFilter::addPacketFilter(std::string key,
+        std::string value) {
+    vector<string>values;
+    values.push_back(value);
+    return addPacketFilters(key, values);
+}
+
+bool PacketProcessorBase::PacketFilter::addPacketFilters(std::string key,
+        vector<string> values) {
+    bool changed = false;
+    if (!values.empty() && !key.empty()) {
+        auto found = this->find(key);
+        if (found != this->end()) {
+            for (string existingValue : (*this)[key]) {
+                if(std::find(values.begin(), values.end(), existingValue) == values.end()) {
+                    values.push_back(existingValue);
+                }
+            }
+            if(values.size() > (*this)[key].size()) {
+                changed = true;
+            }
+        } else {
+            changed = true;
+        }
+        (*this)[key] = values;
+    }
+    return changed;
+}
+
 bool PacketProcessorBase::PacketFilter::matchesIntValue(string key, int value) {
     auto iter = this->find(key);
     if (iter != this->end()) {
