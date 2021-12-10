@@ -70,10 +70,13 @@ simple IPTunnelingControllerApp extends PacketProcessorBase
         int timeToLive = default(32);
         int multicastTimeToLive = default(32);
         double fragmentTimeout @unit("s") = default(60s);
-        bool forceBroadcast = default(false);
+        bool forceBroadcast = default(true); // send broadcasts to all edge ports. 
         string tunnelIPAddresses = default(""); // The dest IP addresses to be accepted as IP tunnels
         bool receiveMulticast = default(false);
         bool receiveBroadcast = default(false);
+        bool sendBroadcast = default(false);
+        bool sendMulticast = default(false); // TODO how to determine where to send mcast addresses...
+        int mtu @unit("B") = default(1500Byte); // Ethernet default MTU, 0 is infinite
         @signal[packetSentToUpper](type=cPacket);
         @signal[packetReceivedFromUpper](type=cPacket);
         @signal[packetFromUpperDropped](type=cPacket);

@@ -68,6 +68,36 @@ protected:
     virtual void handleIncomingDatagram(IPv4Datagram *datagram);
 
     /**
+     * Handle messages (typically packets to be send in IPv4) from transport or ICMP.
+     * Invokes encapsulate(), then routePacket().
+     */
+    virtual void handlePacketFromHL(cPacket *packet);
+
+    /**
+     * Routes and sends datagram received from higher layers.
+     * Invokes datagramLocalOutHook(), then routePacket().
+     */
+    virtual void datagramLocalOut(IPv4Datagram *datagram);
+
+    /**
+     * Performs unicast routing. Based on the routing decision, it sends the
+     * datagram through the outgoing interface.
+     */
+    virtual void routeUnicastPacket(IPv4Datagram *datagram);
+
+    /**
+     * Performs multicast routing. Based on the routing decision, it sends the
+     * datagram through the outgoing interface(s).
+     */
+    virtual void routeMulticastPacket(IPv4Datagram *datagram);
+
+    /**
+     * Broadcasts the datagram on the specified interface.
+     * When destIE is nullptr, the datagram is broadcasted on each interface.
+     */
+    virtual void routeLocalBroadcastPacket(IPv4Datagram *datagram);
+
+    /**
      * Perform reassembly of fragmented datagrams, then send them up to the
      * higher layers using sendToHL().
      */
@@ -78,6 +108,28 @@ protected:
      */
     virtual cPacket *decapsulate(IPv4Datagram *datagram);
 
+    /**
+     * Fragment packet if needed, then send it to the selected interface using
+     * sendDatagramToOutput().
+     */
+    virtual void fragmentAndSend(IPv4Datagram *datagram);
+
+    /**
+     * Send datagram on the given interface.
+     */
+    virtual void sendDatagramToOutput(IPv4Datagram *datagram);
+
+    /**
+     * Encapsulate packet coming from higher layers into IPv4Datagram, using
+     * the given control info. Override if you subclassed controlInfo and/or
+     * want to add options etc to the datagram.
+     */
+    virtual IPv4Datagram *encapsulate(cPacket *transportPacket, IPv4ControlInfo *controlInfo);
+
+    /**
+     * Creates a blank IPv4 datagram. Override when subclassing IPv4Datagram is needed
+     */
+    virtual IPv4Datagram *createIPv4Datagram(const char *name);
 protected:
 
     IInterfaceTable *ift = nullptr;
@@ -95,6 +147,11 @@ protected:
     int defaultMCTimeToLive = -1;
     simtime_t fragmentTimeoutTime;
     bool forceBroadcast = false;
+    bool receiveMulticast = false;
+    bool receiveBroadcast = false;
+    bool sendBroadcast = false;
+    bool sendMulticast = false;
+    int mtu = 0; // mtu == 0 means infinite default Ethernet 1500
 
     // statistics
     int numMulticast = 0;
