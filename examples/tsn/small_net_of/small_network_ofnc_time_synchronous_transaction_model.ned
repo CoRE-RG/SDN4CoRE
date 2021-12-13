@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.tsn.transaction_multipart;
+package sdn4core.examples.tsn.small_net_of;
 // Network Configuration
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 

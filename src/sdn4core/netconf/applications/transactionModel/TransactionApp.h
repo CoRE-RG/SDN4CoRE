@@ -68,7 +68,8 @@ public:
         LOCK,
         CHANGE,
         CONFIRMATION,
-        UNLOCK
+        UNLOCK,
+        DEFAULT
     };
 
     struct TransactionAppState{
