@@ -69,19 +69,32 @@ void TransactionApp::initialize(){
 
 void TransactionApp::updatePhase(Phase newPhase){
     emit(enterNewPhase,newPhase);
-    cDisplayString& parentDispStr = getParentModule()->getParentModule()->getDisplayString();
+    cDisplayString& parentDispStr = this->getDisplayString();
     switch(newPhase){
         case Phase::LOCK:
-            parentDispStr.setTagArg("i", 1, "red");
+            parentDispStr.setTagArg("i", 1, "#0066ff");
             parentDispStr.setTagArg("t", 0, "Lock Phase");
             break;
         case Phase::CHANGE:
-            parentDispStr.setTagArg("i", 1, "yellow");
+            parentDispStr.setTagArg("i", 1, "#ff9933");
             parentDispStr.setTagArg("t", 0, "Change Phase");
             break;
         case Phase::CONFIRMATION:
-            parentDispStr.setTagArg("i", 1, "green");
+            parentDispStr.setTagArg("i", 1, "#ffff00");
             parentDispStr.setTagArg("t", 0, "Confirmation Phase");
+            break;
+        case Phase::UNLOCK:
+            parentDispStr.setTagArg("i", 1, "#ff0066");
+            parentDispStr.setTagArg("t", 0, "Confirmation Phase");
+            break;
+        case Phase::DEFAULT:
+            if(transactionState == TransactionAppState::EndOfTransaction){
+                parentDispStr.setTagArg("i", 1, "green");
+                parentDispStr.setTagArg("t", 0, "Success");
+            }else{
+                parentDispStr.setTagArg("i", 1, "red");
+                parentDispStr.setTagArg("t", 0, "Error");
+            }
             break;
     }
 }
@@ -270,11 +283,13 @@ void TransactionApp::transitionToState(int nextState){
         }
         break;
     case TransactionAppState::ErrorState:
+        updatePhase(Phase::DEFAULT);
         result = false;
         emit(resultOfTransaction,result);
         scheduleAt(simTime(), LAMBDA_EVENT);
         break;
     case TransactionAppState::EndOfTransaction:
+        updatePhase(Phase::DEFAULT);
         result = true;
         emit(resultOfTransaction,result);
         emit(transactionDuration, true);
@@ -656,7 +671,7 @@ bool TransactionApp::handleMessageInWaitOnCommitExecution(cMessage* msg){
                             config->target = "candidate";
                             NetConfMessage_RPC* s_alte_Konfig_loeschen = createNetConfRPCForConfiguration(connection, config, DELETE_OLD_CONFIG_MSG_ID);
                             sendDelayed(s_alte_Konfig_loeschen, controllerProcessingTime, gate("applicationOut"));
-                            (numSent, 1L);
+                            emit(numSent, 1L);
                         }
                     }
                     transitionToState(TransactionAppState::WaitOnDeleteOldConfiguration);

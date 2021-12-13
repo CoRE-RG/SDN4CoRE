@@ -13,10 +13,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.tsn.transaction_multipart;
+package sdn4core.examples.tsn.transaction_ofnc;
 
-// for TSN-OpenFlow-NetConf-Switch
-import  sdn4core.switch.tsn.TSNOFNCSwitch;
+// TSN Ethernet Host
+import core4inet.nodes.ethernet.tsn.TSNEtherHost;
 
-module Switch1 extends TSNOFNCSwitch{
+module Node3 extends TSNEtherHost{
+    
 }

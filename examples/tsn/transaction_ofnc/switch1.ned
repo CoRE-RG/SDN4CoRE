@@ -13,11 +13,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.tsn.transaction_multipart;
+package sdn4core.examples.tsn.transaction_ofnc;
 
-// for NetConfOpenFlowController
-import sdn4core.controller.tsn.TSN_NC_OF_Controller;
+// for TSN-OpenFlow-NetConf-Switch
+import  sdn4core.switch.tsn.TSNOFNCSwitch;
 
-module Controller extends TSN_NC_OF_Controller{
-    
+module Switch1 extends TSNOFNCSwitch{
 }

@@ -1,0 +1,52 @@
+<!--
+This is an example file on how to declare remotes for an INetConfApplication.
+-->
+
+<server_connections>
+	<application client_host="controller" client_app="0">
+		<connection local_port="6123" remote_address="switch1" remote_port="830" connect_at="0.06">
+			
+			<configure at="0.101" type="edit_config" module="multipart">
+				
+				<configure module="IEEE8021Qbv">
+			 		<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;o,o,o,o,o,o,o,C:0.000148"/>
+		 		</configure>
+		 		
+		 		<configure module="OpenFlow">
+		 			<config operation="ADD_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+						    <match  in_port="1" dl_dst="0A-00-00-00-00-03" dl_src="0A-00-00-00-00-01" dl_type="33024" wildcards="4194274" />
+						    <instructions>
+						        <action_output port="0"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+		 		</configure>
+		 	
+		 	</configure>
+		</connection>
+		
+		
+		<connection local_port="6124" remote_address="switch2" remote_port="830" connect_at="0.06">
+			
+			<configure at="0.101" type="edit_config" module="multipart">
+			
+				<configure module="IEEE8021Qbv">
+				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000141;C,C,C,C,C,C,C,o:0.00026;o,o,o,o,o,o,o,C:0.000276"/>
+			 	</configure>
+			 	
+			 	<configure module="OpenFlow">
+				 	<config operation="ADD_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+						    <match  in_port="0" dl_dst="0A-00-00-00-00-03" dl_src="0A-00-00-00-00-01" dl_type="33024" wildcards="4194274" />
+						    <instructions>
+						        <action_output port="2"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
+		 	
+		 	</configure>
+		</connection>
+	</application>
+</server_connections>
