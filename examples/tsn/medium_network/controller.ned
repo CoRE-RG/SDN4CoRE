@@ -13,11 +13,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.tsn.small_net_of;
+package sdn4core.examples.tsn.medium_network;
 
-// TSN Ethernet Host
-import core4inet.nodes.ethernet.tsn.TSNEtherHost;
+// for NetConfOpenFlowController
+import sdn4core.controller.tsn.TSN_NC_OF_Controller;
 
-module Node3 extends TSNEtherHost{
+module Controller extends TSN_NC_OF_Controller{
     
 }

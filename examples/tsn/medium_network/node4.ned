@@ -13,11 +13,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.tsn.small_net_of;
+package sdn4core.examples.tsn.medium_network;
 
 // TSN Ethernet Host
 import core4inet.nodes.ethernet.tsn.TSNEtherHost;
 
-module Node1 extends TSNEtherHost{
+module Node4 extends TSNEtherHost{
     
 }
