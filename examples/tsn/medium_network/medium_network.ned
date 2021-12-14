@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.tsn.small_net_of;
+package sdn4core.examples.tsn.medium_network;
 // Network Configuration
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 
@@ -28,7 +28,7 @@ import core4inet.nodes.ethernet.IEEE8021Q.IEEE8021QEtherSwitch;
 
 import sdn4core.utility.dynamicparameters.DynamicChannelParameterChanger;
 
-network small_network_ofnc_time_synchronous_transaction_model
+network medium_network
 {
     parameters:
         @display("bgb=631,360");
