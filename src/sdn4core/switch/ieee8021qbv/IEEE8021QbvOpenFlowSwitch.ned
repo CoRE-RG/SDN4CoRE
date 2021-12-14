@@ -18,7 +18,7 @@
 package sdn4core.switch.ieee8021qbv;
 
 import sdn4core.switch.base.OpenFlowSwitch;
-import sdn4core.switch.avb.services.avb.SRP.OF_SRProtocol;
+import core4inet.services.avb.SRP.SRProtocol;
 
 //CoRE4INET
 import core4inet.scheduler.ITTEScheduler;
@@ -62,7 +62,7 @@ module IEEE8021QbvOpenFlowSwitch extends OpenFlowSwitch
         }
 
 		// Stream Reservation Protocol implementation
-        srpProtocol: OF_SRProtocol {
+        srpProtocol: SRProtocol {
             portModule = "etherMAC";
             srpEncap = pathSwitchAgent;
             @display("p=371,241");

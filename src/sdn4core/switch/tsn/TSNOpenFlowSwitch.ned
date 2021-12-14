@@ -18,7 +18,7 @@
 package sdn4core.switch.tsn;
 
 import sdn4core.switch.base.OpenFlowSwitch;
-import sdn4core.switch.avb.services.avb.SRP.OF_SRProtocol;
+import core4inet.services.avb.SRP.SRProtocol;
 
 //CoRE4INET
 import core4inet.scheduler.ITTEScheduler;
@@ -76,11 +76,9 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
         }
 
 		// Dataplane Stream Reservation Protocol implementation tunneled via openflow
-        ofSrpProtocol: OF_SRProtocol {
+        ofSrpProtocol: SRProtocol {
             srpTable = ofSrpTableModule;
             portModule = "etherMAC";
-            macModulePath = ".mac";
-            shaperModulePath = ".shaper";
             srpEncap = pathSwitchAgent;
             @display("p=324.9,240.34999");
         }
