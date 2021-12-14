@@ -1,28 +1,28 @@
 Demonstrates a medium sized TSN network. Traffic generators send Ethernet frames directly.
 
--  The network contains four hosts (Source1, Source2, Source3, Sink) which are connected over
-   two TSN, Netconf and Openflow capable switches. The two switches are connected to a sdn controller
-   using an ehter switch
-   The cycle time 1ms (see omnetpp.ini)
-   
--  Source1 starts sending IEEE8021Q traffic with priority 7 once per cylce after 100ms
+-  The network contains four hosts (node1, node2, node3, node4) which are connected over
+   two TSN, Netconf and Openflow capable switches. The two switches are connected to an SDN controller using an ether switch
+   The network period cycle time is 1ms (see omnetpp.ini), used for GateControlLists and Synchronous traffic.
+  
+-  Node1 starts sending IEEE8021Q traffic with priority 7 once per cylce after 100ms
 
--  Source2 starts sending IEEE8021Q traffic with priority 7 once per cylce after 200ms
+-  Node2 starts sending IEEE8021Q traffic with priority 7 once per cylce after 200ms
 
--  Source3 starts sending IEEE8021Q traffic with priority 7 once per cylce after 300ms
+-  Node4 starts sending IEEE8021Q traffic with priority 7 once per cylce after 300ms
 
--  All Sources except additionaly send IEEE8021Q traffic with priority 0 every cycle after 300us and 700us
+-  All nodes except Node3 additionaly send IEEE8021Q traffic with priority 0 every cycle after 300us and 700us
 
--  Sink receivs all traffic from all Sources
+-  Node3 receivs all traffic from Nodes 1, 2 and 4
 
-- Controller is connected to the Switch using the OpenFlow or Netconf protocol to control forwarding and scheduling.
+- Controller is connected to the Switch using the OpenFlow protocol to control the forwarding and the Netconf protocol to manage scheduling and configured flows.
 
+-  A TDMA schedule is enforced for all priority 7 Traffic using the GCLs in the switches either in a static configuration or configured through Netconf.
 
 - There are six basic Configurations posible:
-  All configs using netconf can be run with netconf multipart messages 
-  -  General: the network uses simple openflow rules to handle the forwarding of traffic
-  -  OpenFlow_static_TDMA: Flows and shedule are staticly preconfigured at start up
-  -  NetConf: Flows and GCL are configured at runtime using netconf
-  -  NetConf_Transaction: Flows and GCL are configured transactionaly at runtime using netconf
-  -  NetConf_SyncTransaction: Flows and GCL are configured transactionaly and time synchronous at runtime using netconf
-  -  NetConf_SyncTransaction_SoP: Flows and GCL are configured transactionaly and time synchronous at runtime at the start of a new hyperperiod using netconf
+  All configs using netconf can be run with netconf multipart messages which combine multiple netconf operations in one message.
+  -  General: The network uses OpenFlow rules to handle the forwarding of traffic
+  -  OpenFlow_static_TDMA: The priority 7 flows and schedule are preconfigured at start up for the priority 7 (see flow_table_switch[1, 2].xml, switch[1, 2].ini)
+  -  NetConf: Flows and GCL are configured at runtime when new traffic is added using three Netconf applications, one for each traffic source (see netconfappconfig_[1, 2, 3].xml, controller.ini) 
+  -  NetConf_Transaction: The standard netconf applications are replaced by transactional applications executing the three configurations as a network wide transaction (see controller.ini)
+  -  NetConf_SyncTransaction: The transactions are executed time synchronous at all switches at a calculated worst case time for the transaction to finish
+  -  NetConf_SyncTransaction_SoP: The synchronous transactions use the start of a new hyperperiod for the synchronous commit execution
