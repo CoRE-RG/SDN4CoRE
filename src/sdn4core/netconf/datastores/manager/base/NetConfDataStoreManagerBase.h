@@ -164,18 +164,15 @@ class NetConfDataStoreManagerBase : public cSimpleModule , public cListener
 
     /**
      * Schedules the timed commit
+     * @param commit the commit operation
      */
-    virtual void scheduleTimedCommit();
-
-    /**
-     * reset timed commit
-     */
-    virtual void resetTimedCommit();
+    virtual void scheduleTimedCommit(NetConfOperation_Commit* commit);
 
     /**
      * Executes the commit
+     * @return the result of commit execution
      */
-    virtual void executeCommit();
+    virtual bool executeCommit();
 
     /**
      * checks if it is a valid commit timestamp
@@ -188,6 +185,11 @@ class NetConfDataStoreManagerBase : public cSimpleModule , public cListener
      * @param commitOperation   the NetConf operation
      */
     void setCommitOperation(NetConfOperation_Commit* commitOperation);
+
+    /**
+     * resets the commit operation and timestamp
+     */
+    void resetCommitTimestamp();
 
     /**
      * the commit operation

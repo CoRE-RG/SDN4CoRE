@@ -20,9 +20,11 @@
 #include <sdn4core/netconf/server/base/NetConfServerBase.h>
 #include <sdn4core/utility/dynamicmodules/DynamicModuleHandling.h>
 #include <sdn4core/netconf/messages/NetConfCtrlInfo_m.h>
+#include <sdn4core/netconf/NetConfDefines.h>
+// CORE4INET
+#include "core4inet/scheduler/timer/Timer.h"
 //INET
 #include "inet/common/ModuleAccess.h"
-#include "sdn4core/netconf/NetConfDefines.h"
 
 
 using namespace std;
@@ -68,8 +70,7 @@ void NetConfDataStoreManagerBase::initialize() {
         _periods.push_back(dynamic_cast<CoRE4INET::Period*>(scheduler->getSubmodule("period", i)));
         }
     }
-
-    resetTimedCommit();
+    resetCommitTimestamp();
     WATCH(_commitTimestamp);
 }
 
@@ -173,13 +174,24 @@ void NetConfDataStoreManagerBase::handleMessage(cMessage *msg) {
         }
 
     }
-    else if(msg->isSelfMessage()){
-        if(msg->isName("FINISHED_TIMED_COMMIT")){
-            _periods[_commitTimestamp.period]->unsubscribe(_newCycleSignal, this);
-            reply = createRPCReplyElement_Ok();
+    else if(msg->isSelfMessage() || dynamic_cast<CoRE4INET::SchedulerTimerEvent*>(msg)){
+        if(msg->isName("EXECUTE_TIMED_COMMIT")){
+            bool result = executeCommit();
+            if(_commitTimestamp.executeAtStartOfPeriod){
+                _periods[_commitTimestamp.period]->unsubscribe(_newCycleSignal, this);
+            }
+            if(result){
+                reply = createRPCReplyElement_Ok();
+            }
+            else{
+                reply = createRPCReplyElement_Error(
+                        NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                        "Commit Execution finished with errors",
+                        NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+            }
             reply->setControlInfo(_commitOperation->removeControlInfo());
             sendDirect(reply,_netConfServer->gate(RESPONSE_OUT_GATE_NAME));
-            resetTimedCommit();
+            resetCommitTimestamp();
         }
     }
     else {
@@ -252,18 +264,19 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleEditConfig(
                                 NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
             }
 
-            if(NetConfConfigCommitTimestamp* commitTimestamp = dynamic_cast<NetConfConfigCommitTimestamp*>(encap)){
-                NetConfConfigCommitTimestamp::CommitTimestamp_t commitTimestamp2 = commitTimestamp->getCommitTimestamp();
-                CoRE4INET::Period* period = _periods[commitTimestamp2.period];
-                uint32_t currentCycle = period->getCycles();
-                if(commitTimestamp2.cycle > currentCycle){
-                    _commitTimestamp = commitTimestamp->getCommitTimestamp();
+            if(NetConfConfigCommitTimestamp* netconfCommitTimestamp = dynamic_cast<NetConfConfigCommitTimestamp*>(encap)){
+                NetConfConfigCommitTimestamp::CommitTimestamp_t commitTimestamp = netconfCommitTimestamp->getCommitTimestamp();
+                CoRE4INET::Timer* timer = dynamic_cast<CoRE4INET::Timer*>(this->getParentModule()->getParentModule()->getSubmodule("scheduler")->getSubmodule("timer"));
+                CoRE4INET::Period* period = _periods[commitTimestamp.period];
+                if((commitTimestamp.cycle > period->getCycles() && commitTimestamp.executeAtStartOfPeriod)
+                        || (commitTimestamp.time > timer->getTotalSimTime().dbl() && !commitTimestamp.executeAtStartOfPeriod)){
+                    _commitTimestamp = netconfCommitTimestamp->getCommitTimestamp();
                     success = true;
                 }
                 else{
                     return createRPCReplyElement_Error(
                             NETCONF_REPLY_ERROR_TYPE_APPLICATION,
-                            "Cycle will be exceeded.",
+                            "Commit Timestamp is in the past.",
                             NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
                 }
             } else {
@@ -493,17 +506,24 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleCommit(
             if (verifyLock(_runningStore, operation)) {
                 //valid commit
                 if(hasCommitTimestamp()){
-                    scheduleTimedCommit();
-                    setCommitOperation(commit);
+                    scheduleTimedCommit(commit);
                 } else {
-                    executeCommit();
-                    reply = createRPCReplyElement_Ok();
+                    bool result = executeCommit();
+                    if(result){
+                        reply = createRPCReplyElement_Ok();
+                    }
+                    else{
+                        reply = createRPCReplyElement_Error(
+                                NETCONF_REPLY_ERROR_TYPE_APPLICATION,
+                                "Commit Execution finished with errors",
+                                NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
+                    }
                 }
             }
             else{
                 reply = createRPCReplyElement_Error(
                         NETCONF_REPLY_ERROR_TYPE_APPLICATION,
-                        "Cannot unlock config because session Id differs from lock owner", // locked but the current session is not the lock owner
+                        "Cannot commit because session Id differs from lock owner",
                         NETCONF_REPLY_ERROR_SEVIRITY_ERROR);
             }
         }
@@ -513,29 +533,33 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleCommit(
 
 bool NetConfDataStoreManagerBase::hasCommitTimestamp(){
     bool isCommitTimestamp = true;
-    if(_commitTimestamp.cycle == 0 && _commitTimestamp.period == 0){
+    if((_commitTimestamp.cycle == 0 && _commitTimestamp.executeAtStartOfPeriod)
+            || (_commitTimestamp.time == 0 && !_commitTimestamp.executeAtStartOfPeriod)){
         isCommitTimestamp = false;
     }
     return isCommitTimestamp;
 }
 
-void NetConfDataStoreManagerBase::scheduleTimedCommit(){
-    //subscribe period cycles signal and wait for correct cycle to execute
-    _periods[_commitTimestamp.period]->subscribe(_newCycleSignal, this);
+void NetConfDataStoreManagerBase::scheduleTimedCommit(NetConfOperation_Commit* commit){
+    setCommitOperation(commit);
+    if(_commitTimestamp.executeAtStartOfPeriod){
+        //subscribe period cycles signal and wait for correct cycle to execute
+        _periods[_commitTimestamp.period]->subscribe(_newCycleSignal, this);
+    }else{
+        //
+        CoRE4INET::Timer* timer = dynamic_cast<CoRE4INET::Timer*>(this->getParentModule()->getParentModule()->getSubmodule("scheduler")->getSubmodule("timer"));
+        CoRE4INET::SchedulerTimerEvent* event = new CoRE4INET::SchedulerTimerEvent("EXECUTE_TIMED_COMMIT", CoRE4INET::TIMER_EVENT);
+        uint64_t ticksToCommitExecution = static_cast<uint64_t>(ceil((_commitTimestamp.time - timer->getTotalSimTime().dbl() ) / timer->getOscillator()->getPreciseTick()));
+        event->setTimer(ticksToCommitExecution);
+        event->setDestinationGate(gate("requestIn"));
+        timer->registerEvent(event);
+    }
 }
 
-void NetConfDataStoreManagerBase::resetTimedCommit(){
-    setCommitOperation(nullptr);
-    _commitTimestamp.cycle = 0;
-    _commitTimestamp.period = 0;
-    _commitTimestamp.time = 0;
-    _commitTimestamp.executeAtStartOfPeriod = false;
-}
-
-void NetConfDataStoreManagerBase::executeCommit(){
+bool NetConfDataStoreManagerBase::executeCommit(){
     //apply config from candidate to running
-    _candidateStore->applyTo(_runningStore);
-    emit(commitExecutionSignal,1L);
+    emit(commitExecutionSignal,0L);
+    return _candidateStore->applyTo(_runningStore);
 }
 
 void NetConfDataStoreManagerBase::setCommitOperation(NetConfOperation_Commit* commitOperation){
@@ -553,8 +577,7 @@ void NetConfDataStoreManagerBase::receiveSignal(cComponent *source, simsignal_t 
         if(dynamic_cast<CoRE4INET::Period*>(source) == _periods[_commitTimestamp.period]){
             // check if the desired cycle has been reached
             if(_periods[_commitTimestamp.period]->getCycles() == _commitTimestamp.cycle){
-                executeCommit();
-                scheduleAt(simTime(), new cMessage("FINISHED_TIMED_COMMIT"));
+                scheduleAt(simTime(), new cMessage("EXECUTE_TIMED_COMMIT"));
             }
             else if(_periods[_commitTimestamp.period]->getCycles() > _commitTimestamp.cycle){
                 throw cRuntimeError("The commit cycle timestamp was missed!");
@@ -562,6 +585,14 @@ void NetConfDataStoreManagerBase::receiveSignal(cComponent *source, simsignal_t 
             //else wait until desired cycle is reached
         }
     }
+}
+
+void NetConfDataStoreManagerBase::resetCommitTimestamp(){
+    setCommitOperation(nullptr);
+    _commitTimestamp.cycle = 0;
+    _commitTimestamp.period = 0;
+    _commitTimestamp.time = 0;
+    _commitTimestamp.executeAtStartOfPeriod = false;
 }
 
 }  // namespace SDN4CoRE
