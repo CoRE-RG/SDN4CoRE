@@ -70,6 +70,7 @@ void NetConfDataStoreManagerBase::initialize() {
     }
 
     resetTimedCommit();
+    WATCH(_commitTimestamp);
 }
 
 void NetConfDataStoreManagerBase::handleParameterChange(const char* parname) {
@@ -527,6 +528,8 @@ void NetConfDataStoreManagerBase::resetTimedCommit(){
     setCommitOperation(nullptr);
     _commitTimestamp.cycle = 0;
     _commitTimestamp.period = 0;
+    _commitTimestamp.time = 0;
+    _commitTimestamp.executeAtStartOfPeriod = false;
 }
 
 void NetConfDataStoreManagerBase::executeCommit(){
