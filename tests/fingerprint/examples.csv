@@ -12,16 +12,18 @@
 /examples/IEEE8021Qbv/small_network_of,                         -f omnetpp.ini -c With_Crosstraffic -r 0,                                 0.5s,             a913-cffa
 /examples/IEEE8021Qbv/small_network_ofnc,                       -f omnetpp.ini -c General -r 0,                                           0.5s,             2a13-1e4f
 /examples/IEEE8021Qbv/small_network_ofnc,                       -f omnetpp.ini -c With_Crosstraffic -r 0,                                 0.5s,             c3e7-55c3
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c General -r 0,                                           0.4s,             ae11-e267
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c OpenFlow_static_TDMA -r 0,                              0.4s,             f7f2-bd62
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf -r 0,                                           0.4s,             99dd-f4d6
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart -r 0,                                 0.4s,             e34f-48e0
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Transaction -r 0,                               0.4s,             455e-79ac
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_Transaction -r 0,                     0.4s,             782c-5a52
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_SyncTransaction -r 0,                           0.4s,             5712-1022
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_SyncTransaction -r 0,                 0.4s,             0f9f-0047
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_SyncTransaction_SoP -r 0,                       0.4s,             5712-1022
-/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_SyncTransaction_Sop -r 0,             0.4s,             0f9f-0047
+
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c General -r 0,                                           0.4s,             dda4-91db
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c OpenFlow_static_TDMA -r 0,                              0.4s,             3304-af36
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf -r 0,                                           0.4s,             d989-57e9
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart -r 0,                                 0.4s,             55b8-682b
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Transaction -r 0,                               0.4s,             acca-f043
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_Transaction -r 0,                     0.4s,             4e81-9b2a
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_SyncTransaction -r 0,                           0.4s,             b2f5-24bd
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_SyncTransaction -r 0,                 0.4s,             d1f4-9646
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_SyncTransaction_SoP -r 0,                       0.4s,             b2f5-24bd
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_SyncTransaction_Sop -r 0,             0.4s,             d1f4-9646
+
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c General -r 0,                                            10s,             1ea3-f108
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy -r 0,                                           5s,             8562-7786
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy_WithCT -r 0,                                    5s,             c40e-6c72

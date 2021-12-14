@@ -2,3 +2,4 @@ Recent changes in CoRE4INET
 ====================================
 19.09.2019 Switched to OMNeT++ 5.5.1 and INET 3.6.6 
 27.08.2019 Model release including programmable devices and controllers for IEEE802.1Q, IEEE802.1Qbv, AVB/SRP via OpenFlow and NetConf.
+14.12.2021 Release of Netconf transaction including time synchronous and non time synchronous transactions. As well as chnages to many netconf moudules.

@@ -18,6 +18,6 @@ package sdn4core.examples.tsn.medium_network;
 // TSN Ethernet Host
 import core4inet.nodes.ethernet.tsn.TSNEtherHost;
 
-module Node4 extends TSNEtherHost{
+module Source1 extends TSNEtherHost{
     
 }

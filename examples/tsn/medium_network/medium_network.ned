@@ -51,17 +51,17 @@ network medium_network
         switch2: Switch2 {
             @display("p=399,220");
         }
-        node1: Node1 {
+        source1: Source1 {
             @display("p=81,295");
         }
-        node2: Node2 {
+        source2: Source2 {
             @display("p=514,295");
         }
-        node3: Node3 {
-            @display("p=514,145");
-        }
-        node4: Node4 {
+        source3: Source3 {
             @display("p=81,145");
+        }
+        sink: Sink {
+            @display("p=514,145");
         }
     connections:
         controller.ethg++ <--> Eth1G {  length = 10m; } <--> ethswitch.ethg++;
@@ -71,8 +71,8 @@ network medium_network
 
         switch1.gateDataPlane++ <--> Eth100M {  length = 10m; } <--> switch2.gateDataPlane++;
 
-        node1.ethg <--> Eth100M {  length = 10m; } <--> switch1.gateDataPlane++;
-        node2.ethg <--> Eth100M {  length = 10m; } <--> switch2.gateDataPlane++;
-        node3.ethg <--> Eth100M {  length = 10m; } <--> switch2.gateDataPlane++;
-        node4.ethg <--> Eth100M {  length = 10m; } <--> switch1.gateDataPlane++;
+        source1.ethg <--> Eth100M {  length = 10m; } <--> switch1.gateDataPlane++;
+        source2.ethg <--> Eth100M {  length = 10m; } <--> switch2.gateDataPlane++;
+        source3.ethg <--> Eth100M {  length = 10m; } <--> switch1.gateDataPlane++;
+        sink.ethg <--> Eth100M {  length = 10m; } <--> switch2.gateDataPlane++;
 }
