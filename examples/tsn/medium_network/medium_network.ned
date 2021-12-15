@@ -52,13 +52,13 @@ network medium_network
             @display("p=399,220");
         }
         source1: Source1 {
-            @display("p=81,295");
+            @display("p=81,145");
         }
         source2: Source2 {
-            @display("p=514,295");
+            @display("p=81,295");
         }
         source3: Source3 {
-            @display("p=81,145");
+            @display("p=514,295");
         }
         sink: Sink {
             @display("p=514,145");
@@ -72,7 +72,7 @@ network medium_network
         switch1.gateDataPlane++ <--> Eth100M {  length = 10m; } <--> switch2.gateDataPlane++;
 
         source1.ethg <--> Eth100M {  length = 10m; } <--> switch1.gateDataPlane++;
-        source2.ethg <--> Eth100M {  length = 10m; } <--> switch2.gateDataPlane++;
-        source3.ethg <--> Eth100M {  length = 10m; } <--> switch1.gateDataPlane++;
+        source2.ethg <--> Eth100M {  length = 10m; } <--> switch1.gateDataPlane++;
+        source3.ethg <--> Eth100M {  length = 10m; } <--> switch2.gateDataPlane++;
         sink.ethg <--> Eth100M {  length = 10m; } <--> switch2.gateDataPlane++;
 }
