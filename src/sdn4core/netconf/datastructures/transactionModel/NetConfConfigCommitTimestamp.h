@@ -41,7 +41,7 @@ public:
         bool executeAtStartOfPeriod;
 
         friend std::ostream& operator<<(std::ostream& os, const CommitTimestamp_t& obj){
-             os<<"{cycle="<<obj.cycle<<", period="<<obj.period<<", time="<<obj.time<<", executeAtStartOfPeriod="<<obj.executeAtStartOfPeriod<<"}";
+             os<<"{cycle="<<obj.cycle<<", period="<<obj.period<<", time="<<obj.time<<", executeAtStartOfPeriod="<<std::boolalpha<<obj.executeAtStartOfPeriod<<"}";
              return os;
         }
 
