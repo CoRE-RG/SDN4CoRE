@@ -56,6 +56,21 @@ public:
         ConnectionStateEstablished = 3
     } ConnectionState_t;
 
+    static std::string connectionStateToString(ConnectionState_t state) {
+        switch(state) {
+        case ConnectionStateWaiting:
+            return "Waiting";
+        case ConnectionStateScheduled:
+            return "Scheduled";
+        case ConnectionStateRequested:
+            return "Requested";
+        case ConnectionStateEstablished:
+            return "Established";
+        default: break;
+        }
+        return "Unknown";
+    }
+
     /**
      * Information on how and when to connect to server.
      */
@@ -89,7 +104,29 @@ public:
          * session_id
          */
         int session_id = -1;
+
+        friend std::ostream& operator<<(std::ostream& os, const Connection_t& obj){
+             os << "{localPort=" << obj.localPort;
+             os << ", remoteAddress=" << obj.remoteAddress;
+             os << ", remotePort=" << obj.remotePort;
+             os << ", connectAt=" << obj.connectAt;
+             os << ", state=" << connectionStateToString(obj.state);
+             os << ", configurations=[";
+             int count = 0;
+             for (auto config : obj.configurations) {
+                 if(count>0) {
+                     os << ", ";
+                 }
+                 os << (*config);
+                 count++;
+             }
+             os << "]";
+             os << ", session_id=" << obj.session_id;
+             os << "}";
+             return os;
+        }
     };
+
     virtual ~NetConfApplicationBase();
 
     void setConnnections(std::vector<Connection_t>& connections);
