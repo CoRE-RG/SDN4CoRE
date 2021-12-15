@@ -36,6 +36,15 @@ namespace SDN4CoRE {
  */
 class Configuration_t {
 public:
+    ~Configuration_t(){
+        if(this->data != nullptr){
+            delete this->data;
+        }
+        if(this->filter != nullptr){
+            delete this->filter;
+        }
+    }
+
     /**
      * Information on how and when to connect to server.
      */

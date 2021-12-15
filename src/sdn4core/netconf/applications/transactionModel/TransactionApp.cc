@@ -239,21 +239,6 @@ bool TransactionApp::isLambdaEvent(cMessage* msg) {
     return msg == TransactionApp::LAMBDA_EVENT;
 }
 
-
-Configuration_t* TransactionApp::getCommitTimestampConfig(NetConfConfigCommitTimestamp::CommitTimestamp_t timestamp){
-    NetConfConfigCommitTimestamp* netConfConfigCommitTimestamp = new NetConfConfigCommitTimestamp();
-    netConfConfigCommitTimestamp->setCommitTimestamp(timestamp);
-
-    Configuration_t* config = new Configuration_t();
-    config->data = netConfConfigCommitTimestamp;
-    config->type = Configuration_t::NetConfMessageType_t::NetConfMessageType_EditConfig;
-    config->target = "candidate";
-    config->filter = new NetConfFilter();
-    config->state = Configuration_t::ConfigurationState_t::ConfigurationStateWaiting;
-
-    return config;
-}
-
 void TransactionApp::transitionToState(int nextState){
     //execute exit action of current state
     switch (transactionState) {

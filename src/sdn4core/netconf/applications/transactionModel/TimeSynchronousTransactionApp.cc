@@ -51,6 +51,20 @@ void TimeSynchronousTransactionApp::determineLockOrder(){
     }
 }
 
+Configuration_t* TimeSynchronousTransactionApp::getCommitTimestampConfig(NetConfConfigCommitTimestamp::CommitTimestamp_t timestamp){
+    NetConfConfigCommitTimestamp* netConfConfigCommitTimestamp = new NetConfConfigCommitTimestamp();
+    netConfConfigCommitTimestamp->setCommitTimestamp(timestamp);
+
+    Configuration_t* config = new Configuration_t();
+    config->data = netConfConfigCommitTimestamp;
+    config->type = Configuration_t::NetConfMessageType_t::NetConfMessageType_EditConfig;
+    config->target = "candidate";
+    config->filter = new NetConfFilter();
+    config->state = Configuration_t::ConfigurationState_t::ConfigurationStateWaiting;
+
+    return config;
+}
+
 NetConfConfigCommitTimestamp::CommitTimestamp_t TimeSynchronousTransactionApp::determineTimestamp()
 {
     double wireDelay = 1/(this->par("signalDelay").doubleValue());
@@ -231,6 +245,7 @@ bool TimeSynchronousTransactionApp::handleMessageInWaitOnChangeConfirmation(cMes
                         if(connection){
                             Configuration_t* config = getCommitTimestampConfig(timestamp);
                             NetConfMessage_RPC* s_Zeitstempel = createNetConfRPCForConfiguration(connection, config, TIMESTAMP_MSG_ID);
+                            delete config; // delete the config as it has been duplicated during encapsulation in to NetConfMessage_RPC.
                             sendDelayed(s_Zeitstempel, controllerProcessingTime, gate("applicationOut"));
                             updatePhase(Phase::CONFIRMATION);
                             emit(numSent, 1L);
