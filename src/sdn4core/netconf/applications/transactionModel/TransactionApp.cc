@@ -112,19 +112,22 @@ void TransactionApp::handleMessage(cMessage* msg){
     }
 }
 
-void TransactionApp::scheduleNextConnection(){
+bool TransactionApp::scheduleNextConnection(){
+    bool result = false;
     for (auto& connection : _connections) {
         if(connection.state == ConnectionState_t::ConnectionStateWaiting) {
             connection.state = ConnectionState_t::ConnectionStateScheduled;
             cMessage* msg = new cMessage(SELFMESSAGE_SEND_HELLO);
             msg->setContextPointer(&connection);
             scheduleAt(connection.connectAt, msg);
+            result = true;
             break;
         }
     }
+    return result;
 }
 
-void TransactionApp::scheduleNextConfigurationFor(Connection_t* connection){
+bool TransactionApp::scheduleNextConfigurationFor(Connection_t* connection){
     bool result = !_connections.empty();
     for(auto& connection: _connections){
         if(connection.state != ConnectionState_t::ConnectionStateEstablished){
@@ -135,6 +138,7 @@ void TransactionApp::scheduleNextConfigurationFor(Connection_t* connection){
     if(result){
         scheduleTransactionStart(this->par("startTransaction").doubleValue());
     }
+    return result;
 }
 
 void TransactionApp::scheduleTransactionStart(SimTime startTime){
