@@ -32,10 +32,11 @@ namespace SDN4CoRE {
  *
  * @author Tobias Haugg, for HAW Hamburg
  */
-class NetConfConfigMultipart: public  NetConfConfig{
+class NetConfConfigMultipart: public NetConfConfig{
 
 public:
     NetConfConfigMultipart(){};
+
     virtual ~NetConfConfigMultipart();
 
     /**

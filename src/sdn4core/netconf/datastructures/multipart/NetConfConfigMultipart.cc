@@ -21,12 +21,14 @@ namespace SDN4CoRE {
 NetConfConfigMultipart::NetConfConfigMultipart (const NetConfConfigMultipart &old_obj):NetConfConfig(old_obj) {
     for( auto old_config: old_obj._configs){
         NetConfConfig* newConfig = dynamic_cast<NetConfConfig*>(old_config->dup());
+        take(newConfig);  // take ownership
         this->_configs.push_back(newConfig);
     }
 }
 
 SDN4CoRE::NetConfConfigMultipart::~NetConfConfigMultipart() {
     for( auto config: _configs){
+       drop(config);  // release ownership
        if(config != nullptr){
            delete config;
        }
@@ -50,10 +52,24 @@ std::vector<NetConfConfig*> NetConfConfigMultipart::getConfigurations() {
 }
 
 void NetConfConfigMultipart::setConfigurations(std::vector<NetConfConfig*> new_configs) {
-    _configs = new_configs;
+    //remove old configs
+    for( auto config: _configs){
+       drop(config);  // release ownership
+       if(config != nullptr){
+           delete config;
+       }
+    }
+    _configs.clear();
+    //copy new ones
+    for( auto config: new_configs){
+        NetConfConfig* newConfig = dynamic_cast<NetConfConfig*>(config->dup());
+        take(newConfig);  // take ownership
+        this->_configs.push_back(newConfig);
+    }
 }
 
 void NetConfConfigMultipart::addConfiguration(NetConfConfig* new_config) {
+    take(new_config);  // take ownership
     _configs.push_back(new_config);
 }
 
