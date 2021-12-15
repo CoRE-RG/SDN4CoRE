@@ -187,13 +187,6 @@ protected:
     void updatePhase(Phase newPhase);
 
     /**
-     * sets the timestamp as data for the configuration
-     * @param timestamp    the timestamp.
-     * @return the Configurations
-     */
-    Configuration_t* getCommitTimestampConfig(NetConfConfigCommitTimestamp::CommitTimestamp_t timestamp);
-
-    /**
      * finds the mentioned connection for the reply
      * @param reply    the NetConfMessage_RPCReply
      * @return the Connection

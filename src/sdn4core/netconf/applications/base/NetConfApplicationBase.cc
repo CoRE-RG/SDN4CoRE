@@ -34,9 +34,7 @@ Define_Module(NetConfApplicationBase);
 NetConfApplicationBase::~NetConfApplicationBase() {
     for(auto conn : this->_connections){
         for(auto config : conn.configurations){
-            if(config->data != nullptr){
-                delete config->data;
-            }
+            delete config;
         }
     }
 }

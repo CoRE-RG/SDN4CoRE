@@ -81,6 +81,14 @@ protected:
      */
     std::vector<Connection_t*> getSwitchesInState(int state) override;
 
+
+    /**
+     * sets the timestamp as data for the configuration
+     * @param timestamp    the timestamp.
+     * @return the Configurations
+     */
+    Configuration_t* getCommitTimestampConfig(NetConfConfigCommitTimestamp::CommitTimestamp_t timestamp);
+
     /**
      * determines timestamp by calculation for each connection the latencies of all Ethernet frames that still to be sent
      * @return the CommitTimestamp
