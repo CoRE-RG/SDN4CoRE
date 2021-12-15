@@ -3,21 +3,21 @@
 <flowTable index="0" >
 
 	<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
-	    <match  in_port="0" dl_dst="0A-00-00-00-00-03" dl_src="0A-00-00-00-00-04" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+	    <match  in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
 	    <instructions>
 	        <action_output port="2"/>
 	    </instructions>
 	</flowEntry>
 	
 	<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
-	    <match  in_port="1" dl_dst="0A-00-00-00-00-03" dl_src="0A-00-00-00-00-02" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+	    <match  in_port="1" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-03" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
 	    <instructions>
 	        <action_output port="2"/>
 	    </instructions>
 	</flowEntry>
 	
 	<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
-	    <match  in_port="0" dl_dst="0A-00-00-00-00-03" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+	    <match  in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-02" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
 	    <instructions>
 	        <action_output port="2"/>
 	    </instructions>
