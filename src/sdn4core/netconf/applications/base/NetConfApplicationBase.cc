@@ -64,6 +64,7 @@ void NetConfApplicationBase::initialize() {
             }
         }
     }
+    WATCH_VECTOR(_connections);
     scheduleNextConnection();
 }
 

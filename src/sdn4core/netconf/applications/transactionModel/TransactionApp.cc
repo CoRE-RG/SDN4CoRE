@@ -64,6 +64,7 @@ void TransactionApp::initialize(){
             }
         }
     }
+    WATCH_VECTOR(_connections);
     scheduleNextConnection();
 }
 

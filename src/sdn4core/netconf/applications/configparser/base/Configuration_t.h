@@ -47,6 +47,23 @@ public:
         ConfigurationStateError = 4
     } ConfigurationState_t;
 
+    static std::string connectionStateToString(ConfigurationState_t state) {
+        switch(state) {
+        case ConfigurationStateWaiting:
+            return "Waiting";
+        case ConfigurationStateScheduled:
+            return "Scheduled";
+        case ConfigurationStateRequested:
+            return "Requested";
+        case ConfigurationStateSuccess:
+            return "Success";
+        case ConfigurationStateError:
+            return "Error";
+        default: break;
+        }
+        return "Unknown";
+    }
+
     /**
      * Configuration message type
      */
@@ -59,6 +76,46 @@ public:
         NetConfMessageType_Unlock = 5, //unlock
         NetConfMessageType_Commit = 6, //commit
     } NetConfMessageType_t;
+
+    static std::string netconfMessageTypeToString(NetConfMessageType_t state) {
+        switch(state) {
+        case NetConfMessageType_EditConfig:
+            return "edit_config";
+        case NetConfMessageType_GetConfig:
+            return "get_config";
+        case NetConfMessageType_CopyConfig:
+            return "copy_config";
+        case NetConfMessageType_DeleteConfig:
+            return "delete_config";
+        case NetConfMessageType_Lock:
+            return "lock";
+        case NetConfMessageType_Unlock:
+            return "unlock";
+        case NetConfMessageType_Commit:
+            return "commit";
+        default: break;
+        }
+        return "Unknown";
+    }
+
+    static int getConfigTypeFor(const char* type) {
+        if (!strcmp(type, "edit_config")) {
+            return NetConfMessageType::NetConfMessageType_EditConfig;
+        } else if (!strcmp(type, "get_config")) {
+            return NetConfMessageType::NetConfMessageType_GetConfig;
+        } else if (!strcmp(type, "copy_config")) {
+            return NetConfMessageType::NetConfMessageType_CopyConfig;
+        } else if (!strcmp(type, "delete_config")) {
+            return NetConfMessageType::NetConfMessageType_DeleteConfig;
+        } else if (!strcmp(type, "lock")){
+            return NetConfMessageType::NetConfMessageType_Lock;
+        } else if (!strcmp(type, "unlock")){
+            return NetConfMessageType::NetConfMessageType_Unlock;
+        } else if (!strcmp(type, "commit")){
+            return NetConfMessageType::NetConfMessageType_Commit;
+        }
+        return -1;
+    };
 
     /**
      * The time to execute the config
@@ -95,24 +152,17 @@ public:
      */
     ConfigurationState_t state;
 
-    static int getConfigTypeFor(const char* type) {
-        if (!strcmp(type, "edit_config")) {
-            return NetConfMessageType::NetConfMessageType_EditConfig;
-        } else if (!strcmp(type, "get_config")) {
-            return NetConfMessageType::NetConfMessageType_GetConfig;
-        } else if (!strcmp(type, "copy_config")) {
-            return NetConfMessageType::NetConfMessageType_CopyConfig;
-        } else if (!strcmp(type, "delete_config")) {
-            return NetConfMessageType::NetConfMessageType_DeleteConfig;
-        } else if (!strcmp(type, "lock")){
-            return NetConfMessageType::NetConfMessageType_Lock;
-        } else if (!strcmp(type, "unlock")){
-            return NetConfMessageType::NetConfMessageType_Unlock;
-        } else if (!strcmp(type, "commit")){
-            return NetConfMessageType::NetConfMessageType_Commit;
-        }
-        return -1;
-    };
+    friend std::ostream& operator<<(std::ostream& os, const Configuration_t& obj){
+         os << "{executeAt=" << obj.executeAt;
+         os << ", target=" << obj.target;
+         os << ", source=" << obj.source;
+//         os << ", data=" << obj.data;
+//         os << ", filter=" << obj.filter;
+         os << ", type=" << netconfMessageTypeToString(obj.type);
+         os << ", state=" << connectionStateToString(obj.state);
+         os << "}";
+         return os;
+    }
 };
 
 
