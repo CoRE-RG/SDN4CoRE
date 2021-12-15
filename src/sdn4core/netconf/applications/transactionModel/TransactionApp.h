@@ -358,12 +358,12 @@ protected:
     /**
      * intercept when all connections are ready
      */
-    virtual void scheduleNextConfigurationFor(Connection_t* connection) override;
+    virtual bool scheduleNextConfigurationFor(Connection_t* connection) override;
 
     /**
      * Schedules a self messsage for the next connection creation;
      */
-    virtual void scheduleNextConnection() override;
+    virtual bool scheduleNextConnection() override;
 
     /**
      * schedules the start of the transaction

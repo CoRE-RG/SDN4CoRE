@@ -137,12 +137,12 @@ protected:
     /**
      * Schedules a self messsage for the next connection creation;
      */
-    virtual void scheduleNextConnection();
+    virtual bool scheduleNextConnection();
 
     /**
      * Schedules a self messsage for the next connection creation;
      */
-    virtual void scheduleNextConfigurationFor(Connection_t* connection);
+    virtual bool scheduleNextConfigurationFor(Connection_t* connection);
 
     /**
      * Creates a NetConfHello message for the connection.

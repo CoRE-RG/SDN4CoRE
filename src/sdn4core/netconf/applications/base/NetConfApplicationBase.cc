@@ -39,7 +39,6 @@ NetConfApplicationBase::~NetConfApplicationBase() {
     }
 }
 
-
 void NetConfApplicationBase::initialize() {
     cXMLElement* xmlServerConnections = par("serverConnections").xmlValue();
     if (xmlServerConnections) {
@@ -63,10 +62,18 @@ void NetConfApplicationBase::initialize() {
         }
     }
     WATCH_VECTOR(_connections);
-    scheduleNextConnection();
+    bool scheduled = scheduleNextConnection();
+    if (getEnvir()->isGUI()) {
+        if(scheduled) {
+            getDisplayString().setTagArg("i2", 0, "status/asleep");
+        } else {
+            getDisplayString().setTagArg("i2", 0, "status/stop");
+        }
+    }
 }
 
-void NetConfApplicationBase::scheduleNextConnection() {
+bool NetConfApplicationBase::scheduleNextConnection() {
+    bool scheduled = false;
     int index = -1;
     SimTime next = SimTime::getMaxTime();
     for (size_t i = 0; i < _connections.size(); i++) {
@@ -84,11 +91,14 @@ void NetConfApplicationBase::scheduleNextConnection() {
         cMessage* msg = new cMessage(SELFMESSAGE_SEND_HELLO);
         msg->setContextPointer(&_connections[index]);
         scheduleAt(next, msg);
+        scheduled = true;
     }
+    return scheduled;
 }
 
-void NetConfApplicationBase::scheduleNextConfigurationFor(
+bool NetConfApplicationBase::scheduleNextConfigurationFor(
         Connection_t* connection) {
+    bool scheduled = false;
     if (connection
             && (connection->state
                     == ConnectionState_t::ConnectionStateEstablished)) {
@@ -113,6 +123,7 @@ void NetConfApplicationBase::scheduleNextConfigurationFor(
                 cMessage* msg = new cMessage(SELFMESSAGE_SEND_NETCONF);
                 msg->setContextPointer(rpc);
                 scheduleAt(next, msg);
+                scheduled = true;
                 connection->configurations[index]->state =
                         Configuration_t::ConfigurationState_t::ConfigurationStateScheduled;
             } else {
@@ -121,23 +132,31 @@ void NetConfApplicationBase::scheduleNextConfigurationFor(
             }
         }
     }
+    return scheduled;
 }
 
 void NetConfApplicationBase::handleMessage(cMessage *msg) {
+    static int activeConnections = 0;
+    static int activeConfigurations = 0;
+    bool scheduled = false;
     if (msg->isSelfMessage()) {
         if (strcmp(msg->getName(), SELFMESSAGE_SEND_HELLO) == 0) {
+
             Connection_t* connection =
                     static_cast<Connection_t*>(msg->getContextPointer());
-
             if (connection) {
                 send(createHelloFor(connection), gate("applicationOut"));
                 connection->state = ConnectionState_t::ConnectionStateRequested;
+                activeConnections++;
+                if (getEnvir()->isGUI())
+                {
+                    getDisplayString().setTagArg("i2", 0, "status/active");
+                }
             }
-
-            scheduleNextConnection();
+            scheduled = scheduleNextConnection();
         } else if (strcmp(msg->getName(), SELFMESSAGE_SEND_NETCONF) == 0) {
-            NetConfMessage_RPC* rpc = static_cast<NetConfMessage_RPC*> (msg->getContextPointer());
 
+            NetConfMessage_RPC* rpc = static_cast<NetConfMessage_RPC*> (msg->getContextPointer());
             if(rpc){
                 Connection_t* connection =
                                     static_cast<Connection_t*>(rpc->getContextPointer());
@@ -145,8 +164,11 @@ void NetConfApplicationBase::handleMessage(cMessage *msg) {
                 if(ctrl && connection){
                     connection->configurations[atoi(ctrl->getMessage_id())]->state = Configuration_t::ConfigurationState_t::ConfigurationStateRequested;
                     send(rpc, gate("applicationOut"));
-
-                    scheduleNextConfigurationFor(connection);
+                    activeConfigurations++;
+                    scheduled = scheduleNextConfigurationFor(connection);
+                    if(!scheduled) {
+                        activeConnections--;
+                    }
                 }
             }
         }
@@ -157,30 +179,42 @@ void NetConfApplicationBase::handleMessage(cMessage *msg) {
         if (connection) {
             connection->session_id = sessionInfo->getSessionId();
             connection->state = ConnectionState_t::ConnectionStateEstablished;
-            scheduleNextConfigurationFor(connection);
+            scheduled = scheduleNextConfigurationFor(connection);
+            if(!scheduled) {
+                activeConnections--;
+            }
         }
     } else if (NetConfMessage_RPCReply* reply = dynamic_cast<NetConfMessage_RPCReply*>(msg)){
         if(NetConfCtrlInfo* info = dynamic_cast<NetConfCtrlInfo*>(reply->getControlInfo())){
-
-                Connection_t* found = nullptr;
-                for (size_t i = 0; i < _connections.size(); i++) {
-                    auto& connection = _connections[i];
-                    if (connection.state
-                            == ConnectionState_t::ConnectionStateEstablished
-                            && connection.session_id == info->getSession_id()) {
-                        found = &connection;
-                    }
+            Connection_t* found = nullptr;
+            for (size_t i = 0; i < _connections.size(); i++) {
+                auto& connection = _connections[i];
+                if (connection.state
+                        == ConnectionState_t::ConnectionStateEstablished
+                        && connection.session_id == info->getSession_id()) {
+                    found = &connection;
                 }
-                if(found){
-                    if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
-                        found->configurations[atoi(info->getMessage_id())]->state = Configuration_t::ConfigurationState_t::ConfigurationStateSuccess;
-                    } else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket())) {
-                        found->configurations[atoi(info->getMessage_id())]->state = Configuration_t::ConfigurationState_t::ConfigurationStateError;
-                    }
+            }
+            if(found){
+                activeConfigurations--;
+                if(dynamic_cast<NetConf_RPCReplyElement_Ok*>(reply->getEncapsulatedPacket())){
+                    found->configurations[atoi(info->getMessage_id())]->state = Configuration_t::ConfigurationState_t::ConfigurationStateSuccess;
+                } else if(dynamic_cast<NetConf_RPCReplyElement_Error*>(reply->getEncapsulatedPacket())) {
+                    found->configurations[atoi(info->getMessage_id())]->state = Configuration_t::ConfigurationState_t::ConfigurationStateError;
                 }
+            }
         }
     }
-
+    if (getEnvir()->isGUI()) {
+        if(activeConfigurations + activeConnections > 0) {
+            //we are active
+            getDisplayString().setTagArg("i2", 0, "status/active");
+        } else if(scheduled) {
+            getDisplayString().setTagArg("i2", 0, "status/asleep");
+        } else {
+            getDisplayString().setTagArg("i2", 0, "status/check");
+        }
+    }
     delete msg;
 }
 
