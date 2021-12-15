@@ -42,12 +42,11 @@ module NetConfManagementUnit
         //NetConfClient applications
         netConfApps[numNetConfApps]: <> like INetConfApplication {
 
-            @display("p=220,50,c,50");
+            @display("p=220,70,c,70");
         }
         // Netconf Client module
         netConfClient: <netConfClientType> like INetConfClient {
-
-            @display("p=57,50");
+            @display("p=57,70");
         }
 
     connections:
