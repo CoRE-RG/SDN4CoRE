@@ -38,6 +38,8 @@ namespace SDN4CoRE {
 
 #define MODULE_SPACING 70
 
+typedef std::pair<std::string, int> SwitchPort_t;
+
 /**
  * Workaround to count module creations for the template class.
  * Used to set display options.
@@ -152,6 +154,38 @@ protected:
     }
 
     /**
+     * Locates all known switches and returns them.
+     *
+     * @return a map of all switches with there switch mac address as the key.
+     */
+    const std::map<std::string, cModule*>& getAllSwitches() {
+        refreshCachedSwitches();
+        return cachedSwitchPorts;
+    }
+
+    /**
+     * Create a switch the compound module.
+     *
+     * @note This will throw an error if the module already exists.
+     * Maybe use getOrCreateSwitch() instead.
+     *
+     * @param swMacAddr The info of the switch to look for.
+     * @return the compound module that was created/found.
+     */
+    cModule* createSwitch(std::string swMacAddr) {
+        cModule* switchModule = createFinalizeAndScheduleDynamicModule(
+                    "sdn4core.controllerState.base.ControllerSwitchState",
+                    "switchState", this->getParentModule(), true);
+        if (!switchModule) {
+            throw cRuntimeError(
+                    "Could not create state module for switch %s ",
+                    swMacAddr.c_str());
+        }
+        onCreateSwitch(switchModule, swMacAddr);
+        return switchModule;
+    }
+
+    /**
      * Checks whether a given switch is already present else create
      * the compound module.
      *
@@ -161,15 +195,7 @@ protected:
     cModule* getOrCreateSwitch(std::string swMacAddr) {
         cModule* switchModule = getSwitch(swMacAddr);
         if (!switchModule) {
-            switchModule = createFinalizeAndScheduleDynamicModule(
-                    "sdn4core.controllerState.base.ControllerSwitchState",
-                    "switchState", this->getParentModule(), true);
-            if (!switchModule) {
-                throw cRuntimeError(
-                        "Could not create state module for switch %s ",
-                        swMacAddr.c_str());
-            }
-            onCreateSwitch(switchModule, swMacAddr);
+            switchModule = createSwitch(swMacAddr);
         }
         return switchModule;
     }
@@ -192,8 +218,8 @@ protected:
      * @param port The port id to look for.
      * @return The switch port module, nullptr if not found.
      */
-    PortModule* getSwitchPort(std::string swMacAddr, int port) {
-        std::pair<std::string, int> switchPortPair(swMacAddr, port);
+    PortModule* getSwitchPort(std::string swMacAddr, int port, cModule* switchModule = nullptr) {
+        SwitchPort_t switchPortPair(swMacAddr, port);
         if (cachedSwitchPorts.find(switchPortPair) != cachedSwitchPorts.end()) {
             return cachedSwitchPorts[switchPortPair];
         }
@@ -205,9 +231,36 @@ protected:
      *
      * @return a map of all switch ports with there switch mac address and port as the key.
      */
-    const std::map<std::pair<std::string, int>, PortModule*>& getAllSwitchPorts() {
+    const std::map<SwitchPort_t, PortModule*>& getAllSwitchPorts() {
         refreshCachedPorts();
         return cachedSwitchPorts;
+    }
+
+    /**
+     * Create a port module inside a switch compound module.
+     *
+     * @note This will throw an error if the module already exists.
+     * Maybe use getOrCreateSwitchPort() instead.
+     *
+     * @param swMacAddr The info of the switch to look for.
+     * @param port The port id to look for.
+     * @return the compound module that was created/found.
+     */
+    PortModule* createSwitchPort(std::string swMacAddr, int port, cModule* switchModule = nullptr) {
+        if(!switchModule) {
+            switchModule = getOrCreateSwitch(swMacAddr);
+        }
+        PortModule* portModule =
+                dynamic_cast<PortModule*>(createFinalizeAndScheduleDynamicModule(
+                        "sdn4core.controllerState.base.PortModule",
+                        "portModules", switchModule, true));
+        if (!portModule) {
+            throw cRuntimeError(
+                    "Could not create port module %s for switch %s ",
+                    std::to_string(port).c_str(), swMacAddr.c_str());
+        }
+        onCreateSwitchPort(portModule, swMacAddr, port);
+        return portModule;
     }
 
     /**
@@ -218,20 +271,10 @@ protected:
      * @param port The port id to look for.
      * @return the compound module that was created/found.
      */
-    PortModule* getOrCreateSwitchPort(std::string swMacAddr, int port) {
-        PortModule* portModule = getSwitchPort(swMacAddr, port);
+    PortModule* getOrCreateSwitchPort(std::string swMacAddr, int port, cModule* switchModule = nullptr) {
+        PortModule* portModule = getSwitchPort(swMacAddr, port, switchModule);
         if (!portModule) {
-            cModule* switchModule = getOrCreateSwitch(swMacAddr);
-            portModule =
-                    dynamic_cast<PortModule*>(createFinalizeAndScheduleDynamicModule(
-                            "sdn4core.controllerState.base.PortModule",
-                            "portModules", switchModule, true));
-            if (!portModule) {
-                throw cRuntimeError(
-                        "Could not create port module %s for switch %s ",
-                        std::to_string(port).c_str(), swMacAddr.c_str());
-            }
-            onCreateSwitchPort(portModule, swMacAddr, port);
+            portModule = createSwitchPort(swMacAddr, port);
         }
         return portModule;
     }
@@ -507,7 +550,7 @@ protected:
      * of ControllerStateManagementBase! In some edge cases, modules that are
      * cached might not be valid anymore.
      */
-    std::map<std::pair<std::string, int>, PortModule*> cachedSwitchPorts;
+    std::map<SwitchPort_t, PortModule*> cachedSwitchPorts;
 
     /**
      * Known managed switch state modules that are cached on creation and

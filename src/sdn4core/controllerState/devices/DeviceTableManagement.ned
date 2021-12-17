@@ -13,40 +13,19 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "PortModule.h"
+package sdn4core.controllerState.devices;
 
-namespace SDN4CoRE{
+import sdn4core.controllerState.base.ControllerStateManagementBase;
 
-Define_Module(PortModule);
-
-void PortModule::initialize() {
-    WATCH(_port);
-    WATCH_PTR(_deviceLink);
-}
-
-int PortModule::getPort(){
-    return _port;
-}
-
-void PortModule::setPort(int port) {
-    _port = port;
-}
-
-bool PortModule::setDeviceLink(PortModule* nextDevicePort) {
-    bool updated = false;
-    if(_deviceLink) {
-        updated = true;
-    }
-    _deviceLink = nextDevicePort;
-    return updated;
-}
-
-bool PortModule::isDeviceLink() {
-    return _deviceLink != nullptr;
-}
-
-PortModule* PortModule::getDeviceLink() {
-    return _deviceLink;
-}
-
+//
+// Module that manages MacTables for a Controller Application.
+// DeviceTableManagement has no own state class as it attaches all information 
+// to the switch module @see~ControllerSwitchState.
+//
+// @author Timo Haeckel, for HAW Hamburg
+//
+simple DeviceTableManagement extends ControllerStateManagementBase
+{
+    parameters:
+    	@class(SDN4CoRE::DeviceTableManagement);
 }
