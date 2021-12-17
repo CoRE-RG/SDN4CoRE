@@ -379,82 +379,82 @@ cPacket *IPTunnelingControllerApp::decapsulate(IPv4Datagram *datagram)
 
 void IPTunnelingControllerApp::fragmentAndSend(IPv4Datagram *datagram)
 {
-    // fill in source address
-    if (datagram->getSrcAddress().isUnspecified())
-        datagram->setSrcAddress(ie->ipv4Data()->getIPAddress());
-
-    // hop counter check
-    if (datagram->getTimeToLive() <= 0) {
-        emit(LayeredProtocolBase::packetFromUpperDroppedSignal, datagram);
-        EV_WARN << "datagram TTL reached zero, packet dropped\n";
-        numDropped++;
-        delete datagram;
-        return;
-    }
-
-    // send datagram straight out if it doesn't require fragmentation (note: mtu==0 means infinite mtu)
-    if (mtu == 0 || datagram->getByteLength() <= mtu) {
-        sendDatagramToOutput(datagram, ie, nextHopAddr);
-        return;
-    }
-
-    // if "don't fragment" bit is set, throw datagram away and send ICMP error message
-    if (datagram->getDontFragment()) {
-        emit(LayeredProtocolBase::packetFromUpperDroppedSignal, datagram);
-        EV_WARN << "datagram larger than MTU and don't fragment bit set, packet dropped\n";
-        numDropped++;
-        delete datagram;
-        return;
-    }
-
-    // FIXME some IP options should not be copied into each fragment, check their COPY bit
-    int headerLength = datagram->getHeaderLength();
-    int payloadLength = datagram->getByteLength() - headerLength;
-    int fragmentLength = ((mtu - headerLength) / 8) * 8;    // payload only (without header)
-    int offsetBase = datagram->getFragmentOffset();
-    if (fragmentLength <= 0)
-        throw cRuntimeError("Cannot fragment datagram: MTU=%d too small for header size (%d bytes)", mtu, headerLength); // exception and not ICMP because this is likely a simulation configuration error, not something one wants to simulate
-
-    int noOfFragments = (payloadLength + fragmentLength - 1) / fragmentLength;
-    EV_DETAIL << "Breaking datagram into " << noOfFragments << " fragments\n";
-
-    // create and send fragments
-    std::string fragMsgName = datagram->getName();
-    fragMsgName += "-frag";
-
-    for (int offset = 0; offset < payloadLength; offset += fragmentLength) {
-        bool lastFragment = (offset + fragmentLength >= payloadLength);
-        // length equal to fragmentLength, except for last fragment;
-        int thisFragmentLength = lastFragment ? payloadLength - offset : fragmentLength;
-
-        // FIXME is it ok that full encapsulated packet travels in every datagram fragment?
-        // should better travel in the last fragment only. Cf. with reassembly code!
-        IPv4Datagram *fragment = datagram->dup();
-        fragment->setName(fragMsgName.c_str());
-
-        // "more fragments" bit is unchanged in the last fragment, otherwise true
-        if (!lastFragment)
-            fragment->setMoreFragments(true);
-
-        fragment->setByteLength(headerLength + thisFragmentLength);
-        fragment->setFragmentOffset(offsetBase + offset);
-
-        sendDatagramToOutput(fragment, ie, nextHopAddr);
-    }
-
-    delete datagram;
+//    // fill in source address
+//    if (datagram->getSrcAddress().isUnspecified())
+//        datagram->setSrcAddress(ie->ipv4Data()->getIPAddress());
+//
+//    // hop counter check
+//    if (datagram->getTimeToLive() <= 0) {
+//        emit(LayeredProtocolBase::packetFromUpperDroppedSignal, datagram);
+//        EV_WARN << "datagram TTL reached zero, packet dropped\n";
+//        numDropped++;
+//        delete datagram;
+//        return;
+//    }
+//
+//    // send datagram straight out if it doesn't require fragmentation (note: mtu==0 means infinite mtu)
+//    if (mtu == 0 || datagram->getByteLength() <= mtu) {
+//        sendDatagramToOutput(datagram, ie, nextHopAddr);
+//        return;
+//    }
+//
+//    // if "don't fragment" bit is set, throw datagram away and send ICMP error message
+//    if (datagram->getDontFragment()) {
+//        emit(LayeredProtocolBase::packetFromUpperDroppedSignal, datagram);
+//        EV_WARN << "datagram larger than MTU and don't fragment bit set, packet dropped\n";
+//        numDropped++;
+//        delete datagram;
+//        return;
+//    }
+//
+//    // FIXME some IP options should not be copied into each fragment, check their COPY bit
+//    int headerLength = datagram->getHeaderLength();
+//    int payloadLength = datagram->getByteLength() - headerLength;
+//    int fragmentLength = ((mtu - headerLength) / 8) * 8;    // payload only (without header)
+//    int offsetBase = datagram->getFragmentOffset();
+//    if (fragmentLength <= 0)
+//        throw cRuntimeError("Cannot fragment datagram: MTU=%d too small for header size (%d bytes)", mtu, headerLength); // exception and not ICMP because this is likely a simulation configuration error, not something one wants to simulate
+//
+//    int noOfFragments = (payloadLength + fragmentLength - 1) / fragmentLength;
+//    EV_DETAIL << "Breaking datagram into " << noOfFragments << " fragments\n";
+//
+//    // create and send fragments
+//    std::string fragMsgName = datagram->getName();
+//    fragMsgName += "-frag";
+//
+//    for (int offset = 0; offset < payloadLength; offset += fragmentLength) {
+//        bool lastFragment = (offset + fragmentLength >= payloadLength);
+//        // length equal to fragmentLength, except for last fragment;
+//        int thisFragmentLength = lastFragment ? payloadLength - offset : fragmentLength;
+//
+//        // FIXME is it ok that full encapsulated packet travels in every datagram fragment?
+//        // should better travel in the last fragment only. Cf. with reassembly code!
+//        IPv4Datagram *fragment = datagram->dup();
+//        fragment->setName(fragMsgName.c_str());
+//
+//        // "more fragments" bit is unchanged in the last fragment, otherwise true
+//        if (!lastFragment)
+//            fragment->setMoreFragments(true);
+//
+//        fragment->setByteLength(headerLength + thisFragmentLength);
+//        fragment->setFragmentOffset(offsetBase + offset);
+//
+//        sendDatagramToOutput(fragment, ie, nextHopAddr);
+//    }
+//
+//    delete datagram;
 }
 
-void IPTunnelingControllerApp::sendDatagramToOutput(IPv4Datagram *datagram, const InterfaceEntry *ie, IPv4Address nextHopAddr)
+void IPTunnelingControllerApp::sendDatagramToOutput(IPv4Datagram *datagram)
 {
-    if (nextHopAddr.isUnspecified()) {
-        nextHopAddr = destAddress;
-    }
-
-    MACAddress nextHopMacAddr;    // unspecified
-    nextHopMacAddr = resolveNextHopMacAddress(datagram, nextHopAddr, ie);
-
-    sendPacketToIeee802NIC(datagram, ie, nextHopMacAddr, ETHERTYPE_IPv4);
+//    if (nextHopAddr.isUnspecified()) {
+//        nextHopAddr = destAddress;
+//    }
+//
+//    MACAddress nextHopMacAddr;    // unspecified
+//    nextHopMacAddr = resolveNextHopMacAddress(datagram, nextHopAddr, ie);
+//
+//    sendPacketToIeee802NIC(datagram, ie, nextHopMacAddr, ETHERTYPE_IPv4);
 }
 
 IPv4Datagram *IPTunnelingControllerApp::encapsulate(cPacket *transportPacket, IPv4ControlInfo *controlInfo)
