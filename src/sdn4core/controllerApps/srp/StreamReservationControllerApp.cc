@@ -150,6 +150,20 @@ bool StreamReservationControllerApp::loadOfflineConfigFromXML(Switch_Info* info)
     return changed;
 }
 
+void StreamReservationControllerApp::processSwitchConnection(openflow::Switch_Info* info) {
+    Enter_Method("processSwitchConnection()");
+    loadOfflineConfigFromXML(info);
+    installSRPRule(info);
+}
+
+void StreamReservationControllerApp::installSRPRule(openflow::Switch_Info* info){
+    auto builder = OFMatchFactory::getBuilder();
+    uint16_t avb_type = 0x22EA;
+    builder->setField(OFPXMT_OFB_ETH_TYPE, &avb_type);
+    oxm_basic_match match = builder->build();
+    sendSRPFlowModMessage(OFPFC_ADD, match,OFPP_CONTROLLER,info->getSocket());
+}
+
 std::string StreamReservationControllerApp::stateToXML() {
     ostringstream oss;
     string tab = "\t";
