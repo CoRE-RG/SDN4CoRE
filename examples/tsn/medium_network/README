@@ -1,18 +1,18 @@
 Demonstrates a medium sized TSN network. Traffic generators send Ethernet frames directly.
 
--  The network contains four hosts (node1, node2, node3, node4) which are connected over
+-  The network contains four hosts (Source1, Source2, Source3, Sink) which are connected over
    two TSN, Netconf and Openflow capable switches. The two switches are connected to an SDN controller using an ether switch
    The network period cycle time is 1ms (see omnetpp.ini), used for GateControlLists and Synchronous traffic.
   
--  Node1 starts sending IEEE8021Q traffic with priority 7 once per cylce after 100ms
+-  Source1 starts sending IEEE8021Q traffic with priority 7 once per cylce after 100ms
 
--  Node2 starts sending IEEE8021Q traffic with priority 7 once per cylce after 200ms
+-  Source2 starts sending IEEE8021Q traffic with priority 7 once per cylce after 200ms
 
--  Node4 starts sending IEEE8021Q traffic with priority 7 once per cylce after 300ms
+-  Source3 starts sending IEEE8021Q traffic with priority 7 once per cylce after 300ms
 
--  All nodes except Node3 additionaly send IEEE8021Q traffic with priority 0 every cycle after 300us and 700us
+-  All sources additionaly send IEEE8021Q traffic with priority 0 every cycle after 300us and 700us
 
--  Node3 receivs all traffic from Nodes 1, 2 and 4
+-  Sink receivs all traffic from Sources 1 to 3
 
 - Controller is connected to the Switch using the OpenFlow protocol to control the forwarding and the Netconf protocol to manage scheduling and configured flows.
 
