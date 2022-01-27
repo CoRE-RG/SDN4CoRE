@@ -7,6 +7,12 @@ SDN4CoRE provides programmable network devices and controllers for different Eth
 
 
 ## News
+IMPORTANT: We recently had to perform a rebase for the published NETCONF transactions to clean up the history and change the commit authors.
+We apologize for the inconvenience, but it was important to us that all student contributors are listed.
+If you have trouble pulling changes, try rebasing your changes to the current Github master branch, or open an issue and ask for help.
+
+Release of Netconf transaction model including time synchronous and non time synchronous transactions. As well as chnages to many netconf moudules.
+
 Model release including programmable devices and controllers for IEEE802.1Q, IEEE802.1Qbv, AVB/SRP via OpenFlow and NetConf.
 
 ## References
