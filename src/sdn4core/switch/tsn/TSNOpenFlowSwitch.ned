@@ -36,7 +36,7 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
 {
     parameters:
         @display("i=device/switch;i2=OpenFlow-Logo-small");
-        relayUnitType = default("AVB_OF_RelayUnit");
+        relayUnitType = default("OF_RelayUnit");
         switchAgentType = default("TSN_OF_SwitchAgent");
         ethDataPlaneType = default("TSNEthernetInterface");
         ethControlPlaneType = default("TSNEtherNic");

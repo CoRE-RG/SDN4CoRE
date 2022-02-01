@@ -62,8 +62,10 @@ void StreamReservationControllerApp::initialize() {
 }
 
 void StreamReservationControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
-    if (dynamic_cast<CoRE4INET::SRPFrame *>(packet_in_msg->getEncapsulatedPacket())) {
-        doSRP(packet_in_msg);
+    if (EthernetIIFrameWithQTag * ethFrame = dynamic_cast<EthernetIIFrameWithQTag *>(packet_in_msg->getEncapsulatedPacket())) {
+        if (dynamic_cast<SRPFrame *>(ethFrame->getEncapsulatedPacket())) {
+            doSRP(packet_in_msg);
+        }
     }
 }
 
@@ -139,7 +141,7 @@ void StreamReservationControllerApp::forwardSRPPacket(OFP_Packet_In* packet_in_m
 }
 
 bool StreamReservationControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
-    Enter_Method("loadOfflineConfigFromXML()");
+//    Enter_Method("loadOfflineConfigFromXML()");
     //load XML config if specified.
     bool changed = false;
     cXMLElement* xmlDoc = par("configXML").xmlValue();
@@ -151,7 +153,7 @@ bool StreamReservationControllerApp::loadOfflineConfigFromXML(Switch_Info* info)
 }
 
 void StreamReservationControllerApp::processSwitchConnection(openflow::Switch_Info* info) {
-    Enter_Method("processSwitchConnection()");
+//    Enter_Method("processSwitchConnection()");
     loadOfflineConfigFromXML(info);
     installSRPRule(info);
 }
@@ -161,7 +163,7 @@ void StreamReservationControllerApp::installSRPRule(openflow::Switch_Info* info)
     uint16_t avb_type = 0x22EA;
     builder->setField(OFPXMT_OFB_ETH_TYPE, &avb_type);
     oxm_basic_match match = builder->build();
-    sendSRPFlowModMessage(OFPFC_ADD, match,OFPP_CONTROLLER,info->getSocket());
+    sendFlowModMessage(OFPFC_ADD, match,OFPP_CONTROLLER,info->getSocket(),0,0);
 }
 
 std::string StreamReservationControllerApp::stateToXML() {

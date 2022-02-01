@@ -33,7 +33,7 @@ simple OF_RelayUnit like IOF_RelayUnit
     parameters:
         @class(SDN4CoRE::OF_RelayUnit);
         
-     	@signal[forwardToCon](type=inet::EthernetIIFrame);
+     	@signal[forwardToConSign](type=inet::EthernetIIFrame);
      	@signal[tableMissSign](type=inet::EthernetIIFrame);
      	
      	

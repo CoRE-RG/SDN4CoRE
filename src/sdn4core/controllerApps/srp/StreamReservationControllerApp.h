@@ -91,11 +91,11 @@ protected:
     virtual void processSwitchConnection(openflow::Switch_Info* info) override;
 
     /**
-     * installs the necessary ruls for forwarding srp to the controller
+     * installs the necessary rules for forwarding srp to the controller
      *
      * @param info the new switch connected
      */
-    virtual void installSRPRule(openflow::Switch_Info info);
+    virtual void installSRPRule(openflow::Switch_Info* info);
 
     /**
      * Exports the current state of the MAC and SRP table and creates an XML formatted string.
