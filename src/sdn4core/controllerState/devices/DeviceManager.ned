@@ -24,8 +24,8 @@ import sdn4core.controllerState.base.ControllerStateManagementBase;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple DeviceTableManagement extends ControllerStateManagementBase
+simple DeviceManagement extends ControllerStateManagementBase
 {
     parameters:
-    	@class(SDN4CoRE::DeviceTableManagement);
+    	@class(SDN4CoRE::DeviceManagement);
 }

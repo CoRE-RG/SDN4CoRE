@@ -15,8 +15,8 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-#ifndef __SDN4CORE_DEVICETABLEMANAGEMENT_H_
-#define __SDN4CORE_DEVICETABLEMANAGEMENT_H_
+#ifndef __SDN4CORE_DEVICEMANAGER_H_
+#define __SDN4CORE_DEVICEMANAGER_H_
 
 #include <omnetpp.h>
 #include <sdn4core/controllerState/base/ControllerStateManagementBase.h>
@@ -30,11 +30,11 @@ namespace SDN4CoRE {
 typedef std::pair<SwitchPort_t, SwitchPort_t> DeviceLink_t;
 
 /**
- * DeviceTableManagement manages the device tables for a controller application.
+ * DeviceManager manages the device tables for a controller application.
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class DeviceTableManagement: public ControllerStateManagementBase<cModule> {
+class DeviceManager: public ControllerStateManagementBase<cModule> {
 public:
     /**
      * Adds a network device (switch) to the controller state and creates state modules.
