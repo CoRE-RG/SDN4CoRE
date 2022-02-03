@@ -35,8 +35,7 @@ namespace SDN4CoRE {
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class HostTable : public cSimpleModule
-{
+class HostTable: public cSimpleModule {
 public:
     /**
      * Representation of a HostTable entry.
@@ -44,66 +43,66 @@ public:
      */
     struct HostEntry {
         std::string nodeName = "UNKNOWN";
-        inet::MACAddress macAddress; // VLAN ID
-        unsigned int vid = 0;
+        inet::MACAddress macAddress;
+        std::vector<unsigned int> vids = {0}; // VLAN ID
         std::vector<inet::L3Address> ipAddresses;
-        openflow::Switch_Info* switchInfo = nullptr;
+        std::string switch_id = "";
         int portno = -1; // Input port
         bool learned = true; // true if learned during runtime, false if preconfigured
         const simtime_t insertionTime; // time when entry was created
         simtime_t lastUpdated; // for aging of unused entries
 
-        HostEntry() : insertionTime(simTime()), lastUpdated(simTime()) {}
+        HostEntry() :
+                insertionTime(simTime()), lastUpdated(simTime()) {
+        }
     };
     friend std::ostream& operator<<(std::ostream& os, const HostEntry& entry);
-    struct MAC_compare
-    {
-        bool operator()(const MACAddress& u1, const MACAddress& u2) const { return u1.compareTo(u2) < 0; }
+    struct MAC_compare {
+        bool operator()(const MACAddress& u1, const MACAddress& u2) const {
+            return u1.compareTo(u2) < 0;
+        }
     };
-    typedef std::list<HostEntry> HostList;
-    typedef std::map<inet::MACAddress, HostEntry, MAC_compare> HostMap;
-    typedef std::map<unsigned int, HostMap *> HostVLANMap;
+    typedef std::list<HostEntry*> HostList;
+    typedef std::map<inet::MACAddress, HostEntry*, MAC_compare> HostMapByMac;
+    typedef std::map<inet::L3Address, HostEntry*> HostMapByIp;
+    typedef std::map<std::string, HostList> HostMapBySwitch;
 
 public:
     HostTable();
     ~HostTable();
 
     /**
-     * TODO implement lookup for IPs
-     * @param address
-     * @return
+     * Look up a host by by the given MAC address.
+     * @param address The address to look up
+     * @return A host entry matching the MAC address if found, else nullptr
      */
-    virtual HostList getHostsForMacAddress(inet::MACAddress& address);
+    virtual HostEntry* getHostForMacAddress(inet::MACAddress& address);
 
     /**
-     * TODO implement lookup for IPs
-     * @param address
-     * @return
+     * Look up a host by the given IP address.
+     * @param address The address to look up
+     * @return A host entry matching the IP address if found, else nullptr
      */
-    virtual HostEntry* getHostForMacAddressAndVlan(inet::MACAddress& address, unsigned int vid);
+    virtual HostEntry* getHostForIPAddress(inet::L3Address& address);
 
     /**
-     * TODO implement lookup for IPs
-     * @param address
-     * @return
+     * Look up hosts connected to a switch.
+     * @param switch_id The switch id to look up
+     * @return A list of host entries connected to the host
      */
-    virtual int getPortForHostMacAddress(inet::MACAddress& address, unsigned int vid = 0);
+    virtual HostList getHostsForSwitch(std::string& switch_id);
 
     /**
      * TODO Specify interface for table insertion!
      */
 
     /**
-     * @brief Remove aged entries from a specified VLAN
+     * @brief Remove aged entries
      */
-    virtual void removeAgedEntriesFromVlan(unsigned int vid = 0);
-    /**
-     * @brief Remove aged entries from all VLANs
-     */
-    virtual void removeAgedEntriesFromAllVlans();
+    virtual void removeAgedEntries();
 
     /*
-     * It calls removeAgedEntriesFromAllVlans() if and only if at least
+     * It calls removeAgedEntries() if and only if at least
      * 1 second has passed since the method was last called.
      */
     virtual void removeAgedEntriesIfNeeded();
@@ -129,20 +128,16 @@ protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
 
-    /**
-     * @brief Returns a Host Table for a specified VLAN ID
-     */
-    HostMap *getTableForVid(unsigned int vid);
-
-    void removeAgedEntriesFromHostMap (HostMap* table);
+    virtual void removeHost(HostEntry* entry);
 
 protected:
 
     simtime_t agingTime;    // Max idle time for address table entries
-    simtime_t lastPurge;    // Time of the last call of removeAgedEntriesFromAllVlans()
-    HostVLANMap hosts;
-
-
+    simtime_t lastPurge; // Time of the last call of removeAgedEntriesFromAllVlans()
+    HostList hosts;
+    HostMapByIp hostsByIp;
+    HostMapByMac hostsByMac;
+    HostMapBySwitch hostsBySwitch;
 };
 
 } /*end namespace SDN4CoRE*/

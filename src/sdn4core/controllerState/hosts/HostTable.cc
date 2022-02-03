@@ -17,6 +17,8 @@
 
 #include "core4inet/utilities/customWatch.h"
 
+#include <algorithm>
+
 using namespace std;
 using namespace inet;
 
@@ -28,9 +30,19 @@ std::ostream& operator<<(std::ostream& os, const HostTable::HostEntry& entry) {
     os << "{";
     os << "nodeName=" << entry.nodeName;
     os << ", macAddress=" << entry.macAddress;
-    os << ", vid=" << entry.vid;
-    os << ", ipAddresses={";
+    os << ", vid={";
     bool first = true;
+    for (auto & vid : entry.vids) {
+        if (first) {
+            first = false;
+        } else {
+            os << ", ";
+        }
+        os << vid;
+    }
+    os << "}";
+    os << ", ipAddresses={";
+    first = true;
     for (auto & address : entry.ipAddresses) {
         if (first) {
             first = false;
@@ -40,7 +52,7 @@ std::ostream& operator<<(std::ostream& os, const HostTable::HostEntry& entry) {
         os << address.str();
     }
     os << "}";
-    os << ", switchInfo=" << entry.switchInfo->getMacAddress(); // todo add full swinfo as string?
+    os << ", switch_id=" << entry.switch_id; // todo add full swinfo as string?
     os << ", portno=" << entry.portno;
     os << ", learned=" << entry.learned;
     os << ", insertionTime=" << entry.insertionTime;
@@ -53,105 +65,79 @@ HostTable::HostTable() {
 }
 
 HostTable::~HostTable() {
-    for (auto & elem : hosts)
-        delete elem.second;
+    clearTable();
 }
 
-HostTable::HostList HostTable::getHostsForMacAddress(
-        inet::MACAddress& address) {
-    Enter_Method
-    ("HostTable::getHostsForMacAddress()");
-    HostList found;
-    for (auto& table : hosts) {
-        auto iter = table.second->find(address);
-        if (iter != table.second->end()) {
-            if (iter->second.lastUpdated + agingTime <= simTime()) {
-                // don't use (and throw out) aged entries
-                EV << "Ignoring and deleting aged entry: " << iter->first
-                          << " --> port" << iter->second.portno << "\n";
-                table.second->erase(iter);
-            } else if (iter->first == address) {
-                found.push_back(iter->second);
-            }
+HostTable::HostEntry* HostTable::getHostForMacAddress(inet::MACAddress& address) {
+    Enter_Method ("HostTable::getHostsForMacAddress()");
+    auto iter = hostsByMac.find(address);
+    if (iter == hostsByMac.end()) {
+        // not found
+        return nullptr;
+    }
+    if (iter->second->lastUpdated + agingTime <= simTime()) {
+        removeHost(iter->second);
+        return nullptr;
+    }
+    return iter->second;
+}
+
+HostTable::HostEntry* HostTable::getHostForIPAddress(inet::L3Address& address) {
+    Enter_Method ("HostTable::getHostsForIPAddress()");
+    auto iter = hostsByIp.find(address);
+    if (iter == hostsByIp.end()) {
+        // not found
+        return nullptr;
+    }
+    if (iter->second->lastUpdated + agingTime <= simTime()) {
+        removeHost(iter->second);
+        return nullptr;
+    }
+    return iter->second;
+}
+
+HostTable::HostList HostTable::getHostsForSwitch(std::string& switch_id) {
+    Enter_Method ("HostTable::getHostsForSwitch()");
+    auto iter = hostsBySwitch.find(switch_id);
+    if (iter == hostsBySwitch.end()) {
+        // not found
+        return HostList();
+    }
+    for (auto innerIt = iter->second.begin(); innerIt != iter->second.end();) {
+        auto curr = innerIt++;
+        if ((*curr)->lastUpdated + agingTime <= simTime()) {
+            removeHost(*curr);
         }
     }
-    return found;
+    return iter->second;
 }
 
-HostTable::HostEntry* HostTable::getHostForMacAddressAndVlan(
-        inet::MACAddress& address, unsigned int vid) {
-    Enter_Method
-    ("HostTable::getHostsForMacAddressAndVlan()");
-    HostMap *table = getTableForVid(vid);
-    // VLAN ID vid does not exist
-    if (table == nullptr) {
-        return nullptr;
-    }
-    auto iter = table->find(address);
-    if (iter == table->end()) {
-        // not found
-        return nullptr;
-    }
-    if (iter->second.lastUpdated + agingTime <= simTime()) {
-        // don't use (and throw out) aged entries
-        EV << "Ignoring and deleting aged entry: " << iter->second.macAddress << " --> port"
-                  << iter->second.portno << "\n";
-        table->erase(iter);
-        return nullptr;
-    }
-    return &(iter->second);
-}
-
-int HostTable::getPortForHostMacAddress(inet::MACAddress& address,
-        unsigned int vid) {
-    Enter_Method
-    ("HostTable::getPortForHostMacAddress()");
-    HostMap *table = getTableForVid(vid);
-    // VLAN ID vid does not exist
-    if (table == nullptr) {
-        return -1;
-    }
-    auto iter = table->find(address);
-    if (iter == table->end()) {
-        // not found
-        return -1;
-    }
-    if (iter->second.lastUpdated + agingTime <= simTime()) {
-        // don't use (and throw out) aged entries
-        EV << "Ignoring and deleting aged entry: " << iter->first << " --> port"
-                  << iter->second.portno << "\n";
-        table->erase(iter);
-        return -1;
-    }
-    return iter->second.portno;
-}
-
-void HostTable::removeAgedEntriesFromVlan(unsigned int vid) {
-    HostMap *table = getTableForVid(vid);
-    if (table != nullptr) {
-        removeAgedEntriesFromHostMap(table);
-    }
-}
-
-void HostTable::removeAgedEntriesFromAllVlans() {
-    for (auto& table : hosts) {
-        removeAgedEntriesFromHostMap(table.second);
+void HostTable::removeAgedEntries() {
+    for (auto iter = hosts.begin(); iter != hosts.end();) {
+        auto curr = iter++;
+        if ((*curr)->lastUpdated + agingTime <= simTime()) {
+            removeHost(*curr);
+        }
     }
 }
 
 void HostTable::removeAgedEntriesIfNeeded() {
     simtime_t now = simTime();
     if (now >= lastPurge + 1) {
-        removeAgedEntriesFromAllVlans();
+        removeAgedEntries();
     }
     lastPurge = now;
 }
 
 void HostTable::clearTable() {
-    for (auto & elem : hosts) {
-        delete elem.second;
+    for (auto iter = hosts.begin(); iter != hosts.end();) {
+        auto curr = iter++;
+        delete (*curr);
     }
     hosts.clear();
+    hostsByIp.clear();
+    hostsByMac.clear();
+    hostsBySwitch.clear();
 }
 
 void HostTable::setAgingTime(simtime_t agingTime) {
@@ -165,33 +151,32 @@ void HostTable::resetDefaultAging() {
 void HostTable::initialize() {
     agingTime = par("agingTime");
     lastPurge = SIMTIME_ZERO;
-    WATCH_MAPMAP(hosts);
+    WATCH_LIST(hosts);
 }
 
 void HostTable::handleMessage(cMessage* msg) {
     throw cRuntimeError("This module doesn't process messages");
 }
 
-HostTable::HostMap* HostTable::getTableForVid(unsigned int vid) {
-    auto iter = hosts.find(vid);
-    if (iter != hosts.end()) {
-        return iter->second;
+void HostTable::removeHost(HostEntry* entry) {
+    auto hostIt = find(hosts.begin(), hosts.end(), entry);
+    if(hostIt != hosts.end())
+        hosts.erase(hostIt);
+    auto macIt = hostsByMac.find(entry->macAddress);
+    if(macIt != hostsByMac.end())
+        hostsByMac.erase(macIt);
+    for(auto l3Addr : entry->ipAddresses) {
+        auto ipIt = hostsByIp.find(l3Addr);
+        if(ipIt != hostsByIp.end())
+            hostsByIp.erase(ipIt);
     }
-    return nullptr;
-}
-
-void HostTable::removeAgedEntriesFromHostMap(HostMap* table) {
-    if (table == nullptr) {
-        return;
+    auto switchIt = hostsBySwitch.find(entry->switch_id);
+    if(switchIt != hostsBySwitch.end()) {
+        auto switchHostIt = find(switchIt->second.begin(), switchIt->second.end(), entry);
+        if(switchHostIt != switchIt->second.end())
+            switchIt->second.erase(switchHostIt);
     }
-    for (auto iter = table->begin(); iter != table->end(); ) {
-        if (iter->second.lastUpdated + agingTime <= simTime()) {
-            // don't use (and throw out) aged entries
-            EV << "Deleting aged entry: " << iter->first << " --> port"
-                      << iter->second.portno << "\n";
-            table->erase(iter);
-        }
-    }
+    delete entry;
 }
 
 } /*end namespace SDN4CoRE*/
