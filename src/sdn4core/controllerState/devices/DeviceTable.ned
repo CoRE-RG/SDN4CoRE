@@ -18,14 +18,15 @@ package sdn4core.controllerState.devices;
 import sdn4core.controllerState.base.ControllerStateManagementBase;
 
 //
-// Module that manages MacTables for a Controller Application.
+// Module that manages a DeviceTable for a Controller Application.
 // DeviceTableManagement has no own state class as it attaches all information 
 // to the switch module @see~ControllerSwitchState.
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple DeviceManagement extends ControllerStateManagementBase
+simple DeviceTable extends ControllerStateManagementBase
 {
     parameters:
-    	@class(SDN4CoRE::DeviceManagement);
+    	@class(SDN4CoRE::DeviceTable);
+        @display("i=block/table2,red");
 }

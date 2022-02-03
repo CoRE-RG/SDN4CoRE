@@ -15,8 +15,6 @@
 
 #include "sdn4core/controllerState/hosts/HostTable.h"
 
-#include "core4inet/utilities/customWatch.h"
-
 #include <algorithm>
 
 using namespace std;
@@ -66,6 +64,109 @@ HostTable::HostTable() {
 
 HostTable::~HostTable() {
     clearTable();
+}
+
+bool HostTable::loadConfig(cXMLElement* configuration) {
+    Enter_Method
+    ("loadConfig");
+    bool changed = false;
+    if (configuration) {
+        cXMLElement* hostTableXML;
+        if (configuration->isName("hostTable")) {
+            hostTableXML = configuration;
+        } else {
+            hostTableXML = configuration->getFirstChildWithTag(
+                    "hostTable");
+        }
+        if (hostTableXML) {
+            cXMLElementList hostsXML = hostTableXML->getChildrenByTagName(
+                    "host");
+            for (cXMLElement* hostXML : hostsXML) {
+                if (const char * firstSwMac = hostXML->getAttribute(
+                        "firstSwMac")) {
+                    if (const char * firstSwPort = hostXML->getAttribute(
+                            "firstSwPort")) {
+                        if (const char * secondSwMac = hostXML->getAttribute(
+                                "secondSwMac")) {
+                            if (const char * secondSwPort =
+                                    hostXML->getAttribute("secondSwPort")) {
+                                int firstPort = atoi(firstSwPort);
+                                int secondPort = atoi(secondSwPort);
+                                string firstMac = firstSwMac;
+                                string secondMac = secondSwMac;
+                                changed = linkNetworkDevices(firstMac,
+                                        firstPort, secondMac, secondPort);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return changed;
+}
+
+bool HostTable::loadConfigForSwitch(const std::string& swMacAddr,
+        cXMLElement* configuration) {
+    Enter_Method
+    ("loadConfig");
+    bool changed = false;
+    if (configuration) {
+        cXMLElement* hostTableXML;
+        if (configuration->isName("hostTable")) {
+            hostTableXML = configuration;
+        } else {
+            hostTableXML = configuration->getFirstChildWithTag(
+                    "hostTable");
+        }
+        if (hostTableXML) {
+            cXMLElementList hostsXML = hostTableXML->getChildrenByTagName(
+                    "host");
+            for (cXMLElement* hostXML : hostsXML) {
+                if (const char * firstSwMac = hostXML->getAttribute(
+                        "firstSwMac")) {
+                    if (const char * secondSwMac = hostXML->getAttribute(
+                            "secondSwMac")) {
+                        if (strcmp(firstSwMac, swMacAddr.c_str()) == 0
+                                || strcmp(secondSwMac, swMacAddr.c_str())
+                                        == 0) {
+                            if (const char * firstSwPort =
+                                    hostXML->getAttribute("firstSwPort")) {
+                                if (const char * secondSwPort =
+                                        hostXML->getAttribute("secondSwPort")) {
+                                    int firstPort = atoi(firstSwPort);
+                                    int secondPort = atoi(secondSwPort);
+                                    string firstMac = firstSwMac;
+                                    string secondMac = secondSwMac;
+                                    changed = linkNetworkDevices(firstMac,
+                                            firstPort, secondMac, secondPort);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return changed;
+}
+
+void HostTable::dumpConfigToStream(std::ostream& stream,
+        int indentTabs) {
+    Enter_Method
+    ("dumpConfigToStream");
+    string indent = string(indentTabs, '\t');
+    stream << indent << "<hostTable>" << endl;
+    vector<host_t> links = getAllhosts();
+    for (auto link : links) {
+        stream << string(indentTabs + 2, '\t') << "<host ";
+        stream << "firstSwMac=\"" << link.first.first << "\" ";
+        stream << "firstSwPort=\"" << link.first.second << "\" ";
+        stream << "secondSwMac=\"" << link.second.first << "\" ";
+        stream << "secondSwPort=\"" << link.second.second << "\" ";
+        stream << "/>" << endl;
+    }
+    stream << indent << "</hostTable>" << endl;
 }
 
 HostTable::HostEntry* HostTable::getHostForMacAddress(inet::MACAddress& address) {
@@ -151,7 +252,7 @@ void HostTable::resetDefaultAging() {
 void HostTable::initialize() {
     agingTime = par("agingTime");
     lastPurge = SIMTIME_ZERO;
-    WATCH_LIST(hosts);
+    WATCH_PTRLIST(hosts);
 }
 
 void HostTable::handleMessage(cMessage* msg) {

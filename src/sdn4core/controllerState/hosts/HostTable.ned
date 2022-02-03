@@ -15,12 +15,14 @@
 
 package sdn4core.controllerState.hosts;
 
+import sdn4core.controllerState.base.ControllerStateManagementBase;
+
 //
 // Host Table for controller state holding entries for all hosts in the network 
 // 
 // @author Timo Haeckel, for HAW Hamburg
 //
-simple HostTable
+simple HostTable extends ControllerStateManagementBase
 {
     parameters:
         @class(SDN4CoRE::HostTable);

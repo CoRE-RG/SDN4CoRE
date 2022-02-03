@@ -17,14 +17,13 @@
 #define __SDN4CORE_HOSTTABLE_H_
 
 #include <omnetpp.h>
+#include <sdn4core/controllerState/base/ControllerStateManagementBase.h>
 // STD
 #include <list>
 #include <map>
 // INET
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/networklayer/common/L3Address.h"
-//openflow
-#include "openflow/openflow/controller/Switch_Info.h"
 
 using namespace omnetpp;
 
@@ -35,7 +34,7 @@ namespace SDN4CoRE {
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class HostTable: public cSimpleModule {
+class HostTable: public ControllerStateManagementBase<cModule> {
 public:
     /**
      * Representation of a HostTable entry.
@@ -70,6 +69,14 @@ public:
 public:
     HostTable();
     ~HostTable();
+
+    virtual bool loadConfig(cXMLElement* configuration) override;
+
+    virtual bool loadConfigForSwitch(const std::string& swMacAddr,
+            cXMLElement* configuration) override;
+
+    virtual void dumpConfigToStream(std::ostream& stream, int indentTabs = 0)
+            override;
 
     /**
      * Look up a host by by the given MAC address.

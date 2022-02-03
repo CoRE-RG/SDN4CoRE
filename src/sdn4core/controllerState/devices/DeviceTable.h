@@ -30,11 +30,11 @@ namespace SDN4CoRE {
 typedef std::pair<SwitchPort_t, SwitchPort_t> DeviceLink_t;
 
 /**
- * DeviceManager manages the device tables for a controller application.
+ * DeviceTable stores and manages devices and links for a controller application.
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
-class DeviceManager: public ControllerStateManagementBase<cModule> {
+class DeviceTable: public ControllerStateManagementBase<cModule> {
 public:
     /**
      * Adds a network device (switch) to the controller state and creates state modules.

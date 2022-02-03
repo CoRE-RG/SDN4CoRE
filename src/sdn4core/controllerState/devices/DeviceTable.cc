@@ -15,7 +15,7 @@
 // c Timo Haeckel, for HAW Hamburg
 // 
 
-#include <sdn4core/controllerState/devices/DeviceManager.h>
+#include <sdn4core/controllerState/devices/DeviceTable.h>
 
 using namespace inet;
 using namespace std;
@@ -23,9 +23,9 @@ using namespace openflow;
 
 namespace SDN4CoRE {
 
-Define_Module(DeviceManager);
+Define_Module(DeviceTable);
 
-bool DeviceManager::addNetworkDevice(Switch_Info* sw_info) {
+bool DeviceTable::addNetworkDevice(Switch_Info* sw_info) {
     bool updated = false;
     string swMacAddr = sw_info->getMacAddress();
     cModule* switchModule = getSwitch(swMacAddr);
@@ -42,7 +42,7 @@ bool DeviceManager::addNetworkDevice(Switch_Info* sw_info) {
     return updated;
 }
 
-bool DeviceManager::linkNetworkDevices(std::string& swMacFirst,
+bool DeviceTable::linkNetworkDevices(std::string& swMacFirst,
         int portFirst, std::string& swMacSecond, int portSecond) {
     bool updated = false;
     cModule* firstSwitchModule = getOrCreateSwitch(swMacFirst);
@@ -56,7 +56,7 @@ bool DeviceManager::linkNetworkDevices(std::string& swMacFirst,
     return updated;
 }
 
-bool DeviceManager::isLinkedToNetworkDevice(std::string& swMac,
+bool DeviceTable::isLinkedToNetworkDevice(std::string& swMac,
         int port) {
     if (PortModule* portModule = getOrCreateSwitchPort(swMac, port)) {
         return portModule->isDeviceLink();
@@ -64,7 +64,7 @@ bool DeviceManager::isLinkedToNetworkDevice(std::string& swMac,
     return false;
 }
 
-std::vector<DeviceLink_t> DeviceManager::getAllDeviceLinks() {
+std::vector<DeviceLink_t> DeviceTable::getAllDeviceLinks() {
     std::vector<DeviceLink_t> links;
     std::map<SwitchPort_t, PortModule*> switchPorts = getAllSwitchPorts();
     for (auto switchPort : switchPorts) {
@@ -83,7 +83,7 @@ std::vector<DeviceLink_t> DeviceManager::getAllDeviceLinks() {
     return links;
 }
 
-vector<DeviceLink_t> DeviceManager::getDeviceLinksForSwitch(
+vector<DeviceLink_t> DeviceTable::getDeviceLinksForSwitch(
         std::string& swMac) {
     std::vector<DeviceLink_t> links;
     map<SwitchPort_t, PortModule*> switchPorts = getAllSwitchPorts();
@@ -101,7 +101,7 @@ vector<DeviceLink_t> DeviceManager::getDeviceLinksForSwitch(
     return links;
 }
 
-bool DeviceManager::loadConfig(cXMLElement* configuration) {
+bool DeviceTable::loadConfig(cXMLElement* configuration) {
     Enter_Method
     ("loadConfig");
     bool changed = false;
@@ -141,7 +141,7 @@ bool DeviceManager::loadConfig(cXMLElement* configuration) {
     return changed;
 }
 
-bool DeviceManager::loadConfigForSwitch(const std::string& swMacAddr,
+bool DeviceTable::loadConfigForSwitch(const std::string& swMacAddr,
         cXMLElement* configuration) {
     Enter_Method
     ("loadConfig");
@@ -186,7 +186,7 @@ bool DeviceManager::loadConfigForSwitch(const std::string& swMacAddr,
     return changed;
 }
 
-void DeviceManager::dumpConfigToStream(std::ostream& stream,
+void DeviceTable::dumpConfigToStream(std::ostream& stream,
         int indentTabs) {
     Enter_Method
     ("dumpConfigToStream");
