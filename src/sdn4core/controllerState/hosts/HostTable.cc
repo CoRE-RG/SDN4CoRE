@@ -116,11 +116,10 @@ bool HostTable::loadConfigForSwitch(const std::string& swMacAddr,
                                     if (vlanIdsC != nullptr) {
                                         for (auto vid : cStringTokenizer(
                                                 vlanIdsC, ",").asIntVector()) {
-                                            if (vid != 0) {
-                                                entry->vids.push_back(
-                                                        static_cast<unsigned int>(vid));
-                                            }
+                                            entry->vids.push_back(static_cast<unsigned int>(vid));
                                         }
+                                    } else {
+                                        entry->vids.push_back(0);
                                     }
                                     const char * ipsC = hostXML->getAttribute(
                                             "ipAddresses");
@@ -191,12 +190,12 @@ void HostTable::dumpConfigToStream(std::ostream& stream, int indentTabs) {
 bool HostTable::update(OFP_Packet_In* packetIn, Switch_Info * swInfo) {
     Enter_Method
     ("HostTable::update()");
-    bool changed = false;
+    bool newHost = false;
     if (EthernetIIFrame* eth =
             dynamic_cast<EthernetIIFrame *>(packetIn->getEncapsulatedPacket())) {
         const MACAddress& src_mac = eth->getSrc();
         HostEntry* host = getHostForMacAddress(src_mac, false);
-        bool newHost = (host == nullptr);
+        newHost = (host == nullptr);
         if (newHost) {
             host = new HostEntry();
             host->learned = true;
@@ -212,13 +211,14 @@ bool HostTable::update(OFP_Packet_In* packetIn, Switch_Info * swInfo) {
             }
             hostsBySwitch[switch_id].push_back(host);
         }
+        unsigned int vid = 0;
         if (EthernetIIFrameWithQTag* qframe =
                 dynamic_cast<EthernetIIFrameWithQTag *>(eth)) {
-            unsigned int vid = qframe->getVID();
-            if (find(host->vids.begin(), host->vids.end(), vid)
-                    != host->vids.end()) {
-                host->vids.push_back(vid);
-            }
+            vid = qframe->getVID();
+        }
+        if (find(host->vids.begin(), host->vids.end(), vid)
+                != host->vids.end()) {
+            host->vids.push_back(vid);
         }
         if (eth->hasEncapsulatedPacket()) {
             if (INetworkDatagram* ip = dynamic_cast<INetworkDatagram *>(eth)) {
@@ -230,14 +230,40 @@ bool HostTable::update(OFP_Packet_In* packetIn, Switch_Info * swInfo) {
                 }
             }
         }
-        if (changed && !newHost) {
-            host->lastUpdated = simTime();
-        }
+        host->lastUpdated = simTime();
     } else {
         throw cRuntimeError(
                 "Received Packet_In does not contain an Ethernet Frame.");
     }
-    return changed;
+    return !newHost;
+}
+
+bool HostTable::update(Switch_Info* swInfo, MACAddress source,
+        uint32_t in_port, int vlan_id) {
+    Enter_Method
+    ("HostTable::update()");
+    HostEntry* host = getHostForMacAddress(source, false);
+    const string& switch_id = swInfo->getMacAddress();
+    bool newHost = (host == nullptr);
+    if (newHost) {
+        // we assume the first detection of the host mac as the entry point into the network.
+        host = new HostEntry();
+        host->learned = true;
+        host->macAddress = source;
+        host->portno = in_port;
+        host->switch_id = switch_id;
+        hostsByMac[source] = host;
+        if (hostsBySwitch.find(switch_id) == hostsBySwitch.end()) {
+            hostsBySwitch[switch_id] = HostList();
+        }
+        hostsBySwitch[switch_id].push_back(host);
+    }
+    if (find(host->vids.begin(), host->vids.end(), vlan_id)
+            != host->vids.end()) {
+        host->vids.push_back(vlan_id);
+    }
+    host->lastUpdated = simTime();
+    return !newHost;
 }
 
 HostTable::HostEntry* HostTable::getHostForMacAddress(

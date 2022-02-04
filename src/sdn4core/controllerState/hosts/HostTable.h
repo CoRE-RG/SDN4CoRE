@@ -33,6 +33,7 @@ namespace SDN4CoRE {
 
 /**
  * Host Table that can learn and lookup network hosts for an SDN controller application.
+ * The table assumes the first detection point of the host mac as the entry point into the network.
  *
  * @author Timo Haeckel, for HAW Hamburg
  */
@@ -47,7 +48,7 @@ public:
         inet::MACAddress macAddress;
         std::string switch_id = "";
         int portno = -1; // Input port
-        std::vector<unsigned int> vids = {0}; // VLAN ID
+        std::vector<unsigned int> vids; // VLAN ID
         std::vector<inet::L3Address> ipAddresses;
         bool learned = true; // true if learned during runtime, false if preconfigured
         const simtime_t insertionTime; // time when entry was created
@@ -87,6 +88,17 @@ public:
      * @return True if refreshed, false if a new entry was created.
      */
     virtual bool update(openflow::OFP_Packet_In* packetIn, openflow::Switch_Info * swInfo);
+
+    /**
+     * Update HostTable using minimal source info as in MACAddressTables.
+     * @param sw_info the switch to update
+     * @param source the source to update
+     * @param in_port the in port to update
+     * @param vlan_id the vlan id to update
+     * @return True if refreshed, false if a new entry was created.
+     */
+    virtual bool update(openflow::Switch_Info* swInfo, inet::MACAddress source,
+            uint32_t in_port, int vlan_id = 0);
 
     /**
      * Look up a host by by the given MAC address.
