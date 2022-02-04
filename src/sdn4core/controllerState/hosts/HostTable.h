@@ -24,6 +24,8 @@
 // INET
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/networklayer/common/L3Address.h"
+#include "openflow/messages/OFP_Packet_In_m.h"
+#include "openflow/openflow/controller/Switch_Info.h"
 
 using namespace omnetpp;
 
@@ -41,7 +43,7 @@ public:
      * Contains the known MAC and IP Addresses, VLAN IDs, switch and port.
      */
     struct HostEntry {
-        std::string nodeName = "UNKNOWN";
+//        std::string nodeName = "UNKNOWN"; TODO add node name for visualization
         inet::MACAddress macAddress;
         std::string switch_id = "";
         int portno = -1; // Input port
@@ -79,29 +81,36 @@ public:
             override;
 
     /**
+     * Update HostTable using the source info inside the packet in message.
+     * @param packetIn The packet in information to learn.
+     * @param swInfo The source switch of the packet in.
+     * @return True if refreshed, false if a new entry was created.
+     */
+    virtual bool update(openflow::OFP_Packet_In* packetIn, openflow::Switch_Info * swInfo);
+
+    /**
      * Look up a host by by the given MAC address.
      * @param address The address to look up
+     * @param doAging Check if the found entry is outdated
      * @return A host entry matching the MAC address if found, else nullptr
      */
-    virtual HostEntry* getHostForMacAddress(inet::MACAddress& address);
+    virtual HostEntry* getHostForMacAddress(const inet::MACAddress& address, bool doAging=true);
 
     /**
      * Look up a host by the given IP address.
      * @param address The address to look up
+     * @param doAging Check if the found entry is outdated
      * @return A host entry matching the IP address if found, else nullptr
      */
-    virtual HostEntry* getHostForIPAddress(inet::L3Address& address);
+    virtual HostEntry* getHostForIPAddress(const inet::L3Address& address, bool doAging=true);
 
     /**
      * Look up hosts connected to a switch.
      * @param switch_id The switch id to look up
+     * @param doAging Check if the found entry is outdated
      * @return A list of host entries connected to the host
      */
-    virtual HostList getHostsForSwitch(std::string& switch_id);
-
-    /**
-     * TODO Specify interface for table insertion!
-     */
+    virtual HostList getHostsForSwitch(const std::string& switch_id, bool doAging=true);
 
     /**
      * @brief Remove aged entries

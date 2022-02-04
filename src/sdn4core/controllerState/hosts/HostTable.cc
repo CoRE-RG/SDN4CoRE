@@ -14,11 +14,18 @@
 // 
 
 #include "sdn4core/controllerState/hosts/HostTable.h"
+// INET
+#include "inet/linklayer/ethernet/EtherFrame_m.h"
+#include "inet/networklayer/contract/INetworkDatagram.h"
+// CoRE4INET
+#include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
 
 #include <algorithm>
 
 using namespace std;
 using namespace inet;
+using namespace openflow;
+using namespace CoRE4INET;
 
 namespace SDN4CoRE {
 
@@ -26,8 +33,7 @@ Define_Module(HostTable);
 
 std::ostream& operator<<(std::ostream& os, const HostTable::HostEntry& entry) {
     os << "{";
-    os << "nodeName=" << entry.nodeName;
-    os << ", macAddress=" << entry.macAddress;
+    os << "macAddress=" << entry.macAddress;
     os << ", vid={";
     bool first = true;
     for (auto & vid : entry.vids) {
@@ -86,46 +92,55 @@ bool HostTable::loadConfigForSwitch(const std::string& swMacAddr,
             cXMLElementList hostsXML = hostTableXML->getChildrenByTagName(
                     "host");
             for (cXMLElement* hostXML : hostsXML) {
-                if (const char * switch_id = hostXML->getAttribute("switch_id")) {
-                    if (swMacAddr.empty() || strcmp(switch_id, swMacAddr.c_str()) == 0) {
-                        if (const char * nodeName = hostXML->getAttribute(
-                                                    "nodeName")) {
-                            if (const char * macAddress = hostXML->getAttribute("macAddress")) {
-                                MACAddress mac = MACAddress(macAddress);
-                                if (!mac.isUnspecified()) {
-                                    if (const char * portC = hostXML->getAttribute("port")) {
-                                        int port = atoi(portC);
-                                        HostEntry* entry = new HostEntry();
-                                        entry->nodeName = nodeName;
-                                        entry->macAddress = mac;
-                                        entry->switch_id = switch_id;
-                                        entry->portno = port;
-                                        const char * vlanIdsC = hostXML->getAttribute("vids");
-                                        if(vlanIdsC == nullptr) {
-                                            vlanIdsC = hostXML->getAttribute("vlan_id");
-                                        }
-                                        if(vlanIdsC != nullptr) {
-                                            for(auto vid : cStringTokenizer(vlanIdsC, ",").asIntVector()) {
-                                                if(vid != 0) {
-                                                    entry->vids.push_back(static_cast<unsigned int>(vid));
-                                                }
-                                            }
-                                        }
-                                        const char * ipsC = hostXML->getAttribute("ipAddresses");
-                                        if(ipsC == nullptr) {
-                                            ipsC = hostXML->getAttribute("ipAddress");
-                                        }
-                                        if(ipsC != nullptr) {
-                                            for(auto ipC : cStringTokenizer(ipsC, ",").asVector()) {
-                                                L3Address ip = L3Address(ipC.c_str());
-                                                if(!ip.isUnspecified()) {
-                                                    entry->ipAddresses.push_back(ip);
-                                                }
-                                            }
-                                        }
-                                        entry->learned = false;
-                                        changed |= addHost(entry);
+                if (const char * switch_id = hostXML->getAttribute(
+                        "switch_id")) {
+                    if (swMacAddr.empty()
+                            || strcmp(switch_id, swMacAddr.c_str()) == 0) {
+                        if (const char * macAddress = hostXML->getAttribute(
+                                "macAddress")) {
+                            MACAddress mac = MACAddress(macAddress);
+                            if (!mac.isUnspecified()) {
+                                if (const char * portC = hostXML->getAttribute(
+                                        "port")) {
+                                    int port = atoi(portC);
+                                    HostEntry* entry = new HostEntry();
+                                    entry->macAddress = mac;
+                                    entry->switch_id = switch_id;
+                                    entry->portno = port;
+                                    const char * vlanIdsC =
+                                            hostXML->getAttribute("vids");
+                                    if (vlanIdsC == nullptr) {
+                                        vlanIdsC = hostXML->getAttribute(
+                                                "vlan_id");
                                     }
+                                    if (vlanIdsC != nullptr) {
+                                        for (auto vid : cStringTokenizer(
+                                                vlanIdsC, ",").asIntVector()) {
+                                            if (vid != 0) {
+                                                entry->vids.push_back(
+                                                        static_cast<unsigned int>(vid));
+                                            }
+                                        }
+                                    }
+                                    const char * ipsC = hostXML->getAttribute(
+                                            "ipAddresses");
+                                    if (ipsC == nullptr) {
+                                        ipsC = hostXML->getAttribute(
+                                                "ipAddress");
+                                    }
+                                    if (ipsC != nullptr) {
+                                        for (auto ipC : cStringTokenizer(ipsC,
+                                                ",").asVector()) {
+                                            L3Address ip = L3Address(
+                                                    ipC.c_str());
+                                            if (!ip.isUnspecified()) {
+                                                entry->ipAddresses.push_back(
+                                                        ip);
+                                            }
+                                        }
+                                    }
+                                    entry->learned = false;
+                                    changed |= addHost(entry);
                                 }
                             }
                         }
@@ -144,13 +159,12 @@ void HostTable::dumpConfigToStream(std::ostream& stream, int indentTabs) {
     stream << indent << "<hostTable>" << endl;
     for (auto host : hostsByMac) {
         stream << string(indentTabs + 2, '\t') << "<host ";
-        stream << "nodeName=\"" << host.second->nodeName << "\" ";
         stream << "macAddress=\"" << host.second->macAddress.str() << "\" ";
         stream << "port=\"" << host.second->portno << "\" ";
         stream << "vids=\"";
         bool first = true;
         for (auto vid : host.second->vids) {
-            if(!first) {
+            if (!first) {
                 stream << ",";
             } else {
                 first = false;
@@ -161,7 +175,7 @@ void HostTable::dumpConfigToStream(std::ostream& stream, int indentTabs) {
         stream << "ipAddresses=\"";
         first = true;
         for (auto ip : host.second->ipAddresses) {
-            if(!first) {
+            if (!first) {
                 stream << ",";
             } else {
                 first = false;
@@ -174,8 +188,60 @@ void HostTable::dumpConfigToStream(std::ostream& stream, int indentTabs) {
     stream << indent << "</hostTable>" << endl;
 }
 
+bool HostTable::update(OFP_Packet_In* packetIn, Switch_Info * swInfo) {
+    Enter_Method
+    ("HostTable::update()");
+    bool changed = false;
+    if (EthernetIIFrame* eth =
+            dynamic_cast<EthernetIIFrame *>(packetIn->getEncapsulatedPacket())) {
+        const MACAddress& src_mac = eth->getSrc();
+        HostEntry* host = getHostForMacAddress(src_mac, false);
+        bool newHost = (host == nullptr);
+        if (newHost) {
+            host = new HostEntry();
+            host->learned = true;
+            host->macAddress = src_mac;
+            const string& switch_id = swInfo->getMacAddress();
+            host->switch_id = switch_id;
+            host->portno =
+                    packetIn->getEncapsulatedPacket()->getArrivalGate()->getIndex();
+            // insert new host to table
+            hostsByMac[src_mac] = host;
+            if (hostsBySwitch.find(switch_id) == hostsBySwitch.end()) {
+                hostsBySwitch[switch_id] = HostList();
+            }
+            hostsBySwitch[switch_id].push_back(host);
+        }
+        if (EthernetIIFrameWithQTag* qframe =
+                dynamic_cast<EthernetIIFrameWithQTag *>(eth)) {
+            unsigned int vid = qframe->getVID();
+            if (find(host->vids.begin(), host->vids.end(), vid)
+                    != host->vids.end()) {
+                host->vids.push_back(vid);
+            }
+        }
+        if (eth->hasEncapsulatedPacket()) {
+            if (INetworkDatagram* ip = dynamic_cast<INetworkDatagram *>(eth)) {
+                const L3Address& src_ip = ip->getSourceAddress();
+                if (find(host->ipAddresses.begin(), host->ipAddresses.end(),
+                        src_ip) != host->ipAddresses.end()) {
+                    host->ipAddresses.push_back(src_ip);
+                    hostsByIp[src_ip] = host;
+                }
+            }
+        }
+        if (changed && !newHost) {
+            host->lastUpdated = simTime();
+        }
+    } else {
+        throw cRuntimeError(
+                "Received Packet_In does not contain an Ethernet Frame.");
+    }
+    return changed;
+}
+
 HostTable::HostEntry* HostTable::getHostForMacAddress(
-        inet::MACAddress& address) {
+        const MACAddress& address, bool doAging) {
     Enter_Method
     ("HostTable::getHostsForMacAddress()");
     auto iter = hostsByMac.find(address);
@@ -183,14 +249,14 @@ HostTable::HostEntry* HostTable::getHostForMacAddress(
         // not found
         return nullptr;
     }
-    if (iter->second->lastUpdated + agingTime <= simTime()) {
+    if (doAging && iter->second->lastUpdated + agingTime <= simTime()) {
         removeHost(iter->second);
         return nullptr;
     }
     return iter->second;
 }
 
-HostTable::HostEntry* HostTable::getHostForIPAddress(inet::L3Address& address) {
+HostTable::HostEntry* HostTable::getHostForIPAddress(const L3Address& address, bool doAging) {
     Enter_Method
     ("HostTable::getHostsForIPAddress()");
     auto iter = hostsByIp.find(address);
@@ -198,14 +264,14 @@ HostTable::HostEntry* HostTable::getHostForIPAddress(inet::L3Address& address) {
         // not found
         return nullptr;
     }
-    if (iter->second->lastUpdated + agingTime <= simTime()) {
+    if (doAging && iter->second->lastUpdated + agingTime <= simTime()) {
         removeHost(iter->second);
         return nullptr;
     }
     return iter->second;
 }
 
-HostTable::HostList HostTable::getHostsForSwitch(std::string& switch_id) {
+HostTable::HostList HostTable::getHostsForSwitch(const string& switch_id, bool doAging) {
     Enter_Method
     ("HostTable::getHostsForSwitch()");
     auto iter = hostsBySwitch.find(switch_id);
@@ -213,10 +279,12 @@ HostTable::HostList HostTable::getHostsForSwitch(std::string& switch_id) {
         // not found
         return HostList();
     }
-    for (auto innerIt = iter->second.begin(); innerIt != iter->second.end();) {
-        auto curr = innerIt++;
-        if ((*curr)->lastUpdated + agingTime <= simTime()) {
-            removeHost(*curr);
+    if(doAging) {
+        for (auto innerIt = iter->second.begin(); innerIt != iter->second.end();) {
+            auto curr = innerIt++;
+            if ((*curr)->lastUpdated + agingTime <= simTime()) {
+                removeHost(*curr);
+            }
         }
     }
     return iter->second;
@@ -224,7 +292,8 @@ HostTable::HostList HostTable::getHostsForSwitch(std::string& switch_id) {
 
 void HostTable::removeAgedEntries() {
     for (auto iter = hostsByMac.begin(); iter != hostsByMac.end(); iter++) {
-        if (iter->second->learned && iter->second->lastUpdated + agingTime <= simTime()) {
+        if (iter->second->learned
+                && iter->second->lastUpdated + agingTime <= simTime()) {
             removeHost(iter->second);
         }
     }
@@ -273,7 +342,7 @@ bool HostTable::addHost(HostEntry* entry) {
     if (hostIt == hostsByMac.end()) {
         // entry does not exist save pointer in hostTable and lookup tables
         hostsByMac[entry->macAddress] = entry;
-        if(hostsBySwitch.find(entry->switch_id) == hostsBySwitch.end()){
+        if (hostsBySwitch.find(entry->switch_id) == hostsBySwitch.end()) {
             hostsBySwitch[entry->switch_id] = HostList();
         }
         hostsBySwitch[entry->switch_id].push_back(entry);
@@ -302,13 +371,13 @@ bool HostTable::addHost(HostEntry* entry) {
             changed = true;
         }
     }
-    if(!entry->learned && !entry->learned) {
+    if (!entry->learned && !entry->learned) {
         // offline configuration for a host we already learned
         old->learned = entry->learned;
         changed = true;
     }
     old->lastUpdated = simTime();
-    if(old != entry) {
+    if (old != entry) {
         delete entry;
     }
     return changed;
