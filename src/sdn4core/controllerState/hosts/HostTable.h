@@ -43,10 +43,10 @@ public:
     struct HostEntry {
         std::string nodeName = "UNKNOWN";
         inet::MACAddress macAddress;
-        std::vector<unsigned int> vids = {0}; // VLAN ID
-        std::vector<inet::L3Address> ipAddresses;
         std::string switch_id = "";
         int portno = -1; // Input port
+        std::vector<unsigned int> vids = {0}; // VLAN ID
+        std::vector<inet::L3Address> ipAddresses;
         bool learned = true; // true if learned during runtime, false if preconfigured
         const simtime_t insertionTime; // time when entry was created
         simtime_t lastUpdated; // for aging of unused entries
@@ -57,7 +57,7 @@ public:
     };
     friend std::ostream& operator<<(std::ostream& os, const HostEntry& entry);
     struct MAC_compare {
-        bool operator()(const MACAddress& u1, const MACAddress& u2) const {
+        bool operator()(const inet::MACAddress& u1, const inet::MACAddress& u2) const {
             return u1.compareTo(u2) < 0;
         }
     };
@@ -135,13 +135,26 @@ protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
 
-    virtual void removeHost(HostEntry* entry);
+    /**
+     * Add a host to the table updating an old entry or inserting the given pointer.
+     * @note The pointer now belongs and its lifecycle will be managed by the table.
+     * @param entry The entry to be added
+     * @return True if an existing entry was refreshed, false if pointer was added
+     */
+    virtual bool addHost(HostEntry* entry);
+
+    /**
+     * Remove a host from the table.
+     * @note The pointer will be invalidated!
+     * @param entry The entry to be removed
+     * @return True if removed, false if not found
+     */
+    virtual bool removeHost(HostEntry* entry);
 
 protected:
 
     simtime_t agingTime;    // Max idle time for address table entries
     simtime_t lastPurge; // Time of the last call of removeAgedEntriesFromAllVlans()
-    HostList hosts;
     HostMapByIp hostsByIp;
     HostMapByMac hostsByMac;
     HostMapBySwitch hostsBySwitch;

@@ -67,43 +67,7 @@ HostTable::~HostTable() {
 }
 
 bool HostTable::loadConfig(cXMLElement* configuration) {
-    Enter_Method
-    ("loadConfig");
-    bool changed = false;
-    if (configuration) {
-        cXMLElement* hostTableXML;
-        if (configuration->isName("hostTable")) {
-            hostTableXML = configuration;
-        } else {
-            hostTableXML = configuration->getFirstChildWithTag(
-                    "hostTable");
-        }
-        if (hostTableXML) {
-            cXMLElementList hostsXML = hostTableXML->getChildrenByTagName(
-                    "host");
-            for (cXMLElement* hostXML : hostsXML) {
-                if (const char * firstSwMac = hostXML->getAttribute(
-                        "firstSwMac")) {
-                    if (const char * firstSwPort = hostXML->getAttribute(
-                            "firstSwPort")) {
-                        if (const char * secondSwMac = hostXML->getAttribute(
-                                "secondSwMac")) {
-                            if (const char * secondSwPort =
-                                    hostXML->getAttribute("secondSwPort")) {
-                                int firstPort = atoi(firstSwPort);
-                                int secondPort = atoi(secondSwPort);
-                                string firstMac = firstSwMac;
-                                string secondMac = secondSwMac;
-                                changed = linkNetworkDevices(firstMac,
-                                        firstPort, secondMac, secondPort);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return changed;
+    return loadConfigForSwitch("", configuration);
 }
 
 bool HostTable::loadConfigForSwitch(const std::string& swMacAddr,
@@ -116,30 +80,52 @@ bool HostTable::loadConfigForSwitch(const std::string& swMacAddr,
         if (configuration->isName("hostTable")) {
             hostTableXML = configuration;
         } else {
-            hostTableXML = configuration->getFirstChildWithTag(
-                    "hostTable");
+            hostTableXML = configuration->getFirstChildWithTag("hostTable");
         }
         if (hostTableXML) {
             cXMLElementList hostsXML = hostTableXML->getChildrenByTagName(
                     "host");
             for (cXMLElement* hostXML : hostsXML) {
-                if (const char * firstSwMac = hostXML->getAttribute(
-                        "firstSwMac")) {
-                    if (const char * secondSwMac = hostXML->getAttribute(
-                            "secondSwMac")) {
-                        if (strcmp(firstSwMac, swMacAddr.c_str()) == 0
-                                || strcmp(secondSwMac, swMacAddr.c_str())
-                                        == 0) {
-                            if (const char * firstSwPort =
-                                    hostXML->getAttribute("firstSwPort")) {
-                                if (const char * secondSwPort =
-                                        hostXML->getAttribute("secondSwPort")) {
-                                    int firstPort = atoi(firstSwPort);
-                                    int secondPort = atoi(secondSwPort);
-                                    string firstMac = firstSwMac;
-                                    string secondMac = secondSwMac;
-                                    changed = linkNetworkDevices(firstMac,
-                                            firstPort, secondMac, secondPort);
+                if (const char * switch_id = hostXML->getAttribute("switch_id")) {
+                    if (swMacAddr.empty() || strcmp(switch_id, swMacAddr.c_str()) == 0) {
+                        if (const char * nodeName = hostXML->getAttribute(
+                                                    "nodeName")) {
+                            if (const char * macAddress = hostXML->getAttribute("macAddress")) {
+                                MACAddress mac = MACAddress(macAddress);
+                                if (!mac.isUnspecified()) {
+                                    if (const char * portC = hostXML->getAttribute("port")) {
+                                        int port = atoi(portC);
+                                        HostEntry* entry = new HostEntry();
+                                        entry->nodeName = nodeName;
+                                        entry->macAddress = mac;
+                                        entry->switch_id = switch_id;
+                                        entry->portno = port;
+                                        const char * vlanIdsC = hostXML->getAttribute("vids");
+                                        if(vlanIdsC == nullptr) {
+                                            vlanIdsC = hostXML->getAttribute("vlan_id");
+                                        }
+                                        if(vlanIdsC != nullptr) {
+                                            for(auto vid : cStringTokenizer(vlanIdsC, ",").asIntVector()) {
+                                                if(vid != 0) {
+                                                    entry->vids.push_back(static_cast<unsigned int>(vid));
+                                                }
+                                            }
+                                        }
+                                        const char * ipsC = hostXML->getAttribute("ipAddresses");
+                                        if(ipsC == nullptr) {
+                                            ipsC = hostXML->getAttribute("ipAddress");
+                                        }
+                                        if(ipsC != nullptr) {
+                                            for(auto ipC : cStringTokenizer(ipsC, ",").asVector()) {
+                                                L3Address ip = L3Address(ipC.c_str());
+                                                if(!ip.isUnspecified()) {
+                                                    entry->ipAddresses.push_back(ip);
+                                                }
+                                            }
+                                        }
+                                        entry->learned = false;
+                                        changed |= addHost(entry);
+                                    }
                                 }
                             }
                         }
@@ -151,26 +137,47 @@ bool HostTable::loadConfigForSwitch(const std::string& swMacAddr,
     return changed;
 }
 
-void HostTable::dumpConfigToStream(std::ostream& stream,
-        int indentTabs) {
+void HostTable::dumpConfigToStream(std::ostream& stream, int indentTabs) {
     Enter_Method
     ("dumpConfigToStream");
     string indent = string(indentTabs, '\t');
     stream << indent << "<hostTable>" << endl;
-    vector<host_t> links = getAllhosts();
-    for (auto link : links) {
+    for (auto host : hostsByMac) {
         stream << string(indentTabs + 2, '\t') << "<host ";
-        stream << "firstSwMac=\"" << link.first.first << "\" ";
-        stream << "firstSwPort=\"" << link.first.second << "\" ";
-        stream << "secondSwMac=\"" << link.second.first << "\" ";
-        stream << "secondSwPort=\"" << link.second.second << "\" ";
+        stream << "nodeName=\"" << host.second->nodeName << "\" ";
+        stream << "macAddress=\"" << host.second->macAddress.str() << "\" ";
+        stream << "port=\"" << host.second->portno << "\" ";
+        stream << "vids=\"";
+        bool first = true;
+        for (auto vid : host.second->vids) {
+            if(!first) {
+                stream << ",";
+            } else {
+                first = false;
+            }
+            stream << vid;
+        }
+        stream << "\" ";
+        stream << "ipAddresses=\"";
+        first = true;
+        for (auto ip : host.second->ipAddresses) {
+            if(!first) {
+                stream << ",";
+            } else {
+                first = false;
+            }
+            stream << ip.str();
+        }
+        stream << "\" ";
         stream << "/>" << endl;
     }
     stream << indent << "</hostTable>" << endl;
 }
 
-HostTable::HostEntry* HostTable::getHostForMacAddress(inet::MACAddress& address) {
-    Enter_Method ("HostTable::getHostsForMacAddress()");
+HostTable::HostEntry* HostTable::getHostForMacAddress(
+        inet::MACAddress& address) {
+    Enter_Method
+    ("HostTable::getHostsForMacAddress()");
     auto iter = hostsByMac.find(address);
     if (iter == hostsByMac.end()) {
         // not found
@@ -184,7 +191,8 @@ HostTable::HostEntry* HostTable::getHostForMacAddress(inet::MACAddress& address)
 }
 
 HostTable::HostEntry* HostTable::getHostForIPAddress(inet::L3Address& address) {
-    Enter_Method ("HostTable::getHostsForIPAddress()");
+    Enter_Method
+    ("HostTable::getHostsForIPAddress()");
     auto iter = hostsByIp.find(address);
     if (iter == hostsByIp.end()) {
         // not found
@@ -198,7 +206,8 @@ HostTable::HostEntry* HostTable::getHostForIPAddress(inet::L3Address& address) {
 }
 
 HostTable::HostList HostTable::getHostsForSwitch(std::string& switch_id) {
-    Enter_Method ("HostTable::getHostsForSwitch()");
+    Enter_Method
+    ("HostTable::getHostsForSwitch()");
     auto iter = hostsBySwitch.find(switch_id);
     if (iter == hostsBySwitch.end()) {
         // not found
@@ -214,10 +223,9 @@ HostTable::HostList HostTable::getHostsForSwitch(std::string& switch_id) {
 }
 
 void HostTable::removeAgedEntries() {
-    for (auto iter = hosts.begin(); iter != hosts.end();) {
-        auto curr = iter++;
-        if ((*curr)->lastUpdated + agingTime <= simTime()) {
-            removeHost(*curr);
+    for (auto iter = hostsByMac.begin(); iter != hostsByMac.end(); iter++) {
+        if (iter->second->learned && iter->second->lastUpdated + agingTime <= simTime()) {
+            removeHost(iter->second);
         }
     }
 }
@@ -231,13 +239,11 @@ void HostTable::removeAgedEntriesIfNeeded() {
 }
 
 void HostTable::clearTable() {
-    for (auto iter = hosts.begin(); iter != hosts.end();) {
-        auto curr = iter++;
-        delete (*curr);
+    for (auto iter = hostsByMac.begin(); iter != hostsByMac.end(); iter++) {
+        delete iter->second;
     }
-    hosts.clear();
-    hostsByIp.clear();
     hostsByMac.clear();
+    hostsByIp.clear();
     hostsBySwitch.clear();
 }
 
@@ -252,32 +258,87 @@ void HostTable::resetDefaultAging() {
 void HostTable::initialize() {
     agingTime = par("agingTime");
     lastPurge = SIMTIME_ZERO;
-    WATCH_PTRLIST(hosts);
+    WATCH_PTRMAP(hostsByMac);
 }
 
 void HostTable::handleMessage(cMessage* msg) {
     throw cRuntimeError("This module doesn't process messages");
 }
 
-void HostTable::removeHost(HostEntry* entry) {
-    auto hostIt = find(hosts.begin(), hosts.end(), entry);
-    if(hostIt != hosts.end())
-        hosts.erase(hostIt);
-    auto macIt = hostsByMac.find(entry->macAddress);
-    if(macIt != hostsByMac.end())
-        hostsByMac.erase(macIt);
-    for(auto l3Addr : entry->ipAddresses) {
+bool HostTable::addHost(HostEntry* entry) {
+    if (!entry) {
+        return false;
+    }
+    auto hostIt = hostsByMac.find(entry->macAddress);
+    if (hostIt == hostsByMac.end()) {
+        // entry does not exist save pointer in hostTable and lookup tables
+        hostsByMac[entry->macAddress] = entry;
+        if(hostsBySwitch.find(entry->switch_id) == hostsBySwitch.end()){
+            hostsBySwitch[entry->switch_id] = HostList();
+        }
+        hostsBySwitch[entry->switch_id].push_back(entry);
+        for (auto ipAddress : entry->ipAddresses) {
+            hostsByIp[ipAddress] = entry;
+        }
+        return true;
+    }
+    // entry already exist update ipAddresses and vlanIDs
+    // TODO is it safe to assume that the MAC, name, switch id + port are always known on host creation?
+    bool changed = false;
+    HostEntry* old = hostIt->second;
+    for (auto ipAddress : entry->ipAddresses) {
+        auto ipIt = find(old->ipAddresses.begin(), old->ipAddresses.end(),
+                ipAddress);
+        if (ipIt == old->ipAddresses.end()) {
+            old->ipAddresses.push_back(ipAddress);
+            hostsByIp[ipAddress] = old;
+            changed = true;
+        }
+    }
+    for (auto vid : entry->vids) {
+        auto vidIt = find(old->vids.begin(), old->vids.end(), vid);
+        if (vidIt == old->vids.end()) {
+            old->vids.push_back(vid);
+            changed = true;
+        }
+    }
+    if(!entry->learned && !entry->learned) {
+        // offline configuration for a host we already learned
+        old->learned = entry->learned;
+        changed = true;
+    }
+    old->lastUpdated = simTime();
+    if(old != entry) {
+        delete entry;
+    }
+    return changed;
+}
+
+bool HostTable::removeHost(HostEntry* entry) {
+    if (!entry) {
+        return false;
+    }
+    auto hostIt = hostsByMac.find(entry->macAddress);
+    if (hostIt == hostsByMac.end()) {
+        delete entry;
+        return false;
+    } else {
+        hostsByMac.erase(hostIt);
+    }
+    for (auto l3Addr : entry->ipAddresses) {
         auto ipIt = hostsByIp.find(l3Addr);
-        if(ipIt != hostsByIp.end())
+        if (ipIt != hostsByIp.end())
             hostsByIp.erase(ipIt);
     }
     auto switchIt = hostsBySwitch.find(entry->switch_id);
-    if(switchIt != hostsBySwitch.end()) {
-        auto switchHostIt = find(switchIt->second.begin(), switchIt->second.end(), entry);
-        if(switchHostIt != switchIt->second.end())
+    if (switchIt != hostsBySwitch.end()) {
+        auto switchHostIt = find(switchIt->second.begin(),
+                switchIt->second.end(), entry);
+        if (switchHostIt != switchIt->second.end())
             switchIt->second.erase(switchHostIt);
     }
     delete entry;
+    return true;
 }
 
 } /*end namespace SDN4CoRE*/
