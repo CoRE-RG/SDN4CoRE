@@ -27,7 +27,7 @@ using namespace omnetpp;
 
 namespace SDN4CoRE {
 
-typedef std::pair<SwitchPort_t, SwitchPort_t> DeviceLink_t;
+typedef std::pair<SwitchPort, SwitchPort> DeviceLink_t;
 
 /**
  * DeviceTable stores and manages devices and links for a controller application.
@@ -69,7 +69,7 @@ public:
      * @param port The port at the switch
      * @return The linked switch port.
      */
-    virtual SwitchPort_t getLinkedSwitchPort(std::string& swMac, int port);
+    virtual SwitchPort getLinkedSwitchPort(std::string& swMac, int port);
 
     /**
      * Collects all known direct links between devices

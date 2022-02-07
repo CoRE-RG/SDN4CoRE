@@ -38,7 +38,36 @@ namespace SDN4CoRE {
 
 #define MODULE_SPACING 70
 
-typedef std::pair<std::string, int> SwitchPort_t;
+
+/**
+ * Structure representing a switch port for the controller state and topology.
+ *
+ * @author Timo Haeckel, for HAW Hamburg
+ */
+struct SwitchPort {
+    std::string switchId;
+    int port;
+
+    SwitchPort() : switchId(""), port(-1) {}
+    SwitchPort(std::string switchId, int port) : switchId(switchId), port(port) {}
+    bool empty() { return switchId.empty(); }
+
+    bool operator<(const SwitchPort& other) const {
+        if(this->switchId == other.switchId) {
+            return this->port < other.port;
+        }
+        return this->switchId < other.switchId;
+    }
+    bool operator>(const SwitchPort& other) const {
+        return other < *this;
+    }
+    bool operator==(const SwitchPort& other) const {
+        return this->switchId == other.switchId && this->port == other.port;
+    }
+    bool operator!=(const SwitchPort& other) const {
+        return !operator==(other);
+    }
+};
 
 /**
  * Workaround to count module creations for the template class.
@@ -219,7 +248,7 @@ protected:
      * @return The switch port module, nullptr if not found.
      */
     PortModule* getSwitchPort(std::string swMacAddr, int port, cModule* switchModule = nullptr) {
-        SwitchPort_t switchPortPair(swMacAddr, port);
+        SwitchPort switchPortPair(swMacAddr, port);
         if (cachedSwitchPorts.find(switchPortPair) != cachedSwitchPorts.end()) {
             return cachedSwitchPorts[switchPortPair];
         }
@@ -231,7 +260,7 @@ protected:
      *
      * @return a map of all switch ports with there switch mac address and port as the key.
      */
-    const std::map<SwitchPort_t, PortModule*>& getAllSwitchPorts() {
+    const std::map<SwitchPort, PortModule*>& getAllSwitchPorts() {
         refreshCachedPorts();
         return cachedSwitchPorts;
     }
@@ -291,8 +320,7 @@ protected:
         MODULE_SPACING);
         setModuleDisplayName(portModule, "Port " + std::to_string(port));
         portModule->setPort(port);
-        cachedSwitchPorts[std::pair<std::string, int>(swMacAddr, port)] =
-                portModule;
+        cachedSwitchPorts[SwitchPort(swMacAddr, port)] = portModule;
     }
 
     /**
@@ -439,8 +467,7 @@ private:
      */
     PortModule* findSwitchPort(std::string& swMacAddr, int port) {
         refreshCachedPorts();
-        auto found = cachedSwitchPorts.find(
-                std::pair<std::string, int>(swMacAddr, port));
+        auto found = cachedSwitchPorts.find(SwitchPort(swMacAddr, port));
         if (found != cachedSwitchPorts.end()) {
             return found->second;
         }
@@ -460,8 +487,7 @@ private:
                         dynamic_cast<PortModule*>(sw.second->getSubmodule(
                                 "portModules", i));
                 int port = currentPort->getPort();
-                cachedSwitchPorts[std::pair<std::string, int>(sw.first, port)] =
-                        currentPort;
+                cachedSwitchPorts[SwitchPort(sw.first, port)] = currentPort;
             }
         }
     }
@@ -550,7 +576,7 @@ protected:
      * of ControllerStateManagementBase! In some edge cases, modules that are
      * cached might not be valid anymore.
      */
-    std::map<SwitchPort_t, PortModule*> cachedSwitchPorts;
+    std::map<SwitchPort, PortModule*> cachedSwitchPorts;
 
     /**
      * Known managed switch state modules that are cached on creation and

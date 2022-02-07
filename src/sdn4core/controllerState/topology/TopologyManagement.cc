@@ -71,67 +71,66 @@ int TopologyManagement::findOutportAtSwitch(string& switchId,
         if (cachedHop != -1) {
             return cachedHop;
         }
-        list<SwitchPort_t> route = findRoute(switchId, host);
+        Route route = findRoute(switchId, host);
         if (!route.empty()) {
-            return route.front().second;
+            return route.front().port;
         }
     }
     return -1;
 }
 
-SwitchPort_t* TopologyManagement::findEdgePort(MACAddress& hostMac) {
+SwitchPort TopologyManagement::findEdgePort(MACAddress& hostMac) {
     return findEdgePort(hostTable->getHostForMacAddress(hostMac));
 }
 
-SwitchPort_t* TopologyManagement::findEdgePort(L3Address& hostIp) {
+SwitchPort TopologyManagement::findEdgePort(L3Address& hostIp) {
     return findEdgePort(hostTable->getHostForIpAddress(hostIp));
 }
 
-SwitchPort_t* TopologyManagement::findEdgePort(HostTable::HostEntry* host) {
+SwitchPort TopologyManagement::findEdgePort(HostTable::HostEntry* host) {
     Enter_Method
     ("TopologyManagement::findEdgePort()");
     if (host) {
         // the hostTable already knows the edge port.
-        return new SwitchPort_t(host->switch_id, host->portno);
+        return SwitchPort(host->switch_id, host->portno);
     }
-    return nullptr;
+    return SwitchPort();
 }
 
-list<SwitchPort_t> TopologyManagement::findRoute(string& fromSwitch,
+TopologyManagement::Route TopologyManagement::findRoute(string& fromSwitch,
         MACAddress& hostMac) {
     return findRoute(fromSwitch, hostTable->getHostForMacAddress(hostMac));
 }
 
-list<SwitchPort_t> TopologyManagement::findRoute(string& fromSwitch,
+TopologyManagement::Route TopologyManagement::findRoute(string& fromSwitch,
         L3Address& hostIp) {
     return findRoute(fromSwitch, hostTable->getHostForIpAddress(hostIp));
 }
 
-list<SwitchPort_t> TopologyManagement::findRoute(string& fromSwitch,
+TopologyManagement::Route TopologyManagement::findRoute(string& fromSwitch,
         HostTable::HostEntry* host) {
-    list<SwitchPort_t> route;
+    Route route;
     if (host) {
         route = calculateRoute(fromSwitch, host);
     }
     return route;
 }
 
-list<SwitchPort_t> TopologyManagement::calculateRoute(string& fromSwitch,
+TopologyManagement::Route TopologyManagement::calculateRoute(string& fromSwitch,
         HostTable::HostEntry* host) {
     // check if abort recursion!
     if (host->switch_id == fromSwitch) {
         cacheNextHop(fromSwitch, host, host->portno);
-        return list<SwitchPort_t>(
-                { SwitchPort_t(host->switch_id, host->portno) });
+        return Route({ SwitchPort(host->switch_id, host->portno) });
     }
     // check if cached
     int cachedPort = findNextHopInCache(fromSwitch, host);
     if (cachedPort != -1) {
-        SwitchPort_t linked = deviceTable->getLinkedSwitchPort(fromSwitch,
+        SwitchPort linked = deviceTable->getLinkedSwitchPort(fromSwitch,
                 cachedPort);
-        list<SwitchPort_t> route = calculateRoute(linked.first, host);
+        Route route = calculateRoute(linked.switchId, host);
         if (!route.empty()) {
-            route.push_front(SwitchPort_t(fromSwitch, cachedPort));
+            route.push_front(SwitchPort(fromSwitch, cachedPort));
             return route;
         } else {
             // cache must be wrong...
@@ -142,14 +141,14 @@ list<SwitchPort_t> TopologyManagement::calculateRoute(string& fromSwitch,
     vector<DeviceLink_t> links = deviceTable->getDeviceLinksForSwitch(
             fromSwitch);
     for (auto& link : links) {
-        list<SwitchPort_t> route = calculateRoute(link.second.first, host);
+        Route route = calculateRoute(link.second.switchId, host);
         if (!route.empty()) {
-            cacheNextHop(fromSwitch, host, link.first.second);
-            route.push_front(SwitchPort_t(link.first.first, link.first.second));
+            cacheNextHop(fromSwitch, host, link.first.port);
+            route.push_front(SwitchPort(link.first.switchId, link.first.port));
             return route;
         }
     }
-    return list<SwitchPort_t>();
+    return Route();
 }
 
 int TopologyManagement::findNextHopInCache(string& switchId,

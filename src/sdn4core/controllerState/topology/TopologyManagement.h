@@ -48,6 +48,8 @@ public:
     TopologyManagement();
     ~TopologyManagement();
 
+    typedef std::list<SwitchPort> Route;
+
     /**
      * Find the outport for a packet_in and a switch info
      * @param swInfo Info about the switch
@@ -89,21 +91,21 @@ public:
      * @param hostMac The MAC address of the host
      * @return The switchId and port pair connected to the host if found, else nullptr
      */
-    virtual SwitchPort_t* findEdgePort(inet::MACAddress& hostMac);
+    virtual SwitchPort findEdgePort(inet::MACAddress& hostMac);
 
     /**
      * Find out the edge device and port to which the host IP is connected.
      * @param hostIp The IP address of the host
      * @return The switchId and port pair connected to the host if found, else nullptr
      */
-    virtual SwitchPort_t* findEdgePort(inet::L3Address& hostIp);
+    virtual SwitchPort findEdgePort(inet::L3Address& hostIp);
 
     /**
      * Find out the edge device and port to which the host IP is connected.
      * @param host The HostEntry from the HostTable
      * @return The switchId and port pair connected to the host if found, else nullptr
      */
-    virtual SwitchPort_t* findEdgePort(HostTable::HostEntry* host);
+    virtual SwitchPort findEdgePort(HostTable::HostEntry* host);
 
     /**
      * Find a route through the topology to a host MAC starting at a switch.
@@ -112,7 +114,7 @@ public:
      * @return An ordered list representing the path through the network,
      *         empty list if no route was found
      */
-    virtual std::list<SwitchPort_t> findRoute(std::string& fromSwitch,
+    virtual Route findRoute(std::string& fromSwitch,
             inet::MACAddress& hostMac);
 
     /**
@@ -122,7 +124,7 @@ public:
      * @return An ordered list representing the path through the network,
      *         empty list if no route was found
      */
-    virtual std::list<SwitchPort_t> findRoute(std::string& fromSwitch,
+    virtual Route findRoute(std::string& fromSwitch,
             inet::L3Address& hostIp);
 
     /**
@@ -132,7 +134,7 @@ public:
      * @return An ordered list representing the path through the network,
      *         empty list if no route was found
      */
-    virtual std::list<SwitchPort_t> findRoute(std::string& fromSwitch,
+    virtual Route findRoute(std::string& fromSwitch,
             HostTable::HostEntry* host);
 
 protected:
@@ -143,7 +145,7 @@ protected:
      * @return An ordered list representing the path through the network,
      *         empty list if no route was found
      */
-    virtual std::list<SwitchPort_t> calculateRoute(std::string& fromSwitch,
+    virtual Route calculateRoute(std::string& fromSwitch,
             HostTable::HostEntry* host);
 
     /**
