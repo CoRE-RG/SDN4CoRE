@@ -55,12 +55,21 @@ public:
             std::string& swMacSecond, int portSecond);
 
     /**
-     * Checks whether a given switch port is linked to another network device or is an host access port.
+     * Checks whether a given switch port is linked to another network
+     * device or is an host access port.
      * @param swMac the switch mac address
      * @param port the port of the switch
      * @return True if linked to another network device.
      */
     virtual bool isLinkedToNetworkDevice(std::string& swMac, int port);
+
+    /**
+     * Get the linked switch port for a switch port.
+     * @param swMac The switch
+     * @param port The port at the switch
+     * @return The linked switch port.
+     */
+    virtual SwitchPort_t getLinkedSwitchPort(std::string& swMac, int port);
 
     /**
      * Collects all known direct links between devices

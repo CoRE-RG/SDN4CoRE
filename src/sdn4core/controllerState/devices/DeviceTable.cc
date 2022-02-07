@@ -64,6 +64,16 @@ bool DeviceTable::isLinkedToNetworkDevice(std::string& swMac,
     return false;
 }
 
+SwitchPort_t DeviceTable::getLinkedSwitchPort(std::string& swMac, int port) {
+    SwitchPort_t link;
+    PortModule* portModule = getOrCreateSwitchPort(swMac, port);
+    if (PortModule* nextPort = portModule->getDeviceLink()) {
+        link.first = nextPort->getParentModule()->par("switchName").stdstringValue();
+        link.second = nextPort->getPort();
+    }
+    return link;
+}
+
 std::vector<DeviceLink_t> DeviceTable::getAllDeviceLinks() {
     std::vector<DeviceLink_t> links;
     std::map<SwitchPort_t, PortModule*> switchPorts = getAllSwitchPorts();

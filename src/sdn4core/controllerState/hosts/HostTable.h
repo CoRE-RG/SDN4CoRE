@@ -1,16 +1,18 @@
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 // 
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
+// GNU General Public License for more details.
 // 
-// You should have received a copy of the GNU Lesser General Public License
+// You should have received a copy of the GNU General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
+//
+// c Timo Haeckel, for HAW Hamburg
 // 
 
 #ifndef __SDN4CORE_HOSTTABLE_H_
@@ -24,6 +26,7 @@
 // INET
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/networklayer/common/L3Address.h"
+// openflow
 #include "openflow/messages/OFP_Packet_In_m.h"
 #include "openflow/openflow/controller/Switch_Info.h"
 
@@ -114,7 +117,7 @@ public:
      * @param doAging Check if the found entry is outdated
      * @return A host entry matching the IP address if found, else nullptr
      */
-    virtual HostEntry* getHostForIPAddress(const inet::L3Address& address, bool doAging=true);
+    virtual HostEntry* getHostForIpAddress(const inet::L3Address& address, bool doAging=true);
 
     /**
      * Look up hosts connected to a switch.
