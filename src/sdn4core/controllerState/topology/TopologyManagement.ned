@@ -24,6 +24,7 @@ simple TopologyManagement extends ControllerStateManagementBase
 {
     parameters:
         @display("i=block/network2");
+        @class(SDN4CoRE::TopologyManagement);
         string hostTablePath = default("^.hostTable");
         string deviceTablePath = default("^.deviceTable");
 }

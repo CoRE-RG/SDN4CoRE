@@ -42,9 +42,11 @@ int TopologyManagement::findOutportAtSwitch(Switch_Info* swInfo,
     if (swInfo != nullptr && packetIn != nullptr) {
         if (EthernetIIFrame* eth =
                 dynamic_cast<EthernetIIFrame *>(packetIn->getEncapsulatedPacket())) {
-            MACAddress hostMac = eth->getSrc();
+            MACAddress hostMac = eth->getDest();
             string switchId = swInfo->getMacAddress();
             return findOutportAtSwitch(switchId, hostMac);
+        } else {
+            throw cRuntimeError("No Ethernet Frame found in PacketIn message.");
         }
     }
     return -1;
@@ -52,14 +54,21 @@ int TopologyManagement::findOutportAtSwitch(Switch_Info* swInfo,
 
 int TopologyManagement::findOutportAtSwitch(string& switchId,
         MACAddress& hostMac) {
+    if (hostMac.isBroadcast() || hostMac.isMulticast()
+            || hostMac.isUnspecified()) {
+        return -1;
+    }
     return findOutportAtSwitch(switchId,
             hostTable->getHostForMacAddress(hostMac));
 }
 
 int TopologyManagement::findOutportAtSwitch(string& switchId,
         L3Address& hostIp) {
-    return findOutportAtSwitch(switchId,
-            hostTable->getHostForIpAddress(hostIp));
+    if (hostIp.isBroadcast() || hostIp.isMulticast()
+            || hostIp.isUnspecified()) {
+        return -1;
+    }
+    return findOutportAtSwitch(switchId, hostTable->getHostForIpAddress(hostIp));
 }
 
 int TopologyManagement::findOutportAtSwitch(string& switchId,
@@ -121,7 +130,7 @@ TopologyManagement::Route TopologyManagement::calculateRoute(string& fromSwitch,
     // check if abort recursion!
     if (host->switch_id == fromSwitch) {
         cacheNextHop(fromSwitch, host, host->portno);
-        return Route({ SwitchPort(host->switch_id, host->portno) });
+        return Route( { SwitchPort(host->switch_id, host->portno) });
     }
     // check if cached
     int cachedPort = findNextHopInCache(fromSwitch, host);

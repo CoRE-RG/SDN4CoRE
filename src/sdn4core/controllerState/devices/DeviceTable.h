@@ -64,7 +64,7 @@ public:
     virtual bool isLinkedToNetworkDevice(std::string& swMac, int port);
 
     /**
-     * Get the linked switch port for a switch port.
+     * Get the next switch port linked to a given switch port.
      * @param swMac The switch
      * @param port The port at the switch
      * @return The linked switch port.
@@ -81,6 +81,7 @@ public:
      * Collects all known ports of the switch that are linked to other network devices.
      * @param swMac the switch mac address
      * @return A vector containing all ports linked to other network devices.
+     *         The .first element of a device link is always a port at the given switch.
      */
     virtual std::vector<DeviceLink_t> getDeviceLinksForSwitch(std::string& swMac);
 

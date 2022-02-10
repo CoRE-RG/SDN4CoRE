@@ -35,7 +35,8 @@ Define_Module(HostTable);
 
 std::ostream& operator<<(std::ostream& os, const HostTable::HostEntry& entry) {
     os << "{";
-    os << "macAddress=" << entry.macAddress;
+    os << "nodeName=" << entry.nodeName;
+    os << ", macAddress=" << entry.macAddress;
     os << ", vid={";
     bool first = true;
     for (auto & vid : entry.vids) {
@@ -106,6 +107,10 @@ bool HostTable::loadConfigForSwitch(const std::string& swMacAddr,
                                         "port")) {
                                     int port = atoi(portC);
                                     HostEntry* entry = new HostEntry();
+                                    if (const char * nodeName =
+                                            hostXML->getAttribute("nodeName")) {
+                                        entry->nodeName = nodeName;
+                                    }
                                     entry->macAddress = mac;
                                     entry->switch_id = switch_id;
                                     entry->portno = port;
@@ -118,7 +123,8 @@ bool HostTable::loadConfigForSwitch(const std::string& swMacAddr,
                                     if (vlanIdsC != nullptr) {
                                         for (auto vid : cStringTokenizer(
                                                 vlanIdsC, ",").asIntVector()) {
-                                            entry->vids.push_back(static_cast<unsigned int>(vid));
+                                            entry->vids.push_back(
+                                                    static_cast<unsigned int>(vid));
                                         }
                                     } else {
                                         entry->vids.push_back(0);
@@ -160,6 +166,7 @@ void HostTable::dumpConfigToStream(std::ostream& stream, int indentTabs) {
     stream << indent << "<hostTable>" << endl;
     for (auto host : hostsByMac) {
         stream << string(indentTabs + 2, '\t') << "<host ";
+        stream << "nodeName=\"" << host.second->nodeName << "\" ";
         stream << "macAddress=\"" << host.second->macAddress.str() << "\" ";
         stream << "port=\"" << host.second->portno << "\" ";
         stream << "vids=\"";
@@ -219,18 +226,19 @@ bool HostTable::update(OFP_Packet_In* packetIn, Switch_Info * swInfo) {
             vid = qframe->getVID();
         }
         if (find(host->vids.begin(), host->vids.end(), vid)
-                != host->vids.end()) {
+                == host->vids.end()) {
             host->vids.push_back(vid);
         }
         if (eth->hasEncapsulatedPacket()) {
-            if (INetworkDatagram* ip = dynamic_cast<INetworkDatagram *>(eth)) {
+            if (INetworkDatagram* ip = dynamic_cast<INetworkDatagram *>(eth->getEncapsulatedPacket())) {
                 const L3Address& src_ip = ip->getSourceAddress();
                 if (find(host->ipAddresses.begin(), host->ipAddresses.end(),
-                        src_ip) != host->ipAddresses.end()) {
+                        src_ip) == host->ipAddresses.end()) {
                     host->ipAddresses.push_back(src_ip);
                     hostsByIp[src_ip] = host;
                 }
             }
+            //TODO Check what happens with ARP here.
         }
         host->lastUpdated = simTime();
     } else {
@@ -240,8 +248,8 @@ bool HostTable::update(OFP_Packet_In* packetIn, Switch_Info * swInfo) {
     return !newHost;
 }
 
-bool HostTable::update(Switch_Info* swInfo, MACAddress source,
-        uint32_t in_port, int vlan_id) {
+bool HostTable::update(Switch_Info* swInfo, MACAddress source, uint32_t in_port,
+        int vlan_id) {
     Enter_Method
     ("HostTable::update()");
     HostEntry* host = getHostForMacAddress(source, false);
@@ -268,8 +276,8 @@ bool HostTable::update(Switch_Info* swInfo, MACAddress source,
     return !newHost;
 }
 
-HostTable::HostEntry* HostTable::getHostForMacAddress(
-        const MACAddress& address, bool doAging) {
+HostTable::HostEntry* HostTable::getHostForMacAddress(const MACAddress& address,
+        bool doAging) {
     Enter_Method
     ("HostTable::getHostsForMacAddress()");
     auto iter = hostsByMac.find(address);
@@ -277,14 +285,15 @@ HostTable::HostEntry* HostTable::getHostForMacAddress(
         // not found
         return nullptr;
     }
-    if (doAging && iter->second->lastUpdated + agingTime <= simTime()) {
+    if (doAging && isAgedHost(iter->second)) {
         removeHost(iter->second);
         return nullptr;
     }
     return iter->second;
 }
 
-HostTable::HostEntry* HostTable::getHostForIpAddress(const L3Address& address, bool doAging) {
+HostTable::HostEntry* HostTable::getHostForIpAddress(const L3Address& address,
+        bool doAging) {
     Enter_Method
     ("HostTable::getHostsForIPAddress()");
     auto iter = hostsByIp.find(address);
@@ -292,14 +301,15 @@ HostTable::HostEntry* HostTable::getHostForIpAddress(const L3Address& address, b
         // not found
         return nullptr;
     }
-    if (doAging && iter->second->lastUpdated + agingTime <= simTime()) {
+    if (doAging && isAgedHost(iter->second)) {
         removeHost(iter->second);
         return nullptr;
     }
     return iter->second;
 }
 
-HostTable::HostList HostTable::getHostsForSwitch(const string& switch_id, bool doAging) {
+HostTable::HostList HostTable::getHostsForSwitch(const string& switch_id,
+        bool doAging) {
     Enter_Method
     ("HostTable::getHostsForSwitch()");
     auto iter = hostsBySwitch.find(switch_id);
@@ -307,10 +317,11 @@ HostTable::HostList HostTable::getHostsForSwitch(const string& switch_id, bool d
         // not found
         return HostList();
     }
-    if(doAging) {
-        for (auto innerIt = iter->second.begin(); innerIt != iter->second.end();) {
+    if (doAging) {
+        for (auto innerIt = iter->second.begin(); innerIt != iter->second.end();
+                ) {
             auto curr = innerIt++;
-            if ((*curr)->lastUpdated + agingTime <= simTime()) {
+            if (isAgedHost(*curr)) {
                 removeHost(*curr);
             }
         }
@@ -320,8 +331,7 @@ HostTable::HostList HostTable::getHostsForSwitch(const string& switch_id, bool d
 
 void HostTable::removeAgedEntries() {
     for (auto iter = hostsByMac.begin(); iter != hostsByMac.end(); iter++) {
-        if (iter->second->learned
-                && iter->second->lastUpdated + agingTime <= simTime()) {
+        if (isAgedHost(iter->second)) {
             removeHost(iter->second);
         }
     }
@@ -436,6 +446,10 @@ bool HostTable::removeHost(HostEntry* entry) {
     }
     delete entry;
     return true;
+}
+
+bool HostTable::isAgedHost(HostEntry* entry) {
+    return entry->learned && agingTime>0 && entry->lastUpdated + agingTime <= simTime();
 }
 
 } /*end namespace SDN4CoRE*/

@@ -116,15 +116,15 @@ bool DeviceTable::loadConfig(cXMLElement* configuration) {
     ("loadConfig");
     bool changed = false;
     if (configuration) {
-        cXMLElement* deviceManagerXML;
-        if (configuration->isName("deviceManager")) {
-            deviceManagerXML = configuration;
+        cXMLElement* deviceTableXML;
+        if (configuration->isName("deviceTable")) {
+            deviceTableXML = configuration;
         } else {
-            deviceManagerXML = configuration->getFirstChildWithTag(
-                    "deviceManager");
+            deviceTableXML = configuration->getFirstChildWithTag(
+                    "deviceTable");
         }
-        if (deviceManagerXML) {
-            cXMLElementList linksXML = deviceManagerXML->getChildrenByTagName(
+        if (deviceTableXML) {
+            cXMLElementList linksXML = deviceTableXML->getChildrenByTagName(
                     "deviceLink");
             for (cXMLElement* linkXML : linksXML) {
                 if (const char * firstSwMac = linkXML->getAttribute(
@@ -157,15 +157,15 @@ bool DeviceTable::loadConfigForSwitch(const std::string& swMacAddr,
     ("loadConfig");
     bool changed = false;
     if (configuration) {
-        cXMLElement* deviceManagerXML;
-        if (configuration->isName("deviceManager")) {
-            deviceManagerXML = configuration;
+        cXMLElement* deviceTableXML;
+        if (configuration->isName("deviceTable")) {
+            deviceTableXML = configuration;
         } else {
-            deviceManagerXML = configuration->getFirstChildWithTag(
-                    "deviceManager");
+            deviceTableXML = configuration->getFirstChildWithTag(
+                    "deviceTable");
         }
-        if (deviceManagerXML) {
-            cXMLElementList linksXML = deviceManagerXML->getChildrenByTagName(
+        if (deviceTableXML) {
+            cXMLElementList linksXML = deviceTableXML->getChildrenByTagName(
                     "deviceLink");
             for (cXMLElement* linkXML : linksXML) {
                 if (const char * firstSwMac = linkXML->getAttribute(
@@ -201,7 +201,7 @@ void DeviceTable::dumpConfigToStream(std::ostream& stream,
     Enter_Method
     ("dumpConfigToStream");
     string indent = string(indentTabs, '\t');
-    stream << indent << "<deviceManager>" << endl;
+    stream << indent << "<deviceTable>" << endl;
     vector<DeviceLink_t> links = getAllDeviceLinks();
     for (auto link : links) {
         stream << string(indentTabs + 2, '\t') << "<deviceLink ";
@@ -211,7 +211,7 @@ void DeviceTable::dumpConfigToStream(std::ostream& stream,
         stream << "secondSwPort=\"" << link.second.port << "\" ";
         stream << "/>" << endl;
     }
-    stream << indent << "</deviceManager>" << endl;
+    stream << indent << "</deviceTable>" << endl;
 }
 
 } /*end namespace SDN4CoRE*/

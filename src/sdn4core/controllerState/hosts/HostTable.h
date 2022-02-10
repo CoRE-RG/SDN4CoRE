@@ -47,7 +47,7 @@ public:
      * Contains the known MAC and IP Addresses, VLAN IDs, switch and port.
      */
     struct HostEntry {
-//        std::string nodeName = "UNKNOWN"; TODO add node name for visualization
+        std::string nodeName = "UNKNOWN"; //TODO add node name for visualization
         inet::MACAddress macAddress;
         std::string switch_id = "";
         int portno = -1; // Input port
@@ -174,6 +174,14 @@ protected:
      * @return True if removed, false if not found
      */
     virtual bool removeHost(HostEntry* entry);
+
+    /**
+     * Check if a host is aged based on the agingTime.
+     * @param entry The host entry
+     * @return True if the entry was last updated before aging time, else false
+     *         False will also be returned for static hosts (learned=false)
+     */
+    virtual bool isAgedHost(HostEntry* entry);
 
 protected:
 
