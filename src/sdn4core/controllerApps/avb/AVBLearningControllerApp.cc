@@ -160,7 +160,7 @@ std::string AVBLearningControllerApp::stateToXML() {
     ostringstream oss;
     string tab = "\t";
     oss << "<controller>" << endl;
-    _macManager->dumpConfigToStream(oss, 2);
+    hostTable->dumpConfigToStream(oss, 2);
     _srpManager->dumpConfigToStream(oss, 2);
     oss << "</controller>" << endl;
     return oss.str();

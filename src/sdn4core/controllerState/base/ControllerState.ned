@@ -26,19 +26,31 @@ module ControllerState
 {
     parameters:
         @display("i=block/network2");
-        bool hasMACState = default(false); // L2 MAC SAT state
-        string macManagementType = default("MACTableManagement");
+        bool hasDeviceTable = default(true); // Network Device state
+        string deviceTableType = default("DeviceTable");
+        bool hasHostTable = default(true); // L2/L3 Host State
+        string hostTableType = default("HostTable");
+        bool hasTopologyManagement = default(true); // L2/L3 Host State
+        string topologyManagementType = default("TopologyManagement");
         bool hasSRPState = default(false); // TSN/AVB SR state
         string srpManagementType = default("SRPTableManagement");
 
     submodules:
         
-        macTableManagement : <macManagementType> like IControllerStateManagement if hasMACState {
+        deviceTable : <deviceTableType> like IControllerStateManagement if hasDeviceTable {
         	@display("p=50,50");
         };
         
-        srpTableManagement : <srpManagementType> like IControllerStateManagement if hasSRPState {
+        hostTable : <hostTableType> like IControllerStateManagement if hasHostTable {
         	@display("p=150,50");
+        };
+        
+        topology : <topologyManagementType> like IControllerStateManagement if hasTopologyManagement {
+        	@display("p=250,50");
+        };
+        
+        srpTableManagement : <srpManagementType> like IControllerStateManagement if hasSRPState {
+        	@display("p=350,50");
         };
 
         // vector for dynamically created switch state

@@ -19,7 +19,9 @@
 #define __SDN4CORE_LEARNINGCONTROLLERAPP_H_
 
 #include "sdn4core/controllerApps/base/PacketProcessorBase.h"
-#include "sdn4core/controllerState/mac/MACTableManagement.h"
+#include "sdn4core/controllerState/devices/DeviceTable.h"
+#include "sdn4core/controllerState/hosts/HostTable.h"
+#include "sdn4core/controllerState/topology/TopologyManagement.h"
 
 using namespace omnetpp;
 
@@ -43,6 +45,16 @@ protected:
      */
     virtual void processPacketIn(openflow::OFP_Packet_In *packet_in_msg)
             override;
+
+    /**
+     * Interface function for processing new switch connections.
+     *
+     * This default implementation calls loadOfflineConfigFromXML() for
+     * the switch.
+     *
+     * @param info the new switch connected
+     */
+    virtual void processSwitchConnection(openflow::Switch_Info* info) override;
 
     /**
      *  Creates a match from an packet in message.
@@ -70,13 +82,15 @@ protected:
     /**
      * A management module handling all MAC operations.
      */
-    MACTableManagement* _macManager;
-
-private:
+    HostTable* hostTable;
     /**
-     * NED path to the mac table manager for creation during runtime.
+     * A management module handling all MAC operations.
      */
-    static const char MACTABLEMANAGERMODULEPATH[];
+    DeviceTable* deviceTable;
+    /**
+     * A management module handling all MAC operations.
+     */
+    TopologyManagement* topology;
 };
 
 } /*end namespace SDN4CoRE*/

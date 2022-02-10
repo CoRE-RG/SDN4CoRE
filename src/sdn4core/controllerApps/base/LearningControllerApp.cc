@@ -36,34 +36,21 @@ namespace SDN4CoRE {
 
 Define_Module(LearningControllerApp);
 
-const char LearningControllerApp::MACTABLEMANAGERMODULEPATH[] =
-        "sdn4core.controllerState.mac.MACTableManagement";
-
 void LearningControllerApp::initialize() {
     PacketProcessorBase::initialize();
-    // try to locate the macTableManager
-    _macManager = tryLocateStateManager<MACTableManagement*>("macTableManagement");
-    if(!_macManager) {
-        // create the mac manager
-        _macManager =
-                    dynamic_cast<MACTableManagement*>(createFinalizeAndScheduleDynamicModule(
-                            MACTABLEMANAGERMODULEPATH, "macTableManagement",
-                            this->getParentModule()->getSubmodule("controllerState"),
-                            false));
-        if (!_macManager) {
-            throw cRuntimeError("Could not create MACTableManagement.");
-        }
-    }
+    hostTable = check_and_cast<HostTable*>(
+            this->getModuleByPath(par("hostTablePath")));
+    deviceTable = check_and_cast<DeviceTable*>(
+            this->getModuleByPath(par("deviceTablePath")));
+    topology = check_and_cast<TopologyManagement*>(
+            this->getModuleByPath(par("topologyManagementPath")));
 }
 
 void LearningControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
-    CommonHeaderFields headerFields = extractCommonHeaderFields(packet_in_msg);
-    //search map for source mac address and enter
-    _macManager->update(headerFields.swInfo, headerFields.src_mac,
-            headerFields.inport);
+    Switch_Info* swInfo = controller->findSwitchInfoFor(packet_in_msg);
+    hostTable->update(packet_in_msg, swInfo);
     //find outport or flood
-    int outport = _macManager->lookup(headerFields.swInfo,
-            headerFields.dst_mac);
+    int outport = topology->findOutportAtSwitch(swInfo, packet_in_msg);
     if (outport == -1) {
         floodPacket(packet_in_msg);
     } else {
@@ -90,21 +77,35 @@ oxm_basic_match LearningControllerApp::createMatchFromPacketIn(
 }
 
 bool LearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
-    Enter_Method("loadOfflineConfigFromXML()");
+    Enter_Method
+    ("loadOfflineConfigFromXML()");
     //load XML config if specified.
     bool changed = false;
     cXMLElement* xmlDoc = par("configXML").xmlValue();
     if (xmlDoc) { //we got an XML document for config set.
-        changed |= _macManager->loadConfigForSwitch(info->getMacAddress(), xmlDoc);
+        changed |= hostTable->loadConfigForSwitch(info->getMacAddress(),
+                xmlDoc);
+        changed |= deviceTable->loadConfigForSwitch(info->getMacAddress(),
+                xmlDoc);
+        changed |= topology->loadConfigForSwitch(info->getMacAddress(),
+                xmlDoc);
     }
     return changed;
+}
+
+void LearningControllerApp::processSwitchConnection(
+        openflow::Switch_Info* info) {
+    deviceTable->addNetworkDevice(info);
+    PacketProcessorBase::processSwitchConnection(info);
 }
 
 string LearningControllerApp::stateToXML() {
     ostringstream oss;
     string tab = "\t";
     oss << "<controller>" << endl;
-    _macManager->dumpConfigToStream(oss, 2);
+    hostTable->dumpConfigToStream(oss, 2);
+    deviceTable->dumpConfigToStream(oss, 2);
+    topology->dumpConfigToStream(oss, 2);
     oss << "</controller>" << endl;
     return oss.str();
 }

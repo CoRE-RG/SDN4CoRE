@@ -30,4 +30,7 @@ simple LearningControllerApp extends PacketProcessorBase
 {
     parameters:
         @class(SDN4CoRE::LearningControllerApp);
+        string hostTablePath = default("^.controllerState.hostTable");
+        string deviceTablePath = default("^.controllerState.deviceTable");
+        string topologyManagementPath = default("^.controllerState.topology");
 }

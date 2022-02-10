@@ -32,6 +32,7 @@ module TSN_NC_OF_Controller extends NetConfOpenFlowController
         string pathEth = default(absPath(".eth[0]"));
         eth[0].typename = "TSNEtherNic";
         networkLayerType = default("RTNetworkLayer");
+        controllerState.hasSRPState = default(true);
     submodules:
         // Sync module for synchronisation of the scheduler
         sync: <default("DummySync")> like ISync {
