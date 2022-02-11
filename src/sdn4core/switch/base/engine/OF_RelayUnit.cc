@@ -46,7 +46,7 @@ void OF_RelayUnit::initialize(int stage){
             dpPingPacketHash = registerSignal("dpPingPacketHash");
             cpPingPacketHash = registerSignal("cpPingPacketHash");
 
-            forwardToConSign = registerSignal("forwardToController");
+            forwardToConSign = registerSignal("forwardToConSign");
             tableMissSign = registerSignal("tableMissSign");
 
             dataPlanePacket=0l;
