@@ -58,7 +58,7 @@ import sdn4core.controllerApps.base.PacketProcessorBase;
 //
 // @note: Flows that should be tunneled by this application 
 // 		  should be blacklisted in all other controller apps.
-//		  @see~PacketProcessorBase, e.g., packetfilterBlacklist = "ipDst=, " 
+//		  @see~PacketProcessorBase, e.g., packetFilterBlacklist = "ipDst=, " 
 // 
 simple IPTunnelingControllerApp extends PacketProcessorBase
 {

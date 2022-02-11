@@ -248,9 +248,9 @@ void PacketProcessorBase::handleParameterChange(const char* parname) {
         _whitelist.initializeFromPar(
                 this->par("packetFilterWhitelist").stdstringValue());
     }
-    if (!parname || !strcmp(parname, "packetfilterBlacklist")) {
+    if (!parname || !strcmp(parname, "packetFilterBlacklist")) {
         _blacklist.initializeFromPar(
-                this->par("packetfilterBlacklist").stdstringValue());
+                this->par("packetFilterBlacklist").stdstringValue());
     }
 }
 

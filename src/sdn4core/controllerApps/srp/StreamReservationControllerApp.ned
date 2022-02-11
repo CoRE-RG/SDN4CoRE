@@ -26,7 +26,7 @@ import sdn4core.controllerApps.base.PacketProcessorBase;
 // from core4inet that does not use the original message format. 
 //
 // If this app is used together with a learning app (@see~LearningControllerApp)
-// it should be configured with a packetfilterBlacklist = default("etherType=0x22EA")
+// it should be configured with a packetFilterBlacklist = default("etherType=0x22EA")
 // so SRP is not forwarded automatically.
 // 
 // @author Timo Haeckel, for HAW Hamburg
