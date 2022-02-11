@@ -17,8 +17,6 @@
 
 #include "sdn4core/controllerApps/lldp/LLDPControllerApp.h"
 
-//STD
-#include <sstream>
 //inet
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 //openflow
@@ -55,6 +53,7 @@ void LLDPControllerApp::handleParameterChange(const char* parname) {
 
 void LLDPControllerApp::handleMessage(cMessage* msg) {
     if (msg == this->trigger) {
+        EV << "Sending Link Layer Discovery through connected switches";
         sendLLDP();
         scheduleNextCycle();
     } else {
@@ -87,7 +86,7 @@ void LLDPControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
 void LLDPControllerApp::processSwitchConnection(openflow::Switch_Info* info) {
     deviceTable->addNetworkDevice(info);
     PacketProcessorBase::processSwitchConnection(info);
-    EV << "New switch connected";
+    EV << "New switch connected, installing LLDP Flow";
     installLLDPFLow(info);
     if (lldpOnNewConnection) {
         sendLLDP();
@@ -103,6 +102,7 @@ void LLDPControllerApp::scheduleNextCycle() {
     this->cancelEvent(this->trigger);
     if (deviceTable->getDeviceCount() > 0) {
         this->scheduleAt(simTime() + cycle, this->trigger);
+        EV << "Next LLDP cycle scheduled in " << cycle;
     }
 }
 
@@ -113,7 +113,6 @@ void LLDPControllerApp::installLLDPFLow(openflow::Switch_Info* swInfo) {
     oxm_basic_match match = builder->build();
     sendFlowModMessage(OFPFC_ADD, match, OFPP_CONTROLLER, swInfo->getSocket(),
             0, 0);
-    EV << "Installing LLDP Flow rule";
 }
 
 void LLDPControllerApp::sendLLDP() {
@@ -135,7 +134,7 @@ void LLDPControllerApp::sendLLDP(openflow::Switch_Info* swInfo) {
             OFP_Packet_Out* packetOut =
                     OFMessageFactory::instance()->createPacketOut(ports, 1, -1,
                             OFP_NO_BUFFER, lldp);
-            controller->sendPacketOut(packetOut, device.getSocket());
+            controller->sendPacketOut(packetOut, swInfo->getSocket());
         }
     }
 }
