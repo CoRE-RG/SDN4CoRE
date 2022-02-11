@@ -64,6 +64,11 @@ protected:
     virtual void sendLLDP();
 
     /**
+     * Send LLDP packages to all ports of a specific network devices.
+     */
+    virtual void sendLLDP(openflow::Switch_Info* swInfo);
+
+    /**
      * Create an lldp frame for the given switch port.
      * @param switchId The switch id
      * @param port The port number

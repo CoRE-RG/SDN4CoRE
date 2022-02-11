@@ -64,15 +64,20 @@ void LLDPControllerApp::handleMessage(cMessage* msg) {
 
 void LLDPControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
     // we should only receive Ethernet LLDP frames because of the packet processor!
-    if(EthernetIIFrame *eth =  dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket())) {
-        if(LLDP *lldp = dynamic_cast<LLDP *>(eth->getEncapsulatedPacket())) {
+    if (EthernetIIFrame *eth =
+            dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket())) {
+        if (LLDP *lldp = dynamic_cast<LLDP *>(eth->getEncapsulatedPacket())) {
             string outSwitchId = lldp->getChassisID();
             int outport = lldp->getPortID();
-            string inSwitchId = controller->findSwitchInfoFor(packet_in_msg)->getMacAddress();
-            int inport = packet_in_msg->getEncapsulatedPacket()->getArrivalGate()->getIndex();
-            deviceTable->linkNetworkDevices(outSwitchId, outport, inSwitchId, inport);
+            string inSwitchId =
+                    controller->findSwitchInfoFor(packet_in_msg)->getMacAddress();
+            int inport =
+                    packet_in_msg->getEncapsulatedPacket()->getArrivalGate()->getIndex();
+            deviceTable->linkNetworkDevices(outSwitchId, outport, inSwitchId,
+                    inport);
         } else {
-            throw cRuntimeError("The received Ethernet Frame does not contain LLDP");
+            throw cRuntimeError(
+                    "The received Ethernet Frame does not contain LLDP");
         }
     } else {
         throw cRuntimeError("Received a non Ethernet Frame");
@@ -84,14 +89,17 @@ void LLDPControllerApp::processSwitchConnection(openflow::Switch_Info* info) {
     PacketProcessorBase::processSwitchConnection(info);
     EV << "New switch connected";
     installLLDPFLow(info);
-    if(lldpOnNewConnection) {
+    if (lldpOnNewConnection) {
         sendLLDP();
     }
-    scheduleNextCycle();
+    if(!this->trigger->isScheduled()) { // this is the first switch we have not yet started with lldp
+        scheduleNextCycle();
+    }
 }
 
 void LLDPControllerApp::scheduleNextCycle() {
-    Enter_Method_Silent();
+    Enter_Method_Silent
+    ();
     this->cancelEvent(this->trigger);
     if (deviceTable->getDeviceCount() > 0) {
         this->scheduleAt(simTime() + cycle, this->trigger);
@@ -114,9 +122,16 @@ void LLDPControllerApp::sendLLDP() {
             //only use full connections
             continue;
         }
-        for (int i = 0; i < device.getNumOfPorts(); i++) {
-            EthernetIIFrame* lldp = createLLDPPacket(device.getMacAddress(), i);
-            uint32_t ports [] = {(uint32_t)i};
+        sendLLDP(&device);
+    }
+}
+
+void LLDPControllerApp::sendLLDP(openflow::Switch_Info* swInfo) {
+    if (swInfo) {
+        for (int i = 0; i < swInfo->getNumOfPorts(); i++) {
+            EthernetIIFrame* lldp = createLLDPPacket(swInfo->getMacAddress(),
+                    i);
+            uint32_t ports[] = { (uint32_t) i };
             OFP_Packet_Out* packetOut =
                     OFMessageFactory::instance()->createPacketOut(ports, 1, -1,
                             OFP_NO_BUFFER, lldp);
