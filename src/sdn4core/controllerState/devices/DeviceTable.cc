@@ -111,6 +111,10 @@ vector<DeviceLink_t> DeviceTable::getDeviceLinksForSwitch(
     return links;
 }
 
+int DeviceTable::getDeviceCount() {
+    return cachedSwitches.size();
+}
+
 bool DeviceTable::loadConfig(cXMLElement* configuration) {
     Enter_Method
     ("loadConfig");

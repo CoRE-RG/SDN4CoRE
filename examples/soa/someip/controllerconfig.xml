@@ -8,21 +8,4 @@
 	<deviceTable>
 		<deviceLink firstSwMac="0A-00-00-00-00-C1" firstSwPort="2" secondSwMac="0A-00-00-00-00-C2" secondSwPort="2" />
 	</deviceTable>
-	<srpManager>
-		<srpTable switch_id="0A-00-00-00-00-C1" >
-			<talkerTable>
-				<talkerEntry stream_id="4" vlan_id="1" srClass="A" address="AB-AA-00-00-00-0B" port="0" framesize="214" intervalFrames="1" pcp="6" />
-			</talkerTable>
-			<listenerTable>
-				<listenerEntry stream_id="4" vlan_id="1" port="1" />
-			</listenerTable>
-		</srpTable>
-		<srpTable switch_id="0A-00-00-00-00-C2" >
-			<talkerTable>
-				<talkerEntry stream_id="4" vlan_id="1" srClass="A" address="AB-AA-00-00-00-0B" port="2" framesize="214" intervalFrames="1" pcp="6" />
-			</talkerTable>
-			<listenerTable>
-			</listenerTable>
-		</srpTable>
-	</srpManager>
 </controller>

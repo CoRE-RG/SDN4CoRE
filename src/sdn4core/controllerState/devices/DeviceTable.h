@@ -78,6 +78,12 @@ public:
     virtual std::vector<DeviceLink_t> getAllDeviceLinks();
 
     /**
+     * Get the number of known switches.
+     * @return The number of devices.
+     */
+    virtual int getDeviceCount();
+
+    /**
      * Collects all known ports of the switch that are linked to other network devices.
      * @param swMac the switch mac address
      * @return A vector containing all ports linked to other network devices.
