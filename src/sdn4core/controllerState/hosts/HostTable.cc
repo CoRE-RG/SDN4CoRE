@@ -329,6 +329,11 @@ HostTable::HostList HostTable::getHostsForSwitch(const string& switch_id,
     return iter->second;
 }
 
+int HostTable::getHostCount() const {
+    return hostsByMac.size();
+}
+
+
 void HostTable::removeAgedEntries() {
     for (auto iter = hostsByMac.begin(); iter != hostsByMac.end(); iter++) {
         if (isAgedHost(iter->second)) {
@@ -370,6 +375,12 @@ void HostTable::initialize() {
 
 void HostTable::handleMessage(cMessage* msg) {
     throw cRuntimeError("This module doesn't process messages");
+}
+
+void HostTable::refreshDisplay() const {
+    char buf[50];
+    sprintf(buf, "Hosts: %d", getHostCount());
+    getDisplayString().setTagArg("t", 0, buf);
 }
 
 bool HostTable::addHost(HostEntry* entry) {

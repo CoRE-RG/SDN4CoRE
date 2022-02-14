@@ -42,8 +42,12 @@ bool DeviceTable::addNetworkDevice(Switch_Info* sw_info) {
     return updated;
 }
 
-int DeviceTable::getDeviceCount() {
+int DeviceTable::getDeviceCount() const{
     return cachedSwitches.size();
+}
+
+int DeviceTable::getLinkCount() const{
+    return links.size()/2; // contains all links twice
 }
 
 bool DeviceTable::linkNetworkDevices(std::string& swMacFirst,
@@ -210,6 +214,12 @@ void DeviceTable::initialize() {
     ControllerStateManagementBase::initialize();
     WATCH_MAP(links);
     WATCH_PTRMAP(cachedSwitches);
+}
+
+void DeviceTable::refreshDisplay() const {
+    char buf[50];
+    sprintf(buf, "Devices: %d\nLinks: %d", getDeviceCount(), getLinkCount());
+    getDisplayString().setTagArg("t", 0, buf);
 }
 
 } /*end namespace SDN4CoRE*/

@@ -45,9 +45,17 @@ public:
 
     /**
      * Get the number of known switches.
+     * @note Is const because used in refreshDisplay() const
      * @return The number of devices.
      */
-    virtual int getDeviceCount();
+    virtual int getDeviceCount() const;
+
+    /**
+     * Get the number of known devices links.
+     * @note Is const because used in refreshDisplay() const
+     * @return The number of links.
+     */
+    virtual int getLinkCount() const;
 
     /**
      * Adds a direct link between two network devices (e.g., discovered with LLDP).
@@ -101,6 +109,11 @@ protected:
     virtual std::vector<DeviceLink_t> getAllDeviceLinks();
 
     virtual void initialize() override;
+
+    /**
+     * Updates the displaystring for links and switches
+     */
+    virtual void refreshDisplay() const override;
 
 protected:
     /**

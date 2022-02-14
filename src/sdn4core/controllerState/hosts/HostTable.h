@@ -128,6 +128,13 @@ public:
     virtual HostList getHostsForSwitch(const std::string& switch_id, bool doAging=true);
 
     /**
+     * Get the number of known hosts.
+     * @note Is const because used in refreshDisplay() const
+     * @return The number of hosts.
+     */
+    virtual int getHostCount() const;
+
+    /**
      * @brief Remove aged entries
      */
     virtual void removeAgedEntries();
@@ -158,6 +165,11 @@ protected:
 
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
+
+    /**
+     * Updates the displaystring for links and switches
+     */
+    virtual void refreshDisplay() const override;
 
     /**
      * Add a host to the table updating an old entry or inserting the given pointer.
