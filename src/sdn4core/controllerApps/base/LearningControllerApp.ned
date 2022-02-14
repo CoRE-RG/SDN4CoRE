@@ -20,9 +20,8 @@ package sdn4core.controllerApps.base;
 import sdn4core.controllerApps.base.PacketProcessorBase;
 
 //
-// LearningControllerApp is an SDN controller application that handles 
-// best effort MAC switching. It uses the @see~MACTableManagement for 
-// L2 Address learning.
+// LearningControllerApp is an SDN controller application that flow rule creation
+// for basic traffic forwarding. 
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
@@ -33,4 +32,20 @@ simple LearningControllerApp extends PacketProcessorBase
         string hostTablePath = default("^.controllerState.hostTable");
         string deviceTablePath = default("^.controllerState.deviceTable");
         string topologyManagementPath = default("^.controllerState.topology");
+        
+        // match different layers in created flow mod flow entries
+        // defaults to iport + l2 (src + dest + vid)        
+        bool matchInport = default(true);
+        bool matchL2Src = default(true); 
+        bool matchL2Dest = default(true);
+        bool matchL2Type = default(false); 
+        bool matchL2VID = default(true);
+        bool matchL2PCP = default(false);
+        bool matchL3Src = default(false);
+        bool matchL3Dest = default(false);
+        bool matchL3Proto = default(false);
+        bool matchL4Src = default(false);
+        bool matchL4Dest = default(false);         
+        
+        bool matchAll = default(false); // overwrites the other match settings.
 }

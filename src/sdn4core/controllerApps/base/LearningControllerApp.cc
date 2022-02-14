@@ -22,15 +22,20 @@
 #include <sstream>
 //inet
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
+#include "inet/networklayer/ipv4/IPv4Datagram.h"
+#include "inet/transportlayer/contract/ITransportPacket.h"
 //openflow
 #include "openflow/messages/OFP_Flow_Mod_m.h"
 #include "openflow/messages/OFP_Packet_In_m.h"
 #include "openflow/openflow/protocol/OFMessageFactory.h"
 #include "openflow/openflow/protocol/OFMatchFactory.h"
+//CoRE4INET
+#include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
 
 using namespace inet;
 using namespace std;
 using namespace openflow;
+using namespace CoRE4INET;
 
 namespace SDN4CoRE {
 
@@ -64,16 +69,73 @@ void LearningControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
 
 oxm_basic_match LearningControllerApp::createMatchFromPacketIn(
         OFP_Packet_In* packetIn) {
-    CommonHeaderFields headerFields = extractCommonHeaderFields(packetIn);
+    if (packetIn->getBuffer_id() != OFP_NO_BUFFER){
+        // todo forward buffered packets.
+        throw cRuntimeError("Learning Controller does not yet support buffered packets.");
+    }
 
     auto builder = OFMatchFactory::getBuilder();
-    builder->setField(OFPXMT_OFB_ETH_DST, &headerFields.dst_mac);
-    builder->setField(OFPXMT_OFB_ETH_TYPE, &headerFields.eth_type);
-    builder->setField(OFPXMT_OFB_ETH_SRC, &headerFields.src_mac);
-    builder->setField(OFPXMT_OFB_IN_PORT, &headerFields.inport);
-    oxm_basic_match match = builder->build();
-
-    return match;
+    if(par("matchAll").boolValue() || par("matchInport").boolValue()) {
+        int inport = packetIn->getEncapsulatedPacket()->getArrivalGate()->getIndex();
+        builder->setField(OFPXMT_OFB_IN_PORT, &inport);
+    }
+    //layer 2
+    if (EthernetIIFrame* eth =
+            dynamic_cast<EthernetIIFrame *>(packetIn->getEncapsulatedPacket())) {
+        if(par("matchAll").boolValue() || par("matchL2Src").boolValue()) {
+            MACAddress src = eth->getSrc();
+            builder->setField(OFPXMT_OFB_ETH_SRC, &src);
+        }
+        if(par("matchAll").boolValue() || par("matchL2Dest").boolValue()) {
+            MACAddress dest = eth->getDest();
+            builder->setField(OFPXMT_OFB_ETH_DST, &dest);
+        }
+        if(par("matchAll").boolValue() || par("matchL2Type").boolValue()) {
+            int type = eth->getEtherType();
+            builder->setField(OFPXMT_OFB_ETH_TYPE, &type);
+        }
+        //qframe
+        if (EthernetIIFrameWithQTag* vlan =
+                dynamic_cast<EthernetIIFrameWithQTag *>(packetIn->getEncapsulatedPacket())) {
+            if(par("matchAll").boolValue() || par("matchL2VID").boolValue()) {
+                uint16_t vid = vlan->getVID();
+                builder->setField(OFPXMT_OFB_VLAN_VID, &vid);
+            }
+            if(par("matchAll").boolValue() || par("matchL2PCP").boolValue()) {
+                uint8_t pcp = vlan->getPcp();
+                builder->setField(OFPXMT_OFB_VLAN_PCP, &pcp);
+            }
+        }
+        //layer 3
+        if (INetworkDatagram* ip =
+                dynamic_cast<INetworkDatagram *>(eth->getEncapsulatedPacket())) {
+            if(par("matchAll").boolValue() || par("matchL3Src").boolValue()) {
+                IPv4Address src = ip->getSourceAddress().toIPv4();
+                builder->setField(OFPXMT_OFB_IPV4_SRC, &src);
+            }
+            if(par("matchAll").boolValue() || par("matchL3Dest").boolValue()) {
+                IPv4Address dest = ip->getDestinationAddress().toIPv4();
+                builder->setField(OFPXMT_OFB_IPV4_DST, &dest);
+            }
+            if(par("matchAll").boolValue() || par("matchL3Proto").boolValue()) {
+                int ipProto = ip->getTransportProtocol();
+                builder->setField(OFPXMT_OFB_IP_PROTO, &ipProto);
+            }
+            //layer 4
+            if (ITransportPacket* transport = dynamic_cast<ITransportPacket*>(eth->getEncapsulatedPacket()->getEncapsulatedPacket())) {
+                // ports are handled the same for tcp and udp depending on the ip proto type.
+                if(par("matchAll").boolValue() || par("matchL4Src").boolValue()) {
+                    int src = transport->getSourcePort();
+                    builder->setField(OFPXMT_OFB_UDP_SRC, &src);
+                }
+                if(par("matchAll").boolValue() || par("matchL4Dest").boolValue()) {
+                    int dest = transport->getDestinationPort();
+                    builder->setField(OFPXMT_OFB_UDP_DST, &dest);
+                }
+            }
+        }
+    }
+    return builder->build();
 }
 
 bool LearningControllerApp::loadOfflineConfigFromXML(Switch_Info* info) {
