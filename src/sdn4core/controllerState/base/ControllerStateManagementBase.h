@@ -67,6 +67,10 @@ struct SwitchPort {
     bool operator!=(const SwitchPort& other) const {
         return !operator==(other);
     }
+    friend std::ostream & operator << (std::ostream &out, const SwitchPort &switchPort) {
+        out << "{switchId=\"" << switchPort.switchId << "\", port=\"" << switchPort.port << "\"}";
+        return out;
+    }
 };
 
 /**
