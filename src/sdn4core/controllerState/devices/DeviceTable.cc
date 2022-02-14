@@ -42,77 +42,46 @@ bool DeviceTable::addNetworkDevice(Switch_Info* sw_info) {
     return updated;
 }
 
+int DeviceTable::getDeviceCount() {
+    return cachedSwitches.size();
+}
+
 bool DeviceTable::linkNetworkDevices(std::string& swMacFirst,
         int portFirst, std::string& swMacSecond, int portSecond) {
     bool updated = false;
-    cModule* firstSwitchModule = getOrCreateSwitch(swMacFirst);
-    cModule* secondSwitchModule = getOrCreateSwitch(swMacSecond);
-    PortModule* firstPortModule = getOrCreateSwitchPort(swMacFirst, portFirst,
-            firstSwitchModule);
-    PortModule* secondPortModule = getOrCreateSwitchPort(swMacSecond,
-            portSecond, secondSwitchModule);
-    updated |= firstPortModule->setDeviceLink(secondPortModule);
-    updated |= secondPortModule->setDeviceLink(firstPortModule);
+    SwitchPort first (swMacFirst, portFirst);
+    SwitchPort second (swMacSecond, portSecond);
+    if(links.find(first) != links.end() || links.find(second) != links.end()) {
+        updated = true;
+    }
+    links[first] = second;
+    links[second] = first;
     return updated;
 }
 
 bool DeviceTable::isLinkedToNetworkDevice(std::string& swMac,
         int port) {
-    if (PortModule* portModule = getOrCreateSwitchPort(swMac, port)) {
-        return portModule->isDeviceLink();
-    }
-    return false;
+    return links.find(SwitchPort(swMac,port)) != links.end();
 }
 
 SwitchPort DeviceTable::getLinkedSwitchPort(std::string& swMac, int port) {
-    SwitchPort link;
-    PortModule* portModule = getOrCreateSwitchPort(swMac, port);
-    if (PortModule* nextPort = portModule->getDeviceLink()) {
-        link.switchId = nextPort->getParentModule()->par("switchName").stdstringValue();
-        link.port = nextPort->getPort();
+    auto iter = links.find(SwitchPort(swMac,port));
+    if (iter != links.end()) {
+        return iter->second;
     }
-    return link;
-}
-
-std::vector<DeviceLink_t> DeviceTable::getAllDeviceLinks() {
-    std::vector<DeviceLink_t> links;
-    std::map<SwitchPort, PortModule*> switchPorts = getAllSwitchPorts();
-    for (auto switchPort : switchPorts) {
-        if (switchPort.second->isDeviceLink()) {
-            // first remove linked port from map to prevent duplicates.
-            PortModule* linkedPort = switchPort.second->getDeviceLink();
-            string linkedDevice = linkedPort->getParentModule()->par(
-                    "switchName").stdstringValue();
-            SwitchPort nextDevicePort(linkedDevice, linkedPort->getPort());
-            switchPorts.erase(nextDevicePort);
-            // than add the link.
-            DeviceLink_t link(switchPort.first, nextDevicePort);
-            links.push_back(link);
-        }
-    }
-    return links;
+    return SwitchPort();
 }
 
 vector<DeviceLink_t> DeviceTable::getDeviceLinksForSwitch(
         std::string& swMac) {
-    std::vector<DeviceLink_t> links;
-    map<SwitchPort, PortModule*> switchPorts = getAllSwitchPorts();
-    for (auto switchPort : switchPorts) {
-        if (switchPort.first.switchId == swMac
-                && switchPort.second->isDeviceLink()) {
-            PortModule* linkedPort = switchPort.second->getDeviceLink();
-            string linkedDevice = linkedPort->getParentModule()->par(
-                    "switchName").stdstringValue();
-            SwitchPort nextDevicePort(linkedDevice, linkedPort->getPort());
-            DeviceLink_t link(switchPort.first, nextDevicePort);
-            links.push_back(link);
+    vector<DeviceLink_t> knownLinks;
+    for (auto link : links) {
+        if(link.first.switchId == swMac) {
+            DeviceLink_t deviceLink (link.first, link.second);
+            knownLinks.push_back(deviceLink);
         }
     }
-    return links;
-}
-
-int DeviceTable::getDeviceCount() {
-    return cachedSwitches.size();
+    return knownLinks;
 }
 
 bool DeviceTable::loadConfig(cXMLElement* configuration) {
@@ -143,8 +112,12 @@ bool DeviceTable::loadConfig(cXMLElement* configuration) {
                                 int secondPort = atoi(secondSwPort);
                                 string firstMac = firstSwMac;
                                 string secondMac = secondSwMac;
-                                changed = linkNetworkDevices(firstMac,
-                                        firstPort, secondMac, secondPort);
+                                cModule* swModule = getOrCreateSwitch(firstSwMac);
+                                getOrCreateSwitchPort(firstSwMac,firstPort,swModule);
+                                swModule = getOrCreateSwitch(secondSwMac);
+                                getOrCreateSwitchPort(secondSwMac,secondPort,swModule);
+                                changed = true;
+                                linkNetworkDevices(firstMac, firstPort, secondMac, secondPort);
                             }
                         }
                     }
@@ -187,8 +160,12 @@ bool DeviceTable::loadConfigForSwitch(const std::string& swMacAddr,
                                     int secondPort = atoi(secondSwPort);
                                     string firstMac = firstSwMac;
                                     string secondMac = secondSwMac;
-                                    changed = linkNetworkDevices(firstMac,
-                                            firstPort, secondMac, secondPort);
+                                    cModule* swModule = getOrCreateSwitch(firstSwMac);
+                                    getOrCreateSwitchPort(firstSwMac,firstPort,swModule);
+                                    swModule = getOrCreateSwitch(secondSwMac);
+                                    getOrCreateSwitchPort(secondSwMac,secondPort,swModule);
+                                    changed = true;
+                                    linkNetworkDevices(firstMac, firstPort, secondMac, secondPort);
                                 }
                             }
                         }
@@ -216,6 +193,23 @@ void DeviceTable::dumpConfigToStream(std::ostream& stream,
         stream << "/>" << endl;
     }
     stream << indent << "</deviceTable>" << endl;
+}
+
+vector<DeviceLink_t> DeviceTable::getAllDeviceLinks() {
+    vector<DeviceLink_t> knownLinks;
+    auto linksCopy = links; // copied known links
+    for (auto link : linksCopy) {
+        DeviceLink_t deviceLink (link.first, link.second);
+        linksCopy.erase(link.second); // ignore other direction
+        knownLinks.push_back(deviceLink);
+    }
+    return knownLinks;
+}
+
+void DeviceTable::initialize() {
+    ControllerStateManagementBase::initialize();
+    WATCH_MAP(links);
+    WATCH_PTRMAP(cachedSwitches);
 }
 
 } /*end namespace SDN4CoRE*/

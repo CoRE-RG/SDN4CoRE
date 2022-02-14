@@ -21,7 +21,6 @@ Define_Module(PortModule);
 
 void PortModule::initialize() {
     WATCH(_port);
-    WATCH_PTR(_deviceLink);
 }
 
 int PortModule::getPort(){
@@ -30,23 +29,6 @@ int PortModule::getPort(){
 
 void PortModule::setPort(int port) {
     _port = port;
-}
-
-bool PortModule::setDeviceLink(PortModule* nextDevicePort) {
-    bool updated = false;
-    if(_deviceLink) {
-        updated = true;
-    }
-    _deviceLink = nextDevicePort;
-    return updated;
-}
-
-bool PortModule::isDeviceLink() {
-    return _deviceLink != nullptr;
-}
-
-PortModule* PortModule::getDeviceLink() {
-    return _deviceLink;
 }
 
 }

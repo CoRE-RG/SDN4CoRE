@@ -44,6 +44,12 @@ public:
     virtual bool addNetworkDevice(openflow::Switch_Info* sw_info);
 
     /**
+     * Get the number of known switches.
+     * @return The number of devices.
+     */
+    virtual int getDeviceCount();
+
+    /**
      * Adds a direct link between two network devices (e.g., discovered with LLDP).
      * @param swMacFirst the first switch mac address
      * @param portFirst the port of the first switch
@@ -72,18 +78,6 @@ public:
     virtual SwitchPort getLinkedSwitchPort(std::string& swMac, int port);
 
     /**
-     * Collects all known direct links between devices
-     * @return
-     */
-    virtual std::vector<DeviceLink_t> getAllDeviceLinks();
-
-    /**
-     * Get the number of known switches.
-     * @return The number of devices.
-     */
-    virtual int getDeviceCount();
-
-    /**
      * Collects all known ports of the switch that are linked to other network devices.
      * @param swMac the switch mac address
      * @return A vector containing all ports linked to other network devices.
@@ -98,6 +92,23 @@ public:
 
     virtual void dumpConfigToStream(std::ostream& stream, int indentTabs = 0)
             override;
+
+protected:
+    /**
+     * Collects all known direct links between devices and erases bidirectional duplicates.
+     * @return The device links
+     */
+    virtual std::vector<DeviceLink_t> getAllDeviceLinks();
+
+    virtual void initialize() override;
+
+protected:
+    /**
+     * Device Links known to this device table.
+     * Stores all links for both directions, so be aware of the duplicates!
+     */
+    std::map<SwitchPort, SwitchPort> links;
+
 };
 
 } /*end namespace SDN4CoRE*/

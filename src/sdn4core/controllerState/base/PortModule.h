@@ -27,22 +27,11 @@ public:
     int getPort();
     void setPort(int port);
 
-    /**
-     * Set a link to another switch via this portModule to the nextDevicePort.
-     * @param nextDevicePort The Port of the next device that is linked with this.
-     * @return True if refreshed. False if new.
-     */
-    bool setDeviceLink(PortModule* nextDevicePort);
-    bool isDeviceLink();
-    PortModule* getDeviceLink();
-
 protected:
     virtual void initialize()override;
 
 private:
     int _port;
-    PortModule* _deviceLink = nullptr;
-
 };
 
 }
