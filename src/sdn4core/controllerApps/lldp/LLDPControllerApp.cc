@@ -70,8 +70,7 @@ void LLDPControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
             int outport = lldp->getPortID();
             string inSwitchId =
                     controller->findSwitchInfoFor(packet_in_msg)->getMacAddress();
-            int inport =
-                    packet_in_msg->getEncapsulatedPacket()->getArrivalGate()->getIndex();
+            int inport = eth->getArrivalGate()->getIndex();
             deviceTable->linkNetworkDevices(outSwitchId, outport, inSwitchId,
                     inport);
         } else {
@@ -135,6 +134,7 @@ void LLDPControllerApp::sendLLDP(openflow::Switch_Info* swInfo) {
                     OFMessageFactory::instance()->createPacketOut(ports, 1, -1,
                             OFP_NO_BUFFER, lldp);
             controller->sendPacketOut(packetOut, swInfo->getSocket());
+            delete lldp;
         }
     }
 }
