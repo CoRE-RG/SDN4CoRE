@@ -147,7 +147,9 @@ EthernetIIFrame* LLDPControllerApp::createLLDPPacket(string switchId,
 
     EthernetIIFrame *eth = new EthernetIIFrame(lldpPacket->getName());
     eth->setSrc(MACAddress(switchId.c_str()));
-    eth->setDest(MACAddress::BROADCAST_ADDRESS);
+    //eth->setDest(MACAddress("01:80:c2:00:00:0e"));
+    //make up an address as inet will accept multicast frames and does not know what to do with a lldp frame and thus fails
+    eth->setDest(MACAddress("AA:80:c2:00:00:0e"));
     eth->setEtherType(LLDP_ETHER_TYPE);
     eth->encapsulate(lldpPacket);
     if (eth->getByteLength() < MIN_ETHERNET_FRAME_BYTES) {
