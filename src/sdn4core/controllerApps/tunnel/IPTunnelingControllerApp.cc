@@ -15,10 +15,14 @@
 
 #include "IPTunnelingControllerApp.h"
 
+//STD
+#include <algorithm>
 //inet
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
 #include "inet/networklayer/contract/ipv4/IPv4ControlInfo.h"
 #include "inet/common/LayeredProtocolBase.h"
+//openflow
+#include <openflow/openflow/protocol/OFMessageFactory.h>
 
 using namespace inet;
 using namespace std;
@@ -28,43 +32,55 @@ namespace SDN4CoRE {
 
 Define_Module(IPTunnelingControllerApp);
 
-void IPTunnelingControllerApp::initialize(int stage) {
-    if (stage == INITSTAGE_LOCAL) {
-        PacketProcessorBase::initialize();
-        vector<string> tunnelIPs = cStringTokenizer(par("tunnelIPAddresses"),",").asVector();
-        if(!tunnelIPs.empty()) {
-            _whitelist.addPacketFilters("ipDst", tunnelIPs);
-        }
+void IPTunnelingControllerApp::initialize() {
+    PacketProcessorBase::initialize();
 
-        ift = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
+    hostTable = check_and_cast<HostTable*>(
+            this->getModuleByPath(par("hostTablePath")));
+    deviceTable = check_and_cast<DeviceTable*>(
+            this->getModuleByPath(par("deviceTablePath")));
+    topology = check_and_cast<TopologyManagement*>(
+            this->getModuleByPath(par("topologyManagementPath")));
 
-        transportInGateBaseId = gateBaseId("transportIn");
-
-        defaultTimeToLive = par("timeToLive");
-        defaultMCTimeToLive = par("multicastTimeToLive");
-        fragmentTimeoutTime = par("fragmentTimeout");
-        forceBroadcast = par("forceBroadcast");
-        receiveMulticast = par("receiveMulticast");
-        receiveBroadcast = par("receiveBroadcast");
-        sendBroadcast = par("sendBroadcast");
-        sendMulticast = par("sendMulticast");
-        mtu = par("mtu");
-
-        numMulticast = numLocalDeliver = numDropped = numUnroutable = numForwarded = 0;
-
-        WATCH(numMulticast);
-        WATCH(numLocalDeliver);
-        WATCH(numDropped);
-        WATCH(numUnroutable);
-        WATCH(numForwarded);
+    localIps = cStringTokenizer(par("controllerIps"), ",").asVector();
+    if (!localIps.empty()) {
+        _whitelist.addPacketFilters("ipDst", localIps);
     }
-    else if (stage == INITSTAGE_NETWORK_LAYER) {
-        isUp = true;
+
+    defaultTimeToLive = par("timeToLive");
+    defaultMCTimeToLive = par("multicastTimeToLive");
+    fragmentTimeoutTime = par("fragmentTimeout");
+    forceBroadcast = par("forceBroadcast");
+    receiveMulticast = par("receiveMulticast");
+    receiveBroadcast = par("receiveBroadcast");
+    sendBroadcast = par("sendBroadcast");
+    sendMulticast = par("sendMulticast");
+    mtu = par("mtu");
+
+    numMulticast = numLocalDeliver = numDropped = numUnroutable = numForwarded = 0;
+
+    WATCH(numMulticast);
+    WATCH(numLocalDeliver);
+    WATCH(numDropped);
+    WATCH(numUnroutable);
+    WATCH(numForwarded);
+}
+
+void IPTunnelingControllerApp::handleParameterChange(const char* parname) {
+    PacketProcessorBase::handleParameterChange(parname);
+    if (!parname || !strcmp(parname, "controllerSrcMac")) {
+        if (par("controllerSrcMac").stdstringValue() == "auto") {
+            // assign automatic address
+            this->controllerSrcMac = inet::MACAddress::generateAutoAddress();
+            // change module parameter from "auto" to concrete address
+            par("controllerSrcMac").setStringValue(this->controllerSrcMac.str());
+        } else {
+            this->controllerSrcMac.setAddress(par("controllerSrcMac").stringValue());
+        }
     }
 }
 
-void IPTunnelingControllerApp::refreshDisplay() const
-{
+void IPTunnelingControllerApp::refreshDisplay() const {
     char buf[80] = "";
     if (numForwarded > 0)
         sprintf(buf + strlen(buf), "fwd:%d ", numForwarded);
@@ -79,132 +95,169 @@ void IPTunnelingControllerApp::refreshDisplay() const
     getDisplayString().setTagArg("t", 0, buf);
 }
 
-void IPTunnelingControllerApp::processPacketIn(
-        openflow::OFP_Packet_In* packet_in_msg) {
-    if (EthernetIIFrame* eth =
-                dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket())) {
-        if (IPv4Datagram* ip =
-                        dynamic_cast<IPv4Datagram *>(eth->getEncapsulatedPacket())) {
-            endService(ip->dup());
-        }
+void IPTunnelingControllerApp::receiveSignal(cComponent* src, simsignal_t id,
+        cObject* obj, cObject* details) {
+    if (id == BootedSignalId) {
+        isUp = true;
     }
+    PacketProcessorBase::receiveSignal(src, id, obj, details);
 }
 
-void IPTunnelingControllerApp::handleMessage(cMessage *msg)
-{
+void IPTunnelingControllerApp::handleMessage(cMessage *msg) {
     if (dynamic_cast<RegisterTransportProtocolCommand *>(msg)) {
-        RegisterTransportProtocolCommand *command = check_and_cast<RegisterTransportProtocolCommand *>(msg);
-        mapping.addProtocolMapping(command->getProtocol(), msg->getArrivalGate()->getIndex());
+        RegisterTransportProtocolCommand *command = check_and_cast<
+                RegisterTransportProtocolCommand *>(msg);
+        mapping.addProtocolMapping(command->getProtocol(),
+                msg->getArrivalGate()->getIndex());
         delete msg;
-    }
-    else {
+    } else {
         //we do not implement queueing and delay in this ip version, so handle it directly
         endService(PK(msg));
     }
 }
 
-void IPTunnelingControllerApp::endService(cPacket *packet)
-{
+void IPTunnelingControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
+    if (EthernetIIFrame* eth =
+            dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket())) {
+        //TODO respond to arp requests...
+        if (IPv4Datagram* ip =
+                dynamic_cast<IPv4Datagram *>(eth->getEncapsulatedPacket())) {
+            hostTable->update(packet_in_msg,
+                    controller->findSwitchInfoFor(packet_in_msg));
+            endService(ip->dup());
+        } else {
+            throw cRuntimeError(eth->getEncapsulatedPacket(),
+                    "Unexpected packet type");
+        }
+    }
+}
+
+bool IPTunnelingControllerApp::isLocalIp(IPv4Address& addr) {
+    return find(localIps.begin(), localIps.end(), addr.str()) != localIps.end();
+}
+
+IPv4Address IPTunnelingControllerApp::findBestFittingSrcIp(IPv4Address& dest) {
+    if(localIps.empty()) {
+        return IPv4Address::UNSPECIFIED_ADDRESS;
+    }
+    //TODO find best matching src address, e.g. by matching subnets?
+    return IPv4Address(localIps[0].c_str());
+}
+
+void IPTunnelingControllerApp::endService(cPacket *packet) {
     if (!isUp) {
         EV_ERROR << "IPv4 is down -- discarding message\n";
         delete packet;
         return;
     }
-    if (packet->getArrivalGate()->isName("transportIn")) {    //TODO packet->getArrivalGate()->getBaseId() == transportInGateBaseId
+    if (packet->getArrivalGate()->isName("transportIn")) {
         handlePacketFromHL(packet);
-    }
-    else {    // from network
+    } else {    // from network
         EV_INFO << "Received " << packet << " from OpenFlow network.\n";
-        if (auto dgram = dynamic_cast<IPv4Datagram *>(packet))
+        if (auto dgram = dynamic_cast<IPv4Datagram *>(packet)) {
             handleIncomingDatagram(dgram);
-        else
-            throw cRuntimeError(packet, "Unexpected packet type");
+        }
     }
 }
 
-void IPTunnelingControllerApp::handleIncomingDatagram(IPv4Datagram *datagram)
-{
+
+void IPTunnelingControllerApp::handleIncomingDatagram(IPv4Datagram *datagram) {
     ASSERT(datagram);
     emit(LayeredProtocolBase::packetReceivedFromLowerSignal, datagram);
-
     // hop counter decrement
     datagram->setTimeToLive(datagram->getTimeToLive() - 1);
-
-    IPv4Address& destAddr = datagram->getDestAddress();
-    EV_DETAIL << "Received datagram `" << datagram->getName() << "' with dest=" << destAddr << "\n";
-
     // remove control info
-    cObject* ctrlInfo = datagram->removeControlInfo();
-    if(ctrlInfo) {
-        delete ctrlInfo;
-    }
-
-    // route packet
-    else {
-        if (destAddr.isMulticast() && !receiveMulticast) {
-            EV_WARN << "Skip forwarding of multicast datagram (forwarding disabled)\n";
-            emit(LayeredProtocolBase::packetFromLowerDroppedSignal, datagram);
-            delete datagram;
-        }
-        if(destAddr.isLimitedBroadcastAddress() && !receiveBroadcast) {
-            EV_WARN << "Skip forwarding of broadcast datagram (forwarding disabled)\n";
-            emit(LayeredProtocolBase::packetFromLowerDroppedSignal, datagram);
-            delete datagram;
-        }
-        else {
-            reassembleAndDeliver(datagram);
-        }
+    delete datagram->removeControlInfo();
+    //route packet
+    IPv4Address& destAddr = datagram->getDestAddress();
+    EV_DETAIL << "Received datagram `" << datagram->getName() << "' with dest="
+                     << destAddr << "\n";
+    if (destAddr.isMulticast() && !receiveMulticast) {
+        dropPacketFromLower(datagram, "Skip forwarding of multicast datagram (forwarding disabled)");
+    } else if (destAddr.isLimitedBroadcastAddress() && !receiveBroadcast) {
+        dropPacketFromLower(datagram, "Skip forwarding of broadcast datagram (forwarding disabled)");
+    } else if (isLocalIp(destAddr) || destAddr.isMulticast()
+            || destAddr.isLimitedBroadcastAddress()) {
+        // accept packet and forward!
+        reassembleAndDeliver(datagram);
+    } else {
+        dropPacketFromLower(datagram, "Skip forwarding of datagram with non local ip address");
     }
 }
 
-void IPTunnelingControllerApp::handlePacketFromHL(cPacket *packet)
-{
+void IPTunnelingControllerApp::reassembleAndDeliver(IPv4Datagram *datagram) {
+    EV_INFO << "Delivering " << datagram << " in OpenFlow IP tunnel.\n";
+    if (datagram->getSrcAddress().isUnspecified()) {
+        EV_WARN << "Received datagram '" << datagram->getName()
+                       << "' without source address filled in\n";
+    }
+    // reassemble the packet (if fragmented)
+    if (datagram->getFragmentOffset() != 0 || datagram->getMoreFragments()) {
+        EV_DETAIL << "Datagram fragment: offset="
+                         << datagram->getFragmentOffset() << ", MORE="
+                         << (datagram->getMoreFragments() ? "true" : "false")
+                         << ".\n";
+        // erase timed out fragments in fragmentation buffer; check every 10 seconds max
+        if (simTime() >= lastCheckTime + 10) {
+            lastCheckTime = simTime();
+            fragbuf.purgeStaleFragments(simTime() - fragmentTimeoutTime);
+        }
+        datagram = fragbuf.addFragment(datagram, simTime());
+        if (!datagram) {
+            EV_DETAIL << "No complete datagram yet.\n";
+            return;
+        }
+        EV_DETAIL << "This fragment completes the datagram.\n";
+    }
+    // decapsulate and send on appropriate output gate
+    int protocol = datagram->getTransportProtocol();
+    int gateindex = mapping.findOutputGateForProtocol(protocol);
+    // check if the transportOut port are connected, otherwise discard the packet
+    if (gateindex >= 0) {
+        cGate *outGate = gate("transportOut", gateindex);
+        if (outGate->isPathOK()) {
+            cPacket *packet = decapsulate(datagram);
+            send(packet, outGate);
+            emit(LayeredProtocolBase::packetSentToUpperSignal, packet);
+            numLocalDeliver++;
+            return;
+        }
+    }
+    EV_ERROR << "Transport protocol ID=" << protocol
+             << " not connected for OpenFlow IP tunnel, discarding packet\n";
+}
+
+void IPTunnelingControllerApp::handlePacketFromHL(cPacket *packet) {
     EV_INFO << "Received " << packet << " from upper layer.\n";
     emit(LayeredProtocolBase::packetReceivedFromUpperSignal, packet);
-
-    // TODO if no interface exists, do not send datagram
-//    if (ift->getNumInterfaces() == 0) {
-//        EV_ERROR << "No interfaces exist, dropping packet\n";
-//        numDropped++;
-//        emit(LayeredProtocolBase::packetFromUpperDroppedSignal, packet);
-//        delete packet;
-//        return;
-//    }
-
-    // encapsulate
-    IPv4ControlInfo *controlInfo = check_and_cast<IPv4ControlInfo *>(packet->removeControlInfo());
+    if (deviceTable->getDeviceCount() == 0) {
+        dropPacketFromUpper(packet, "No devices connected");
+        return;
+    }
+    IPv4ControlInfo *controlInfo = check_and_cast<IPv4ControlInfo *>(
+            packet->removeControlInfo());
     IPv4Datagram *datagram = encapsulate(packet, controlInfo);
-    // TODO extract requested interface and next hop
-//    const InterfaceEntry *destIE = controlInfo ? const_cast<const InterfaceEntry *>(ift->getInterfaceById(controlInfo->getInterfaceId())) : nullptr;
+    // TODO determine the outport from controlInfo interfaceId
     datagramLocalOut(datagram);
 }
 
 void IPTunnelingControllerApp::datagramLocalOut(IPv4Datagram* datagram) {
-    // send
     IPv4Address& destAddr = datagram->getDestAddress();
-
-    EV_DETAIL << "Sending datagram " << datagram << " with destination = " << destAddr << "\n";
-
+    EV_DETAIL << "Sending datagram " << datagram << " with destination = "
+                     << destAddr << "\n";
     if (destAddr.isMulticast()) {
-        if(sendMulticast) {
+        if (sendMulticast) {
             routeMulticastPacket(datagram);
+        } else {
+            dropPacketFromUpper(datagram,
+                    "Multicast from upper layer is turned off for OpenFlow IP tunnel");
         }
-        else {
-            EV_ERROR << "Multicast from upper layer is turned off for OpenFlow IP tunnel, packet dropped\n";
-            numDropped++;
-            emit(LayeredProtocolBase::packetFromUpperDroppedSignal, datagram);
-            delete datagram;
-        }
-    }
-    else if (destAddr.isLimitedBroadcastAddress()) {// || rt->isLocalBroadcastAddress(destAddr))
+    } else if (destAddr.isLimitedBroadcastAddress()) { // || rt->isLocalBroadcastAddress(destAddr))
         if (sendBroadcast) {
             routeLocalBroadcastPacket(datagram);
-        }
-        else {
-            EV_ERROR << "Broadcast from upper layer is turned off for OpenFlow IP tunnel, packet dropped\n";
-            numDropped++;
-            emit(LayeredProtocolBase::packetFromUpperDroppedSignal, datagram);
-            delete datagram;
+        } else {
+            dropPacketFromUpper(datagram,
+                    "Broadcast from upper layer is turned off for OpenFlow IP tunnel");
         }
     } else {
         routeUnicastPacket(datagram);
@@ -212,54 +265,23 @@ void IPTunnelingControllerApp::datagramLocalOut(IPv4Datagram* datagram) {
 }
 
 void IPTunnelingControllerApp::routeUnicastPacket(IPv4Datagram* datagram) {
-//    IPv4Address destAddr = datagram->getDestAddress();
-//    EV_INFO << "Routing " << datagram << " with destination = " << destAddr << ", ";
-//
-//    IPv4Address nextHopAddr;
-//    // if output port was explicitly requested, use that, otherwise use IPv4 routing
-//    if (destIE) {
-//        EV_DETAIL << "using manually specified output interface " << destIE->getName() << "\n";
-//        // and nextHopAddr remains unspecified
-//        if (!requestedNextHopAddress.isUnspecified())
-//            nextHopAddr = requestedNextHopAddress;
-//        // special case ICMP reply
-//        else if (destIE->isBroadcast()) {
-//            // if the interface is broadcast we must search the next hop
-//            const IPv4Route *re = rt->findBestMatchingRoute(destAddr);
-//            if (re && re->getInterface() == destIE)
-//                nextHopAddr = re->getGateway();
-//        }
-//    }
-//    else {
-//        // use IPv4 routing (lookup in routing table)
-//        const IPv4Route *re = rt->findBestMatchingRoute(destAddr);
-//        if (re) {
-//            destIE = re->getInterface();
-//            nextHopAddr = re->getGateway();
-//        }
-//    }
-//
-//    if (!destIE) {    // no route found
-//        EV_WARN << "unroutable, sending ICMP_DESTINATION_UNREACHABLE, dropping packet\n";
-//        numUnroutable++;
-//        emit(LayeredProtocolBase::packetFromUpperDroppedSignal, datagram);
-//        icmp->sendErrorMessage(datagram, fromIE ? fromIE->getInterfaceId() : -1, ICMP_DESTINATION_UNREACHABLE, 0);
-//    }
-//    else {    // fragment and send
-//        L3Address nextHop(nextHopAddr);
-//        if (fromIE != nullptr) {
-//            if (datagramForwardHook(datagram, fromIE, destIE, nextHop) != INetfilter::IHook::ACCEPT)
-//                return;
-//            nextHopAddr = nextHop.toIPv4();
-//        }
-//
-//        EV_INFO << "output interface = " << destIE->getName() << ", next hop address = " << nextHopAddr << "\n";
-//        numForwarded++;
-//        fragmentAndSend(datagram, destIE, nextHopAddr);
-//    }
+    IPv4Address destAddr = datagram->getDestAddress();
+    EV_INFO << "Routing " << datagram << " with destination = " << destAddr << ", ";
+    // lookup in host table
+    HostTable::HostEntry* host = hostTable->getHostForIpAddress(destAddr);
+    if(!host) {
+        dropPacketFromUpper(datagram, "Unroutable, no host entry could be found");
+        //TODO do something like ARP?
+    } else {
+        //fragment and send
+        EV_INFO << "output to host " << host << "\n";
+        numForwarded++;
+        fragmentAndSend(datagram, host);
+    }
 }
 
 void IPTunnelingControllerApp::routeMulticastPacket(IPv4Datagram* datagram) {
+    throw cRuntimeError("OpenFlow Multicast not yet supported");
 //    const InterfaceEntry *ie = nullptr;
 //    if (multicastIFOption) {
 //        ie = multicastIFOption;
@@ -287,6 +309,7 @@ void IPTunnelingControllerApp::routeMulticastPacket(IPv4Datagram* datagram) {
 
 void IPTunnelingControllerApp::routeLocalBroadcastPacket(
         IPv4Datagram* datagram) {
+    throw cRuntimeError("OpenFlow Broadcast not yet supported");
     // The destination address is 255.255.255.255 or local subnet broadcast address.
     // We always use 255.255.255.255 as nextHopAddress, because it is recognized by ARP,
     // and mapped to the broadcast MAC address.
@@ -309,53 +332,7 @@ void IPTunnelingControllerApp::routeLocalBroadcastPacket(
 //    }
 }
 
-void IPTunnelingControllerApp::reassembleAndDeliver(IPv4Datagram *datagram)
-{
-    EV_INFO << "Delivering " << datagram << " in OpenFlow IP tunnel.\n";
-
-    if (datagram->getSrcAddress().isUnspecified())
-        EV_WARN << "Received datagram '" << datagram->getName() << "' without source address filled in\n";
-
-    // reassemble the packet (if fragmented)
-    if (datagram->getFragmentOffset() != 0 || datagram->getMoreFragments()) {
-        EV_DETAIL << "Datagram fragment: offset=" << datagram->getFragmentOffset()
-                  << ", MORE=" << (datagram->getMoreFragments() ? "true" : "false") << ".\n";
-
-        // erase timed out fragments in fragmentation buffer; check every 10 seconds max
-        if (simTime() >= lastCheckTime + 10) {
-            lastCheckTime = simTime();
-            fragbuf.purgeStaleFragments(simTime() - fragmentTimeoutTime);
-        }
-
-        datagram = fragbuf.addFragment(datagram, simTime());
-        if (!datagram) {
-            EV_DETAIL << "No complete datagram yet.\n";
-            return;
-        }
-        EV_DETAIL << "This fragment completes the datagram.\n";
-    }
-
-    // decapsulate and send on appropriate output gate
-    int protocol = datagram->getTransportProtocol();
-
-    int gateindex = mapping.findOutputGateForProtocol(protocol);
-    // check if the transportOut port are connected, otherwise discard the packet
-    if (gateindex >= 0) {
-        cGate *outGate = gate("transportOut", gateindex);
-        if (outGate->isPathOK()) {
-            cPacket *packet = decapsulate(datagram);
-            send(packet, outGate);
-            emit(LayeredProtocolBase::packetSentToUpperSignal, packet);
-            numLocalDeliver++;
-            return;
-        }
-    }
-
-    EV_ERROR << "Transport protocol ID=" << protocol << " not connected for OpenFlow IP tunnel, discarding packet\n";
-}
-
-cPacket *IPTunnelingControllerApp::decapsulate(IPv4Datagram *datagram)
-{
+cPacket *IPTunnelingControllerApp::decapsulate(IPv4Datagram *datagram) {
     // decapsulate transport packet
     cPacket *packet = datagram->decapsulate();
 
@@ -377,88 +354,89 @@ cPacket *IPTunnelingControllerApp::decapsulate(IPv4Datagram *datagram)
     return packet;
 }
 
-void IPTunnelingControllerApp::fragmentAndSend(IPv4Datagram *datagram)
-{
-//    // fill in source address
-//    if (datagram->getSrcAddress().isUnspecified())
-//        datagram->setSrcAddress(ie->ipv4Data()->getIPAddress());
-//
-//    // hop counter check
-//    if (datagram->getTimeToLive() <= 0) {
-//        emit(LayeredProtocolBase::packetFromUpperDroppedSignal, datagram);
-//        EV_WARN << "datagram TTL reached zero, packet dropped\n";
-//        numDropped++;
-//        delete datagram;
-//        return;
-//    }
-//
-//    // send datagram straight out if it doesn't require fragmentation (note: mtu==0 means infinite mtu)
-//    if (mtu == 0 || datagram->getByteLength() <= mtu) {
-//        sendDatagramToOutput(datagram, ie, nextHopAddr);
-//        return;
-//    }
-//
-//    // if "don't fragment" bit is set, throw datagram away and send ICMP error message
-//    if (datagram->getDontFragment()) {
-//        emit(LayeredProtocolBase::packetFromUpperDroppedSignal, datagram);
-//        EV_WARN << "datagram larger than MTU and don't fragment bit set, packet dropped\n";
-//        numDropped++;
-//        delete datagram;
-//        return;
-//    }
-//
-//    // FIXME some IP options should not be copied into each fragment, check their COPY bit
-//    int headerLength = datagram->getHeaderLength();
-//    int payloadLength = datagram->getByteLength() - headerLength;
-//    int fragmentLength = ((mtu - headerLength) / 8) * 8;    // payload only (without header)
-//    int offsetBase = datagram->getFragmentOffset();
-//    if (fragmentLength <= 0)
-//        throw cRuntimeError("Cannot fragment datagram: MTU=%d too small for header size (%d bytes)", mtu, headerLength); // exception and not ICMP because this is likely a simulation configuration error, not something one wants to simulate
-//
-//    int noOfFragments = (payloadLength + fragmentLength - 1) / fragmentLength;
-//    EV_DETAIL << "Breaking datagram into " << noOfFragments << " fragments\n";
-//
-//    // create and send fragments
-//    std::string fragMsgName = datagram->getName();
-//    fragMsgName += "-frag";
-//
-//    for (int offset = 0; offset < payloadLength; offset += fragmentLength) {
-//        bool lastFragment = (offset + fragmentLength >= payloadLength);
-//        // length equal to fragmentLength, except for last fragment;
-//        int thisFragmentLength = lastFragment ? payloadLength - offset : fragmentLength;
-//
-//        // FIXME is it ok that full encapsulated packet travels in every datagram fragment?
-//        // should better travel in the last fragment only. Cf. with reassembly code!
-//        IPv4Datagram *fragment = datagram->dup();
-//        fragment->setName(fragMsgName.c_str());
-//
-//        // "more fragments" bit is unchanged in the last fragment, otherwise true
-//        if (!lastFragment)
-//            fragment->setMoreFragments(true);
-//
-//        fragment->setByteLength(headerLength + thisFragmentLength);
-//        fragment->setFragmentOffset(offsetBase + offset);
-//
-//        sendDatagramToOutput(fragment, ie, nextHopAddr);
-//    }
-//
-//    delete datagram;
+void IPTunnelingControllerApp::fragmentAndSend(IPv4Datagram *datagram, HostTable::HostEntry* host) {
+    // hop counter check
+    if (datagram->getTimeToLive() <= 0) {
+        dropPacketFromUpper(datagram, "Datagram TTL reached zero");
+        return;
+    }
+    // fill in source address
+    if (datagram->getSrcAddress().isUnspecified()) {
+        IPv4Address src = findBestFittingSrcIp(datagram->getDestAddress());
+        if(src.isUnspecified()) {
+            dropPacketFromUpper(datagram, "No controller source IP found for datagram");
+            return;
+        } else {
+            datagram->setSrcAddress(src);
+        }
+    }
+    // send datagram straight out if it doesn't require fragmentation (note: mtu==0 means infinite mtu)
+    if (mtu == 0 || datagram->getByteLength() <= mtu) {
+        sendDatagramToHost(datagram, host);
+        return;
+    }
+    // if "don't fragment" bit is set, throw datagram away and send ICMP error message
+    if (datagram->getDontFragment()) {
+        dropPacketFromUpper(datagram, "Datagram larger than MTU and don't fragment bit set");
+        return;
+    }
+    // FIXME some IP options should not be copied into each fragment, check their COPY bit
+    int headerLength = datagram->getHeaderLength();
+    int payloadLength = datagram->getByteLength() - headerLength;
+    int fragmentLength = ((mtu - headerLength) / 8) * 8;    // payload only (without header)
+    if (fragmentLength <= 0) {
+        throw cRuntimeError("Cannot fragment datagram: MTU=%d too small for header size (%d bytes)", mtu, headerLength); // exception and not ICMP because this is likely a simulation configuration error, not something one wants to simulate
+    }
+    int offsetBase = datagram->getFragmentOffset();
+    int noOfFragments = (payloadLength + fragmentLength - 1) / fragmentLength;
+    EV_DETAIL << "Breaking datagram into " << noOfFragments << " fragments\n";
+    string fragMsgName = datagram->getName();
+    fragMsgName += "-frag";
+    // create and send fragments
+    for (int offset = 0; offset < payloadLength; offset += fragmentLength) {
+        bool lastFragment = (offset + fragmentLength >= payloadLength);
+        // length equal to fragmentLength, except for last fragment;
+        int thisFragmentLength = lastFragment ? payloadLength - offset : fragmentLength;
+        // FIXME is it ok that full encapsulated packet travels in every datagram fragment?
+        // should better travel in the last fragment only. Cf. with reassembly code!
+        IPv4Datagram *fragment = datagram->dup();
+        fragment->setName(fragMsgName.c_str());
+        // "more fragments" bit is unchanged in the last fragment, otherwise true
+        if (!lastFragment)
+            fragment->setMoreFragments(true);
+        fragment->setByteLength(headerLength + thisFragmentLength);
+        fragment->setFragmentOffset(offsetBase + offset);
+        sendDatagramToHost(fragment, host);
+    }
+    delete datagram;
 }
 
-void IPTunnelingControllerApp::sendDatagramToOutput(IPv4Datagram *datagram)
-{
-//    if (nextHopAddr.isUnspecified()) {
-//        nextHopAddr = destAddress;
-//    }
-//
-//    MACAddress nextHopMacAddr;    // unspecified
-//    nextHopMacAddr = resolveNextHopMacAddress(datagram, nextHopAddr, ie);
-//
-//    sendPacketToIeee802NIC(datagram, ie, nextHopMacAddr, ETHERTYPE_IPv4);
+void IPTunnelingControllerApp::sendDatagramToHost(IPv4Datagram *datagram, HostTable::HostEntry* host) {
+    ASSERT(host);
+    if(datagram->getByteLength() > MAX_ETHERNET_DATA_BYTES) {
+        throw cRuntimeError("Datagram to large for Ethernet Frame");
+    }
+    SwitchPort switchPort = topology->findEdgePort(host);
+    if (switchPort.empty()) {
+        dropPacketFromUpper(datagram, "Host has no edge port");
+        return;
+    }
+    inet::EthernetIIFrame* frame = createFrameForDatagram(datagram, host);
+    uint32_t outports [] = { (uint32_t) switchPort.port};
+    OFP_Packet_Out* packetOut = OFMessageFactory::instance()->createPacketOut(outports, 1, -1, OFP_NO_BUFFER, frame);
+    // send to openflow channel
+    EV << "Send packet to OpenFlow channel" << '\n';
+    numPacketOut++;
+    TCPSocket *socket = controller->findSocketForChassisId(switchPort.switchId);
+    if(!socket) {
+        throw cRuntimeError(("Could not find socket for switch id" + switchPort.switchId).c_str());
+    }
+    packetOut->setKind(TCP_C_SEND);
+    socket->send(packetOut);
 }
 
-IPv4Datagram *IPTunnelingControllerApp::encapsulate(cPacket *transportPacket, IPv4ControlInfo *controlInfo)
-{
+IPv4Datagram *IPTunnelingControllerApp::encapsulate(cPacket *transportPacket,
+        IPv4ControlInfo *controlInfo) {
     IPv4Datagram *datagram = createIPv4Datagram(transportPacket->getName());
     datagram->setByteLength(IP_HEADER_BYTES);
     datagram->encapsulate(transportPacket);
@@ -470,7 +448,7 @@ IPv4Datagram *IPTunnelingControllerApp::encapsulate(cPacket *transportPacket, IP
     IPv4Address src = controlInfo->getSrcAddr();
     // when source address was given, use it; otherwise it'll get the address
     // of the outgoing interface after routing
-    if (!src.isUnspecified()) {
+    if (!src.isUnspecified() && isLocalIp(src)) {
         datagram->setSrcAddress(src);
     }
 
@@ -499,9 +477,42 @@ IPv4Datagram *IPTunnelingControllerApp::encapsulate(cPacket *transportPacket, IP
     return datagram;
 }
 
-IPv4Datagram *IPTunnelingControllerApp::createIPv4Datagram(const char *name)
-{
+IPv4Datagram *IPTunnelingControllerApp::createIPv4Datagram(const char *name) {
     return new IPv4Datagram(name);
+}
+
+void IPTunnelingControllerApp::dropPacketFromUpper(cMessage* packet, string reason) {
+    if(!reason.empty()) {
+        EV_ERROR << reason << ", dropping packet\n";
+    }
+    numDropped++;
+    emit(LayeredProtocolBase::packetFromUpperDroppedSignal, packet);
+    delete packet;
+}
+
+void IPTunnelingControllerApp::dropPacketFromLower(cMessage* packet, string reason) {
+    if(!reason.empty()) {
+        EV_ERROR << reason << ", dropping packet\n";
+    }
+    emit(LayeredProtocolBase::packetFromLowerDroppedSignal, packet);
+    delete packet;
+}
+
+EthernetIIFrame* IPTunnelingControllerApp::createFrameForDatagram(
+        IPv4Datagram* datagram, HostTable::HostEntry* host) {
+    // create ether header
+    EthernetIIFrame* frame = new EthernetIIFrame(datagram->getName(), 4); // kind 4 = color
+    frame->setDest(host->macAddress);
+    frame->setSrc(this->controllerSrcMac);
+    frame->setEtherType(ETHERTYPE_IPv4);
+    //TODO maybe support 8021Q options?
+    // pack and pad
+    ASSERT(frame->getByteLength() > 0); // length comes from msg file
+    frame->encapsulate(datagram);
+    if (frame->getByteLength() < MIN_ETHERNET_FRAME_BYTES) {
+        frame->setByteLength(MIN_ETHERNET_FRAME_BYTES); // "padding"
+    }
+    return frame;
 }
 
 } /*end namespace SDN4CoRE*/

@@ -19,7 +19,12 @@
 #include <omnetpp.h>
 
 #include "sdn4core/controllerApps/base/PacketProcessorBase.h"
+#include "sdn4core/controllerState/devices/DeviceTable.h"
+#include "sdn4core/controllerState/hosts/HostTable.h"
+#include "sdn4core/controllerState/topology/TopologyManagement.h"
 
+//STD
+#include <vector>
 //inet
 #include "inet/networklayer/ipv4/IPv4.h"
 
@@ -38,6 +43,13 @@ public:
 
 protected:
 
+    virtual void initialize() override;
+    virtual void handleParameterChange(const char* parname) override;
+    virtual void refreshDisplay() const override;
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj,
+            cObject *details) override;
+    virtual void handleMessage(cMessage *msg) override;
+
     /**
      * Interface function for the main processing engine of packet_in messages.
      *
@@ -47,13 +59,17 @@ protected:
      */
     virtual void processPacketIn(openflow::OFP_Packet_In *packet_in_msg) override;
 
-    virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-    virtual void initialize(int stage) override;
-    virtual void handleMessage(cMessage *msg) override;
-    virtual void refreshDisplay() const override;
-
 
 protected:
+
+    /**
+     * Check if a given address is in localIps.
+     * @param addr The address to compare
+     * @return True if it is on of localIps, else false
+     */
+    virtual bool isLocalIp(IPv4Address& addr);
+
+    virtual IPv4Address findBestFittingSrcIp(IPv4Address& dest);
 
     /**
      * Processing of IPv4 datagrams. Called when a datagram reaches the front
@@ -112,12 +128,12 @@ protected:
      * Fragment packet if needed, then send it to the selected interface using
      * sendDatagramToOutput().
      */
-    virtual void fragmentAndSend(IPv4Datagram *datagram);
+    virtual void fragmentAndSend(IPv4Datagram *datagram, HostTable::HostEntry* host);
 
     /**
      * Send datagram on the given interface.
      */
-    virtual void sendDatagramToOutput(IPv4Datagram *datagram);
+    virtual void sendDatagramToHost(IPv4Datagram *datagram, HostTable::HostEntry* host);
 
     /**
      * Encapsulate packet coming from higher layers into IPv4Datagram, using
@@ -130,17 +146,36 @@ protected:
      * Creates a blank IPv4 datagram. Override when subclassing IPv4Datagram is needed
      */
     virtual IPv4Datagram *createIPv4Datagram(const char *name);
-protected:
 
-    IInterfaceTable *ift = nullptr;
-    int transportInGateBaseId = -1;
+private:
+    void dropPacketFromUpper(cMessage* packet, std::string reason = "");
+    void dropPacketFromLower(cMessage* packet, std::string reason = "");
+    inet::EthernetIIFrame* createFrameForDatagram(inet::IPv4Datagram* datagram,
+            HostTable::HostEntry* host);
+
+protected:
+    /**
+     * A management module handling all MAC operations.
+     */
+    HostTable* hostTable;
+    /**
+     * A management module handling all MAC operations.
+     */
+    DeviceTable* deviceTable;
+    /**
+     * A management module handling all MAC operations.
+     */
+    TopologyManagement* topology;
 
     // working vars
-    bool isUp = false;
+    bool isUp = false; // TODO set is up if received controller booted signal!
     long curFragmentId = -1;    // counter, used to assign unique fragmentIds to datagrams
     IPv4FragBuf fragbuf;    // fragmentation reassembly buffer
     simtime_t lastCheckTime;    // when fragbuf was last checked for state fragments
     ProtocolMapping mapping;    // where to send packets after decapsulation
+
+    std::vector<std::string> localIps;
+    inet::MACAddress controllerSrcMac;
 
     // config
     int defaultTimeToLive = -1;

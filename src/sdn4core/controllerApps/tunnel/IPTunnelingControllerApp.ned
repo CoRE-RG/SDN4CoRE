@@ -65,17 +65,21 @@ simple IPTunnelingControllerApp extends PacketProcessorBase
     parameters:
         @class(SDN4CoRE::IPTunnelingControllerApp);
         @display("i=block/routing");
-        string interfaceTableModule;   // The path to the InterfaceTable module
-        double procDelay @unit("s") = default(0s);
+        string hostTablePath = default("^.controllerState.hostTable");
+        string deviceTablePath = default("^.controllerState.deviceTable");
+        string topologyManagementPath = default("^.controllerState.topology");
+        
+        string controllerIps = default(""); // The dest IP addresses to be accepted as IP tunnels
+        string controllerSrcMac = default("auto"); 
+        
         int timeToLive = default(32);
         int multicastTimeToLive = default(32);
         double fragmentTimeout @unit("s") = default(60s);
-        bool forceBroadcast = default(true); // send broadcasts to all edge ports. 
-        string tunnelIPAddresses = default(""); // The dest IP addresses to be accepted as IP tunnels
+        bool forceBroadcast = default(true); // send broadcasts to all edge ports for unknown hosts
         bool receiveMulticast = default(false);
         bool receiveBroadcast = default(false);
         bool sendBroadcast = default(false);
-        bool sendMulticast = default(false); // TODO how to determine where to send mcast addresses...
+        bool sendMulticast = default(false); 
         int mtu @unit("B") = default(1500Byte); // Ethernet default MTU, 0 is infinite
         @signal[packetSentToUpper](type=cPacket);
         @signal[packetReceivedFromUpper](type=cPacket);
