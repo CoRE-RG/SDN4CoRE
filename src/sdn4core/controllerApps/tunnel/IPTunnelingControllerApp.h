@@ -83,6 +83,8 @@ protected:
      */
     virtual void handleIncomingDatagram(IPv4Datagram *datagram);
 
+    void handleIncomingARPPacket(openflow::OFP_Packet_In* packet_in_msg);
+
     /**
      * Handle messages (typically packets to be send in IPv4) from transport or ICMP.
      * Invokes encapsulate(), then routePacket().
@@ -150,8 +152,8 @@ protected:
 private:
     void dropPacketFromUpper(cMessage* packet, std::string reason = "");
     void dropPacketFromLower(cMessage* packet, std::string reason = "");
-    inet::EthernetIIFrame* createFrameForDatagram(inet::IPv4Datagram* datagram,
-            HostTable::HostEntry* host);
+    inet::EthernetIIFrame* etherEncap(cPacket* packet, HostTable::HostEntry* host,
+            int etherType = ETHERTYPE_IPv4);
 
 protected:
     /**

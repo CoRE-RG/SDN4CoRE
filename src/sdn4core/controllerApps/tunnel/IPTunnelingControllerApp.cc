@@ -19,6 +19,7 @@
 #include <algorithm>
 //inet
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
+#include "inet/networklayer/arp/ipv4/ARPPacket_m.h"
 #include "inet/networklayer/contract/ipv4/IPv4ControlInfo.h"
 #include "inet/common/LayeredProtocolBase.h"
 //openflow
@@ -119,12 +120,12 @@ void IPTunnelingControllerApp::handleMessage(cMessage *msg) {
 void IPTunnelingControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
     if (EthernetIIFrame* eth =
             dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket())) {
-        //TODO respond to arp requests...
+        hostTable->update(packet_in_msg, controller->findSwitchInfoFor(packet_in_msg));
         if (IPv4Datagram* ip =
                 dynamic_cast<IPv4Datagram *>(eth->getEncapsulatedPacket())) {
-            hostTable->update(packet_in_msg,
-                    controller->findSwitchInfoFor(packet_in_msg));
             endService(ip->dup());
+        } else if (auto arpPacket = dynamic_cast<ARPPacket *>(eth->getEncapsulatedPacket())) {
+            handleIncomingARPPacket(packet_in_msg);
         } else {
             throw cRuntimeError(eth->getEncapsulatedPacket(),
                     "Unexpected packet type");
@@ -160,8 +161,8 @@ void IPTunnelingControllerApp::endService(cPacket *packet) {
     }
 }
 
-
 void IPTunnelingControllerApp::handleIncomingDatagram(IPv4Datagram *datagram) {
+    Enter_Method("handleIncomingDatagram");
     ASSERT(datagram);
     emit(LayeredProtocolBase::packetReceivedFromLowerSignal, datagram);
     // hop counter decrement
@@ -182,6 +183,34 @@ void IPTunnelingControllerApp::handleIncomingDatagram(IPv4Datagram *datagram) {
         reassembleAndDeliver(datagram);
     } else {
         dropPacketFromLower(datagram, "Skip forwarding of datagram with non local ip address");
+    }
+}
+
+void IPTunnelingControllerApp::handleIncomingARPPacket(OFP_Packet_In* packet_in_msg) {
+    ARPPacket* arp = dynamic_cast<ARPPacket *>(packet_in_msg->getEncapsulatedPacket()->getEncapsulatedPacket());
+    ASSERT(arp);
+    if(arp->getOpcode() == ARP_REQUEST && isLocalIp(arp->getDestIPAddress())) {
+        EV << "Received an ARP request for local controller IP, sending reply";
+        ARPPacket* reply = new ARPPacket("ControllerArpReply");
+        reply->setDestIPAddress(arp->getSrcIPAddress());
+        reply->setSrcIPAddress(arp->getDestIPAddress());
+        reply->setDestMACAddress(arp->getSrcMACAddress());
+        reply->setSrcMACAddress(controllerSrcMac);
+        reply->setOpcode(ARP_REPLY);
+        HostTable::HostEntry* host = hostTable->getHostForMacAddress(arp->getSrcMACAddress());
+        SwitchPort switchPort = topology->findEdgePort(host);
+        EthernetIIFrame* frame = etherEncap(reply, host, 0x0806);
+        uint32_t outports [] = { (uint32_t) switchPort.port};
+        OFP_Packet_Out* packetOut = OFMessageFactory::instance()->createPacketOut(outports, 1, -1, OFP_NO_BUFFER, frame);
+        // send to openflow channel
+        EV << "Send packet to OpenFlow channel" << '\n';
+        numPacketOut++;
+        TCPSocket *socket = controller->findSocketForChassisId(switchPort.switchId);
+        if(!socket) {
+            throw cRuntimeError(("Could not find socket for switch id" + switchPort.switchId).c_str());
+        }
+        packetOut->setKind(TCP_C_SEND);
+        controller->sendPacketOut(packetOut, socket);
     }
 }
 
@@ -223,8 +252,7 @@ void IPTunnelingControllerApp::reassembleAndDeliver(IPv4Datagram *datagram) {
             return;
         }
     }
-    EV_ERROR << "Transport protocol ID=" << protocol
-             << " not connected for OpenFlow IP tunnel, discarding packet\n";
+    dropPacketFromLower(datagram, "Transport protocol ID=" + to_string(protocol) + " not connected for OpenFlow IP tunnel");
 }
 
 void IPTunnelingControllerApp::handlePacketFromHL(cPacket *packet) {
@@ -421,7 +449,7 @@ void IPTunnelingControllerApp::sendDatagramToHost(IPv4Datagram *datagram, HostTa
         dropPacketFromUpper(datagram, "Host has no edge port");
         return;
     }
-    inet::EthernetIIFrame* frame = createFrameForDatagram(datagram, host);
+    EthernetIIFrame* frame = etherEncap(datagram, host);
     uint32_t outports [] = { (uint32_t) switchPort.port};
     OFP_Packet_Out* packetOut = OFMessageFactory::instance()->createPacketOut(outports, 1, -1, OFP_NO_BUFFER, frame);
     // send to openflow channel
@@ -432,7 +460,7 @@ void IPTunnelingControllerApp::sendDatagramToHost(IPv4Datagram *datagram, HostTa
         throw cRuntimeError(("Could not find socket for switch id" + switchPort.switchId).c_str());
     }
     packetOut->setKind(TCP_C_SEND);
-    socket->send(packetOut);
+    controller->sendPacketOut(packetOut, socket);
 }
 
 IPv4Datagram *IPTunnelingControllerApp::encapsulate(cPacket *transportPacket,
@@ -494,21 +522,22 @@ void IPTunnelingControllerApp::dropPacketFromLower(cMessage* packet, string reas
     if(!reason.empty()) {
         EV_ERROR << reason << ", dropping packet\n";
     }
+    numUnroutable++;
     emit(LayeredProtocolBase::packetFromLowerDroppedSignal, packet);
     delete packet;
 }
 
-EthernetIIFrame* IPTunnelingControllerApp::createFrameForDatagram(
-        IPv4Datagram* datagram, HostTable::HostEntry* host) {
+EthernetIIFrame* IPTunnelingControllerApp::etherEncap(
+        cPacket* packet, HostTable::HostEntry* host, int etherType) {
     // create ether header
-    EthernetIIFrame* frame = new EthernetIIFrame(datagram->getName(), 4); // kind 4 = color
+    EthernetIIFrame* frame = new EthernetIIFrame(packet->getName(), 4); // kind 4 = color
     frame->setDest(host->macAddress);
     frame->setSrc(this->controllerSrcMac);
-    frame->setEtherType(ETHERTYPE_IPv4);
+    frame->setEtherType(etherType);
     //TODO maybe support 8021Q options?
     // pack and pad
     ASSERT(frame->getByteLength() > 0); // length comes from msg file
-    frame->encapsulate(datagram);
+    frame->encapsulate(packet);
     if (frame->getByteLength() < MIN_ETHERNET_FRAME_BYTES) {
         frame->setByteLength(MIN_ETHERNET_FRAME_BYTES); // "padding"
     }
