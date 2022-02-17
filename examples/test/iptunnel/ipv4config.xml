@@ -1,0 +1,8 @@
+<config>
+
+    <interface hosts="node" names="eth0" address="192.168.178.x" netmask="255.255.255.0"/> <!-- data plane -->
+    <route hosts="node" destination="*" interface="eth0" metric="50"/>
+    
+    <interface among="controller switch" names="eth0" address="10.0.0.x"/> <!-- control plane -->    
+    
+</config>

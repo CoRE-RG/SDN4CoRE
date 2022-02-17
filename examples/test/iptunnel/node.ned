@@ -12,33 +12,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
-// c Timo Haeckel, for HAW Hamburg
-// 
 
-package sdn4core.controller.base;
+package sdn4core.examples.test.iptunnel;
 
-import sdn4core.controllerState.base.ControllerState;
-
-//INET
 import inet.node.inet.StandardHost;
 
-//
-// Base model of network controller to control the forwarding engines of networking devices in a network.
-// As it extends the @see ~inet::StandardHost it can run any additional inet compatible application.
-//
-// @author Timo Haeckel, for HAW Hamburg
-//
-module NetworkControllerBase extends StandardHost
+module Node extends StandardHost
 {
-    parameters:
-        @networkNode();
-        @labels(node,ethernet-node);
-        @display("i=device/server;i2=OpenFlow-Logo-small");
+    parameters:   
+	submodules:
+	connections:
 
-    submodules:
-        controllerState: ControllerState {
-            @display("p=740,40");
-        }
+
 }
-
-
