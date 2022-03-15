@@ -20,6 +20,6 @@ package sdn4core.examples.soa.someip;
 
 import sdn4core.controller.tsn.TSN_NC_OF_Controller;
 
-module Controller extends TSN_NC_OF_Controller
+module Controller extends TSN_NC_OF_IPTunnel_Controller
 {
 }
