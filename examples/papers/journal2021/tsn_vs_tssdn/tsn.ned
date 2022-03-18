@@ -53,7 +53,7 @@ network tsn
             @display("p=400,300");
         }
 
-        ct: Source {
+        s4: Source {
 
             @display("p=50,226");
         }
@@ -86,7 +86,7 @@ network tsn
 
         s1.ethg <--> Eth100M {  length = 1m; } <--> switchleft.ethg++;
         s2.ethg <--> Eth100M {  length = 1m; } <--> switchleft.ethg++;
-        ct.ethg <--> Eth100M {  length = 1m; } <--> switchleft.ethg++;
+        s4.ethg <--> Eth100M {  length = 1m; } <--> switchleft.ethg++;
         
         switchright.ethg++ <--> Eth100M {  length = 1m; } <--> s3.ethg;
         switchright.ethg++ <--> Eth100M {  length = 1m; } <--> sink.ethg;

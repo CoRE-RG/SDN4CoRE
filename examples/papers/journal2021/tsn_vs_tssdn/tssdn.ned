@@ -53,7 +53,7 @@ network tssdn
             @display("p=400,300");
         }
 
-        ct: Source {
+        s4: Source {
 
             @display("p=50,226");
         }
@@ -86,7 +86,7 @@ network tssdn
 
         s1.ethg <--> Eth100M {  length = 1m; } <--> switchleft.gateDataPlane++;
         s2.ethg <--> Eth100M {  length = 1m; } <--> switchleft.gateDataPlane++;
-        ct.ethg <--> Eth100M {  length = 1m; } <--> switchleft.gateDataPlane++;
+        s4.ethg <--> Eth100M {  length = 1m; } <--> switchleft.gateDataPlane++;
         
         switchright.gateDataPlane++ <--> Eth100M {  length = 1m; } <--> s3.ethg;
         switchright.gateDataPlane++ <--> Eth100M {  length = 1m; } <--> sink.ethg;
