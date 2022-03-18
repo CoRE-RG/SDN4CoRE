@@ -33,6 +33,11 @@ network tsn
             @display("p=24,20");
         }
 
+        controller: Controller {
+
+            @display("p=300,25");
+        }
+
         s1: Source {
 
             @display("p=50,150");
@@ -68,7 +73,15 @@ network tsn
             @display("p=400,225");
         }
 
+        ethswitch: EtherSwitch {
+            @display("p=300,125");
+        }
+
     connections allowunconnected:
+        ethswitch.ethg++ <--> Eth100M {  length = 1m; } <--> switchleft.gateControlPlane;
+        ethswitch.ethg++ <--> Eth100M {  length = 1m; } <--> switchright.gateControlPlane;
+        ethswitch.ethg++ <--> Eth100M {  length = 1m; } <--> controller.ethg++;
+        
         switchleft.ethg++ <--> Eth100M {  length = 1m; } <--> switchright.ethg++;
 
         s1.ethg <--> Eth100M {  length = 1m; } <--> switchleft.ethg++;

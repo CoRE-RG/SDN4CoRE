@@ -28,5 +28,6 @@ simple NetConfDataConfiguratorIEEE8021Qbv extends NetConfDataConfiguratorBase
 {
     parameters:
         @class(SDN4CoRE::NetConfDataConfiguratorIEEE8021Qbv);
+        string etherMacModule = default("etherMAC");
     //these modules are used via direct method calls.
 }

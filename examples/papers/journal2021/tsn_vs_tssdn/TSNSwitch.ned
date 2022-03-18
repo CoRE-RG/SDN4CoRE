@@ -16,7 +16,7 @@
 package sdn4core.examples.papers.journal2021.tsn_vs_tssdn;
 
 // for TSN-OpenFlow-NetConf-Switch
-import core4inet.nodes.ethernet.tsn.TSNEtherSwitch;
+import sdn4core.switch.tsn.TSNNetConfSwitch;
 
-module TSNSwitch extends TSNEtherSwitch{
+module TSNSwitch extends TSNNetConfSwitch{
 }
