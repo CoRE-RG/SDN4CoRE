@@ -3,170 +3,203 @@ This is an example file on how to declare remotes for an INetConfApplication.
 -->
 
 <server_connections>
+	<!-- Add S1 -->
 	<application client_host="controller" client_app="0">
 		<connection local_port="6101" remote_address="switchleft" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;o,o,o,o,o,o,o,C:0.000264"/>
-		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="ADD_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="1" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="0"/>
-					    </instructions>
-					</flowEntry>
-				</config>
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000500;C,C,C,C,C,C,C,o:0.000624;o,o,o,o,o,o,o,C:0.000747"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="ADD_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="1" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="0"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
 		</connection>
 		<connection local_port="6102" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000141;C,C,C,C,C,C,C,o:0.000260;o,o,o,o,o,o,o,C:0.000392"/>
-		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="ADD_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="2"/>
-					    </instructions>
-					</flowEntry>
-				</config>
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000625;C,C,C,C,C,C,C,o:0.000749;o,o,o,o,o,o,o,C:0.000873"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="ADD_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="2"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
 		</connection>
 	</application>
 	
+	<!-- Add S2 -->
 	<application client_host="controller" client_app="1">
-		<connection local_port="6111" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;o,o,o,o,o,o,o,C:0.000392"/>
+		<connection local_port="6111" remote_address="switchleft" remote_port="830">
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000375;C,C,C,C,C,C,C,o:0.000500;o,o,o,o,o,o,o,C:0.000748"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="ADD_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="2" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-02" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="0"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="ADD_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="1" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-03" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="2"/>
-					    </instructions>
-					</flowEntry>
-				</config>
+		</connection>
+		<connection local_port="6112" remote_address="switchright" remote_port="830">
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000500;C,C,C,C,C,C,C,o:0.000624;o,o,o,o,o,o,o,C:0.000873"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="ADD_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-02" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="2"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
 		</connection>
 	</application>
 	
+	<!-- Add S3 -->
 	<application client_host="controller" client_app="2">
 		<connection local_port="6121" remote_address="switchleft" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;o,o,o,o,o,o,o,C:0.000392"/>
-		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="ADD_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="3" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-05" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="0"/>
-					    </instructions>
-					</flowEntry>
-				</config>
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000300;C,C,C,C,C,C,C,o:0.000425;o,o,o,o,o,o,o,C:0.000548;C,C,C,C,C,C,C,C:0.000550;C,C,C,C,C,C,C,o:0.000675;o,o,o,o,o,o,o,C:0.000798"/>
+			 	</configure>
 		 	</configure>
 		</connection>
 		<connection local_port="6122" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;o,o,o,o,o,o,o,C:0.000521"/>
-		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="ADD_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-05" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="2"/>
-					    </instructions>
-					</flowEntry>
-				</config>
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000425;C,C,C,C,C,C,C,o:0.000548;o,o,o,o,o,o,o,C:0.000923"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="ADD_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="1" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-03" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="2"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
 		</connection>
 	</application>
 	
+	<!-- Remove S1 -->
 	<application client_host="controller" client_app="3">
 		<connection local_port="6131" remote_address="switchleft" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000134;C,C,C,C,C,C,C,o:0.000264;o,o,o,o,o,o,o,C:0.000392"/>
-		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="DELETE_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="1" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="0"/>
-					    </instructions>
-					</flowEntry>
-				</config>
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000300;C,C,C,C,C,C,C,o:0.000425;o,o,o,o,o,o,o,C:0.000548"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="DELETE_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="1" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="0"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
 		</connection>
 		<connection local_port="6132" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;;o,o,o,o,o,o,o,C:0.000260"/>
-		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="DELETE_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="2"/>
-					    </instructions>
-					</flowEntry>
-				</config>
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000425;C,C,C,C,C,C,C,o:0.000549;o,o,o,o,o,o,o,C:0.000798"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="DELETE_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-01" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="2"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
 		</connection>
 	</application>
 	
+	<!-- Remove S2 -->
 	<application client_host="controller" client_app="4">
-		<connection local_port="6141" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0"/>
+		<connection local_port="6141" remote_address="switchleft" remote_port="830">
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="DELETE_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="2" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-02" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="0"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="DELETE_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="1" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-03" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="2"/>
-					    </instructions>
-					</flowEntry>
-				</config>
+		</connection>
+		<connection local_port="6142" remote_address="switchright" remote_port="830">
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000550;C,C,C,C,C,C,C,o:0.000674;o,o,o,o,o,o,o,C:0.000798"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="DELETE_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-02" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="2"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
 		</connection>
 	</application>
 	
+	<!-- Remove S3 -->	
 	<application client_host="controller" client_app="5">
-		<connection local_port="6151" remote_address="switchleft" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;o,o,o,o,o,o,o,C:0.000392"/>
-		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="DELETE_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="3" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-05" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="0"/>
-					    </instructions>
-					</flowEntry>
-				</config>
-		 	</configure>
-		</connection>
 		<connection local_port="6152" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="IEEE8021Qbv">
-			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;o,o,o,o,o,o,o,C:0.000521"/>
-		 	</configure>
-		 	<configure type="edit_config" module="OpenFlow">
-			 	<config operation="DELETE_FLOW" tableIndex="0">
-					<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
-					    <match in_port="0" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-05" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
-					    <instructions>
-					        <action_output port="2"/>
-					    </instructions>
-					</flowEntry>
-				</config>
+			<configure type="edit_config" module="Multipart">
+				<configure type="edit_config" module="IEEE8021Qbv">
+				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0"/>
+			 	</configure>
+			 	<configure type="edit_config" module="OpenFlow">
+				 	<config operation="DELETE_FLOW" tableIndex="0">
+						<flowEntry hardTimeout="0" idleTimeout="10" cookie="42" priority="40000" flags="0" >
+						    <match in_port="1" dl_dst="0A-00-00-00-00-04" dl_src="0A-00-00-00-00-03" dl_vlan_pcp="7" dl_type="33024" wildcards="3145698" />
+						    <instructions>
+						        <action_output port="2"/>
+						    </instructions>
+						</flowEntry>
+					</config>
+			 	</configure>
 		 	</configure>
 		</connection>
 	</application>
