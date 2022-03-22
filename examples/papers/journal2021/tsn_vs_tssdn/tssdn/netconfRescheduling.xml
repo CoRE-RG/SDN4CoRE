@@ -3,10 +3,10 @@ This is an example file on how to declare remotes for an INetConfApplication.
 -->
 
 <server_connections>
-	<!-- Add S1 -->
+	<!-- Add S1 | right, left -->
 	<application client_host="controller" client_app="0">
-		<connection local_port="6101" remote_address="switchleft" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6101" remote_address="switchleft" remote_port="830" connect_at="0.02">
+			<configure at="0.1979" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000500;C,C,C,C,C,C,C,o:0.000624;o,o,o,o,o,o,o,C:0.000747"/>
 			 	</configure>
@@ -22,8 +22,8 @@ This is an example file on how to declare remotes for an INetConfApplication.
 			 	</configure>
 		 	</configure>
 		</connection>
-		<connection local_port="6102" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6102" remote_address="switchright" remote_port="830" connect_at="0.02">
+			<configure at="0.195" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000625;C,C,C,C,C,C,C,o:0.000749;o,o,o,o,o,o,o,C:0.000873"/>
 			 	</configure>
@@ -41,10 +41,10 @@ This is an example file on how to declare remotes for an INetConfApplication.
 		</connection>
 	</application>
 	
-	<!-- Add S2 -->
+	<!-- Add S2 | right, left -->
 	<application client_host="controller" client_app="1">
-		<connection local_port="6111" remote_address="switchleft" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6111" remote_address="switchleft" remote_port="830" connect_at="0.02">
+			<configure at="0.2979" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000375;C,C,C,C,C,C,C,o:0.000500;o,o,o,o,o,o,o,C:0.000748"/>
 			 	</configure>
@@ -60,8 +60,8 @@ This is an example file on how to declare remotes for an INetConfApplication.
 			 	</configure>
 		 	</configure>
 		</connection>
-		<connection local_port="6112" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6112" remote_address="switchright" remote_port="830" connect_at="0.02">
+			<configure at="0.295" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000500;C,C,C,C,C,C,C,o:0.000624;o,o,o,o,o,o,o,C:0.000873"/>
 			 	</configure>
@@ -79,17 +79,17 @@ This is an example file on how to declare remotes for an INetConfApplication.
 		</connection>
 	</application>
 	
-	<!-- Add S3 -->
+	<!-- Add S3 | left, right -->
 	<application client_host="controller" client_app="2">
-		<connection local_port="6121" remote_address="switchleft" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6121" remote_address="switchleft" remote_port="830" connect_at="0.02">
+			<configure at="0.395" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000300;C,C,C,C,C,C,C,o:0.000425;o,o,o,o,o,o,o,C:0.000548;C,C,C,C,C,C,C,C:0.000550;C,C,C,C,C,C,C,o:0.000675;o,o,o,o,o,o,o,C:0.000798"/>
 			 	</configure>
 		 	</configure>
 		</connection>
-		<connection local_port="6122" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6122" remote_address="switchright" remote_port="830" connect_at="0.02">
+			<configure at="0.39785" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000425;C,C,C,C,C,C,C,o:0.000548;o,o,o,o,o,o,o,C:0.000923"/>
 			 	</configure>
@@ -107,10 +107,10 @@ This is an example file on how to declare remotes for an INetConfApplication.
 		</connection>
 	</application>
 	
-	<!-- Remove S1 -->
+	<!-- Remove S1 | left, right -->
 	<application client_host="controller" client_app="3">
-		<connection local_port="6131" remote_address="switchleft" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6131" remote_address="switchleft" remote_port="830" connect_at="0.02">
+			<configure at="0.495" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000300;C,C,C,C,C,C,C,o:0.000425;o,o,o,o,o,o,o,C:0.000548"/>
 			 	</configure>
@@ -126,8 +126,8 @@ This is an example file on how to declare remotes for an INetConfApplication.
 			 	</configure>
 		 	</configure>
 		</connection>
-		<connection local_port="6132" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6132" remote_address="switchright" remote_port="830" connect_at="0.02">
+			<configure at="0.4979" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000425;C,C,C,C,C,C,C,o:0.000549;o,o,o,o,o,o,o,C:0.000798"/>
 			 	</configure>
@@ -145,10 +145,10 @@ This is an example file on how to declare remotes for an INetConfApplication.
 		</connection>
 	</application>
 	
-	<!-- Remove S2 -->
+	<!-- Remove S2 | left, right -->
 	<application client_host="controller" client_app="4">
-		<connection local_port="6141" remote_address="switchleft" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6141" remote_address="switchleft" remote_port="830" connect_at="0.02">
+			<configure at="0.595" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0"/>
 			 	</configure>
@@ -164,8 +164,8 @@ This is an example file on how to declare remotes for an INetConfApplication.
 			 	</configure>
 		 	</configure>
 		</connection>
-		<connection local_port="6142" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6142" remote_address="switchright" remote_port="830" connect_at="0.02">
+			<configure at="0.5979" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000550;C,C,C,C,C,C,C,o:0.000674;o,o,o,o,o,o,o,C:0.000798"/>
 			 	</configure>
@@ -183,10 +183,10 @@ This is an example file on how to declare remotes for an INetConfApplication.
 		</connection>
 	</application>
 	
-	<!-- Remove S3 -->	
+	<!-- Remove S3 | right -->	
 	<application client_host="controller" client_app="5">
-		<connection local_port="6152" remote_address="switchright" remote_port="830">
-			<configure type="edit_config" module="Multipart">
+		<connection local_port="6152" remote_address="switchright" remote_port="830" connect_at="0.02">
+			<configure at="0.6979" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
 				 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0"/>
 			 	</configure>
