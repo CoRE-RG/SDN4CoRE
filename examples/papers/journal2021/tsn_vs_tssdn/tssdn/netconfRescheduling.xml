@@ -84,7 +84,7 @@ This is an example file on how to declare remotes for an INetConfApplication.
 		<connection local_port="6121" remote_address="switchleft" remote_port="830" connect_at="0.02">
 			<configure at="0.395" type="edit_config" module="Multipart">
 				<configure type="edit_config" module="IEEE8021Qbv">
-				 	<config port="0" gatecontrollist="o,o,o,o,o,C,C,C:0;C,C,C,C,C,C,C,C:0.000250;C,C,C,C,C,C,o,C:0.000375;o,o,o,o,o,C,C,C:0.000497;C,C,C,C,C,C,C,C:0.000625;C,C,C,C,C,o,C,C:0.000750;o,o,o,o,o,o,C,C:0.000872"/>
+				 	<config port="0" gatecontrollist="o,o,o,o,o,C,C,C:0;C,C,C,C,C,C,C,C:0.000250;C,C,C,C,C,C,o,C:0.000375;o,o,o,o,o,C,C,C:0.000497;C,C,C,C,C,C,C,C:0.000625;C,C,C,C,C,o,C,C:0.000750;o,o,o,o,o,C,C,C:0.000872"/>
 			 	</configure>
 		 	</configure>
 		</connection>
