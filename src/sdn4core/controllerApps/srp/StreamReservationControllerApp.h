@@ -39,6 +39,16 @@ public:
 protected:
     virtual void initialize() override;
 
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details) override;
+
+    /**
+     * forward a talkerAdvertise after a successful reservation
+     * @param obj SRPFrame with TalkerAdvertise
+     */
+    void forwardTalkerAdvertise(openflow::OFP_Packet_In* packet_in_msg);
+
+    void forwardListenerReady(CoRE4INET::ListenerReady * listenerReady, openflow::OFP_Packet_In* packet_in_msg);
+
     /**
      * Main processing engine of packet_in messages.
      *

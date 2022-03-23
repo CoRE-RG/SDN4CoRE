@@ -17,16 +17,17 @@
 #ifndef SDN4CORE_SWITCH_TSN_ENGINE_TSN_OF_SWITCHAGENT_H_
 #define SDN4CORE_SWITCH_TSN_ENGINE_TSN_OF_SWITCHAGENT_H_
 
-#include <sdn4core/switch/avb/engine/AVB_OF_SwitchAgent.h>
+#include <sdn4core/switch/base/engine/OF_SwitchAgent.h>
 
 namespace SDN4CoRE {
 
-class TSN_OF_SwitchAgent: public AVB_OF_SwitchAgent {
+class TSN_OF_SwitchAgent: public OF_SwitchAgent {
 protected:
-    virtual void receiveSignal(cComponent *src, simsignal_t id, cObject *value,
-            cObject *details) override {
-        OF_SwitchAgent::receiveSignal(src, id, value, details);
-    }
+    virtual void handleMessage(cMessage *msg) override;
+    virtual void processControlPlanePacket(cMessage *msg) override;
+    virtual void handleSRPFromController(cMessage* msg);
+private:
+    void sendSRPResponse(cMessage *msg);
 };
 
 }
