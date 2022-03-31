@@ -47,7 +47,7 @@ protected:
      */
     void forwardTalkerAdvertise(openflow::OFP_Packet_In* packet_in_msg);
 
-    void forwardListenerReady(CoRE4INET::ListenerReady * listenerReady, openflow::OFP_Packet_In* packet_in_msg);
+    void forwardListenerReady(openflow::OFP_Packet_In* packetIn);
 
     /**
      * Main processing engine of packet_in messages.

@@ -32,26 +32,27 @@ Define_Module(TSN_OF_SwitchAgent);
 
 void TSN_OF_SwitchAgent::handleMessage(cMessage *msg){
     if (msg->arrivedOn("srpIn")) {
-        sendSRPResponse(msg);
+        if(CoRE4INET::ListenerReady* srp = dynamic_cast<CoRE4INET::ListenerReady *>(msg)){
+            sendSRPResponse(srp);
+        }
     } else {
-        // nothing to do here - just forward
+       // nothing to do here - just forward
        OF_SwitchAgent::handleMessage(msg);
     }
 }
 
-void TSN_OF_SwitchAgent::sendSRPResponse(cMessage *msg){
+void TSN_OF_SwitchAgent::sendSRPResponse(CoRE4INET::ListenerReady *msg){
 
-    if(CoRE4INET::SRPFrame* srp = dynamic_cast<CoRE4INET::SRPFrame *>(msg)){
+    OFP_Packet_In *packetIn = new OFP_Packet_In("packetIn");
+    packetIn->getHeader().version = OFP_VERSION;
+    packetIn->getHeader().type = OFPT_VENDOR;
+    packetIn->setByteLength(32);
 
-        OFP_Packet_In *packetIn = new OFP_Packet_In("packetIn");
-        packetIn->getHeader().version = OFP_VERSION;
-        packetIn->getHeader().type = OFPT_VENDOR;
 
-        packetIn->encapsulate(srp);
-        packetIn->setBuffer_id(OFP_NO_BUFFER);
+    packetIn->encapsulate(msg);
+    packetIn->setBuffer_id(OFP_NO_BUFFER);
 
-        socket.send(packetIn);
-    }
+    socket.send(packetIn);
 }
 
 void TSN_OF_SwitchAgent::processControlPlanePacket(cMessage *msg){

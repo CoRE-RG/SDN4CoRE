@@ -99,6 +99,19 @@ bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo,
     return true;
 }
 
+
+int SRPTableManagement::getTalkerPort(openflow::Switch_Info* switchInfo, uint64_t streamId, uint16_t vid) {
+    Enter_Method("getTalkerPort");
+    SRPTable* srpTable = getManagedState(switchInfo->getMacAddress());
+    if (!srpTable) {
+       throw cRuntimeError("There is no srp table for this switch!");
+    }
+    if(PortModule* module = dynamic_cast<PortModule*>(srpTable->getTalkerForStreamId(streamId,vid))){
+       return module->getPort();
+    }
+    return -1;
+}
+
 SRPTableManagement::SRPForwardingInfo_t* SRPTableManagement::getForwardingInfoForStreamID(
         Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id) {
     Enter_Method ("getForwardingInfoForStreamID");
@@ -289,4 +302,3 @@ string SRPTableManagement::exportSRPTableToXML (SRPTable* table, const string& s
 }
 
 } /*end namespace SDN4CoRE*/
-

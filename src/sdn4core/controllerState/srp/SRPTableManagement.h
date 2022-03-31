@@ -81,6 +81,15 @@ public:
             int arrivalPort, CoRE4INET::ListenerReady* listenerReady);
 
     /**
+     *
+     * @param switchInfo
+     * @param streamId
+     * @param vid
+     * @return arival port of TalkerAdvertise
+     */
+    virtual int getTalkerPort(openflow::Switch_Info* switchInfo, uint64_t streamId, uint16_t vid);
+
+    /**
      * Provides a forwarding information for AVBFrames according to the SRPTable of a
      * switch and a stream.
      * @param swinfo        The switch handling the frame

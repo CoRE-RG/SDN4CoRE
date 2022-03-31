@@ -18,6 +18,7 @@
 #define SDN4CORE_SWITCH_TSN_ENGINE_TSN_OF_SWITCHAGENT_H_
 
 #include <sdn4core/switch/base/engine/OF_SwitchAgent.h>
+#include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 
 namespace SDN4CoRE {
 
@@ -27,7 +28,7 @@ protected:
     virtual void processControlPlanePacket(cMessage *msg) override;
     virtual void handleSRPFromController(cMessage* msg);
 private:
-    void sendSRPResponse(cMessage *msg);
+    void sendSRPResponse(CoRE4INET::ListenerReady *msg);
 };
 
 }
