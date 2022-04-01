@@ -9,15 +9,17 @@
   <datasets>
     <datasets name="Latency All">
       <items xsi:type="scave:Group" name="tsn">
-        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[2]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
-        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[4]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
-        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[1]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
-        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[1]) AND name(rxQPcp7Latency:vector)" type="VECTOR"/>
         <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[0]) AND name(rxLatency:vector)" type="VECTOR"/>
+        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[1]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
+        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[2]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
+        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[3]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
+        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[4]) AND name(rxQPcp0Latency:vector)" type="VECTOR"/>
+        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[1]) AND name(rxQPcp5Latency:vector)" type="VECTOR"/>
+        <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[2]) AND name(rxQPcp6Latency:vector)" type="VECTOR"/>
         <items xsi:type="scave:Add" filterPattern="module(tsn.sink.app[3]) AND name(rxQPcp7Latency:vector)" type="VECTOR"/>
         <items xsi:type="scave:LineChart" name="TSN Latency All" lineNameFormat="">
           <properties name="Y.Axis.Min" value="0.0"/>
-          <properties name="Y.Axis.Max" value="0.001"/>
+          <properties name="Y.Axis.Max" value="0.002"/>
           <properties name="Legend.Display" value="true"/>
           <properties name="Legend.Position" value="Inside"/>
           <properties name="X.Axis.Min" value="0.0"/>
@@ -26,7 +28,7 @@
           <properties name="Line.Name/tsn.sink.app[3] rxQPcp0Latency:vector" value="Source 3 CT"/>
           <properties name="Line.Name/tsn.sink.app[2] rxQPcp0Latency:vector" value="Source 2 CT"/>
           <properties name="Line.Name/tsn.sink.app[1] rxQPcp0Latency:vector" value="Source 1 CT"/>
-          <properties name="Line.Name/tsn.sink.app[0] rxLatency:vector" value="Source 2 Reserved"/>
+          <properties name="Line.Name/tsn.sink.app[0] rxLatency:vector" value="Source 4 Reserved"/>
           <properties name="Line.Name/tsn.sink.app[1] rxQPcp7Latency:vector" value="Source 1 Sync"/>
           <properties name="Line.Name/tsn.sink.app[4] rxQPcp0Latency:vector" value="Cross Traffic"/>
           <properties name="Symbols.Type/tsn.sink.app[1] rxQPcp0Latency:vector" value="Cross"/>
@@ -38,9 +40,14 @@
           <properties name="Symbols.Type/tsn.sink.app[4] rxQPcp0Latency:vector" value="Cross"/>
           <properties name="Line.Color/tsn.sink.app[4] rxQPcp0Latency:vector" value="grey"/>
           <properties name="Symbols.Type/tsn.sink.app[0] rxLatency:vector" value="Dot"/>
-          <properties name="Line.Color/tsn.sink.app[0] rxLatency:vector" value="green"/>
+          <properties name="Line.Color/tsn.sink.app[0] rxLatency:vector" value="#FF80C0"/>
           <properties name="Symbols.Type/tsn.sink.app[1] rxQPcp7Latency:vector" value="Diamond"/>
           <properties name="Line.Color/tsn.sink.app[1] rxQPcp7Latency:vector" value="red"/>
+          <properties name="Line.Color/tsn.sink.app[3] rxQPcp7Latency:vector" value="green"/>
+          <properties name="Line.Color/tsn.sink.app[2] rxQPcp6Latency:vector" value="blue"/>
+          <properties name="Line.Name/tsn.sink.app[2] rxQPcp6Latency:vector" value="Source 2 Sync"/>
+          <properties name="Line.Color/tsn.sink.app[1] rxQPcp5Latency:vector" value="red"/>
+          <properties name="Line.Name/tsn.sink.app[1] rxQPcp5Latency:vector" value="Source 1 Sync"/>
         </items>
       </items>
       <items xsi:type="scave:Group" name="tssdn">
@@ -110,6 +117,6 @@
     </datasets>
   </datasets>
   <chartSheets>
-    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.0/@items.6 //@datasets/@datasets.0/@items.1/@items.8 //@datasets/@datasets.2/@items.2"/>
+    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.0/@items.8 //@datasets/@datasets.0/@items.1/@items.8 //@datasets/@datasets.2/@items.2"/>
   </chartSheets>
 </scave:Analysis>
