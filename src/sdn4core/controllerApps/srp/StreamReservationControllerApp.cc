@@ -65,8 +65,10 @@ void StreamReservationControllerApp::receiveSignal(cComponent* src, simsignal_t 
 
     if (id == PacketExperimenterSignalId) {
         if(OFP_Packet_In* packetIn = dynamic_cast<OFP_Packet_In*>(obj)){
+            int arrivalPort = packetIn->getEncapsulatedPacket()->getArrivalGate()->getIndex();
             if(CoRE4INET::SRPFrame* srpFrame = dynamic_cast<CoRE4INET::SRPFrame*>(packetIn->getEncapsulatedPacket())){
                 if(CoRE4INET::ListenerReady* listenerReady = dynamic_cast<CoRE4INET::ListenerReady*>(srpFrame)){
+
                     forwardListenerReady(packetIn);
                 }else if(CoRE4INET::ListenerReadyFailed* listenerReady = dynamic_cast<CoRE4INET::ListenerReadyFailed*>(srpFrame)){
 //                    sendListenerAskingFailed(packetIn);
@@ -83,7 +85,6 @@ void StreamReservationControllerApp::forwardListenerReady(OFP_Packet_In* packetI
     Switch_Info* swInfo = controller->findSwitchInfoFor(packetIn);
     CoRE4INET::ListenerReady* listenerReady = dynamic_cast<CoRE4INET::ListenerReady*>(packetIn->getEncapsulatedPacket());
     int talkerPort = _srpManager->getTalkerPort(swInfo, listenerReady->getStreamID(), listenerReady->getVlan_identifier());
-    int listenerPort = listenerReady->getArrivalGate()->getIndex();
 
     TCPSocket *socket = controller->findSocketFor(packetIn);
     OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
@@ -104,30 +105,30 @@ void StreamReservationControllerApp::forwardListenerReady(OFP_Packet_In* packetI
     socket->send(packetOut);
 }
 
-void StreamReservationControllerApp::forwardListenerReadyFailed(OFP_Packet_In* packet_in_msg){
-
-    Switch_Info* swInfo = controller->findSwitchInfoFor(packetIn);
-    CoRE4INET::ListenerReadyFailed* listenerReadyFailed = dynamic_cast<CoRE4INET::ListenerReadyFailed*>(packetIn->getEncapsulatedPacket());
-    int listenerPort = listenerReadyFailed->getArrivalGate()->getIndex();
-
-    TCPSocket *socket = controller->findSocketFor(packetIn);
-    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-    packetOut->getHeader().version = OFP_VERSION;
-    packetOut->getHeader().type = OFPT_PACKET_OUT;
-    packetOut->setActionsArraySize(1);
-    ofp_action_output action;
-    action.port = listenerPort;
-    packetOut->setActions(0, action);
-    packetOut->setBuffer_id(packetIn->getBuffer_id());
-
-    inet::EthernetIIFrame * frame = new inet::EthernetIIFrame(listenerReady->getName());
-    frame->setDest(SRP_ADDRESS);
-    frame->setEtherType(MSRP_ETHERTYPE);
-    frame->encapsulate(listenerReady->dup());
-    packetOut->encapsulate(frame);
-
-    socket->send(packetOut);
-}
+//void StreamReservationControllerApp::forwardListenerReadyFailed(OFP_Packet_In* packet_in_msg){
+//
+//    Switch_Info* swInfo = controller->findSwitchInfoFor(packetIn);
+//    CoRE4INET::ListenerReadyFailed* listenerReadyFailed = dynamic_cast<CoRE4INET::ListenerReadyFailed*>(packetIn->getEncapsulatedPacket());
+//    int listenerPort = listenerReadyFailed->getArrivalGate()->getIndex();
+//
+//    TCPSocket *socket = controller->findSocketFor(packetIn);
+//    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
+//    packetOut->getHeader().version = OFP_VERSION;
+//    packetOut->getHeader().type = OFPT_PACKET_OUT;
+//    packetOut->setActionsArraySize(1);
+//    ofp_action_output action;
+//    action.port = listenerPort;
+//    packetOut->setActions(0, action);
+//    packetOut->setBuffer_id(packetIn->getBuffer_id());
+//
+//    inet::EthernetIIFrame * frame = new inet::EthernetIIFrame(listenerReady->getName());
+//    frame->setDest(SRP_ADDRESS);
+//    frame->setEtherType(MSRP_ETHERTYPE);
+//    frame->encapsulate(listenerReady->dup());
+//    packetOut->encapsulate(frame);
+//
+//    socket->send(packetOut);
+//}
 
 void StreamReservationControllerApp::forwardTalkerAdvertise(OFP_Packet_In* packet_in_msg){
 
