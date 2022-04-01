@@ -81,11 +81,11 @@ public:
             int arrivalPort, CoRE4INET::ListenerReady* listenerReady);
 
     /**
-     *
-     * @param switchInfo
-     * @param streamId
-     * @param vid
-     * @return arival port of TalkerAdvertise
+     * Get the out port for a certain talker at a switch.
+     * @param switchInfo        The switch to find the outport for.
+     * @param streamId          The stream ID of the talker.
+     * @param vid               The vlan id of the talker.
+     * @return The outport for the talker.
      */
     virtual int getTalkerPort(openflow::Switch_Info* switchInfo, uint64_t streamId, uint16_t vid);
 

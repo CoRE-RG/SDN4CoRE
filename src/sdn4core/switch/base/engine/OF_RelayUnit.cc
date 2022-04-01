@@ -21,6 +21,8 @@
 #include "openflow/messages/OFP_Packet_In_m.h"
 #include "openflow/messages/OFP_Packet_Out_m.h"
 #include "openflow/messages/OFP_Flow_Mod_m.h"
+//CoRE4INET
+#include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
 //SDN4CoRE
 #include <sdn4core/switch/base/engine/OF_SwitchAgent.h>
 #include <sdn4core/switch/base/engine/OF_RelayUnit.h>
@@ -196,6 +198,12 @@ oxm_basic_match OF_RelayUnit::extractMatch(EthernetIIFrame* frame) {
     match.OFB_ETH_SRC = frame->getSrc();
     match.OFB_ETH_DST = frame->getDest();
     match.OFB_ETH_TYPE = frame->getEtherType();
+    if(CoRE4INET::EthernetIIFrameWithQTag* qFrame =
+            dynamic_cast<CoRE4INET::EthernetIIFrameWithQTag*>(frame)){
+        //we have a q frame!
+        match.OFB_VLAN_VID = qFrame->getVID();
+        match.OFB_VLAN_PCP = qFrame->getPcp();
+    }
 
     //extract ARP specific match fields if present
     if (frame->getEtherType() == ETHERTYPE_ARP) {
