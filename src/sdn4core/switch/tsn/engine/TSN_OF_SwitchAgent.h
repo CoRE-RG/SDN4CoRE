@@ -26,8 +26,17 @@ class TSN_OF_SwitchAgent: public OF_SwitchAgent {
 protected:
     virtual void handleMessage(cMessage *msg) override;
     virtual void processControlPlanePacket(cMessage *msg) override;
+    /**
+     * Handels srp messages arriving from the controller and forward them to the local
+     * SRProtocol module.
+     * @param msg   incoming srp message
+     */
     virtual void handleSRPFromController(cMessage* msg);
 private:
+    /**
+     * Forward the response of the local SRProtocol module to the controller
+     * @param msg   response of SRProtocol
+     */
     void sendSRPResponse(CoRE4INET::ListenerReady *msg);
 };
 
