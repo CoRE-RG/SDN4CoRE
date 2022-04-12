@@ -93,6 +93,7 @@ void StreamReservationControllerApp::forwardListenerReady(OFP_Packet_In* packetI
     packetOut->getHeader().version = OFP_VERSION;
     // send packet out
     socket->send(packetOut);
+    delete frame;
 }
 
 void StreamReservationControllerApp::forwardTalkerAdvertise(OFP_Packet_In* packetIn){
@@ -106,6 +107,7 @@ void StreamReservationControllerApp::forwardTalkerAdvertise(OFP_Packet_In* packe
     OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(outports, 1, talkerPort, packetIn->getBuffer_id(), frame);
     // send packet out
     socket->send(packetOut);
+    delete frame;
 }
 
 void StreamReservationControllerApp::processPacketIn(OFP_Packet_In* packetIn) {
