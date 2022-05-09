@@ -1,16 +1,10 @@
 <config>
-    <controllerapp type="AVBLearningControllerApp">
-        <macManager>
-            <mactable switch_id="0A-00-00-00-00-C2">
-            	<entry mac="0A-00-00-00-00-01" port="0" />
-                <entry mac="0A-00-00-00-00-02" port="1" />
-                <entry mac="0A-00-00-00-00-03" port="2" />
-            </mactable>
-            <mactable switch_id="0A-00-00-00-00-C1">
-                <entry mac="0A-00-00-00-00-01" port="1" />
-                <entry mac="0A-00-00-00-00-02" port="0" />
-                <entry mac="0A-00-00-00-00-03" port="0" />
-            </mactable>
-        </macManager>
-    </controllerapp>
+    <hostTable>
+        <host switch_id="0A-00-00-00-00-C2" macAddress="0A-00-00-00-00-02" port="1" />
+        <host switch_id="0A-00-00-00-00-C2" macAddress="0A-00-00-00-00-03" port="2" />
+        <host switch_id="0A-00-00-00-00-C1" macAddress="0A-00-00-00-00-01" port="1" />
+    </hostTable>
+    <deviceTable>
+    	<deviceLink firstSwMac="0A-00-00-00-00-C1" firstSwPort="0" secondSwMac="0A-00-00-00-00-C2" secondSwPort="0" />
+	</deviceTable>
 </config>

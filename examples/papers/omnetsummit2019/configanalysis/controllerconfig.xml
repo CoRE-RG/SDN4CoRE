@@ -1,26 +1,16 @@
 <controller>
-    <macManager>
-        <mactable switch_id="0A-00-00-00-00-C2">
-            <entry mac="0A-00-00-00-00-A0" port="0" />
-            <entry mac="0A-00-00-00-00-A1" port="0" />
-            <entry mac="0A-00-00-00-00-A2" port="0" />
-            <entry mac="0A-00-00-00-00-A3" port="0" />
-            <entry mac="0A-00-00-00-00-A4" port="0" />
-            <entry mac="0A-00-00-00-00-A5" port="0" />
-            <entry mac="0A-00-00-00-00-A6" port="0" />
-            <entry mac="0A-00-00-00-00-A7" port="0" />
-            <entry mac="0A-00-00-00-00-B0" port="1" />
-        </mactable>
-        <mactable switch_id="0A-00-00-00-00-C1">
-            <entry mac="0A-00-00-00-00-A0" port="0" />
-            <entry mac="0A-00-00-00-00-A1" port="1" />
-            <entry mac="0A-00-00-00-00-A2" port="2" />
-            <entry mac="0A-00-00-00-00-A3" port="3" />
-            <entry mac="0A-00-00-00-00-A4" port="4" />
-            <entry mac="0A-00-00-00-00-A5" port="5" />
-            <entry mac="0A-00-00-00-00-A6" port="6" />
-            <entry mac="0A-00-00-00-00-A7" port="7" />
-            <entry mac="0A-00-00-00-00-B0" port="8" />
-        </mactable>
-    </macManager>
+    <hostTable>
+        <host switch_id="0A-00-00-00-00-C2" macAddress="0A-00-00-00-00-B0" port="1" />
+        <host switch_id="0A-00-00-00-00-C1" macAddress="0A-00-00-00-00-A0" port="0" />
+        <host switch_id="0A-00-00-00-00-C1" macAddress="0A-00-00-00-00-A1" port="1" />
+        <host switch_id="0A-00-00-00-00-C1" macAddress="0A-00-00-00-00-A2" port="2" />
+        <host switch_id="0A-00-00-00-00-C1" macAddress="0A-00-00-00-00-A3" port="3" />
+        <host switch_id="0A-00-00-00-00-C1" macAddress="0A-00-00-00-00-A4" port="4" />
+        <host switch_id="0A-00-00-00-00-C1" macAddress="0A-00-00-00-00-A5" port="5" />
+        <host switch_id="0A-00-00-00-00-C1" macAddress="0A-00-00-00-00-A6" port="6" />
+        <host switch_id="0A-00-00-00-00-C1" macAddress="0A-00-00-00-00-A7" port="7" />
+    </hostTable>
+    <deviceTable>
+    	<deviceLink firstSwMac="0A-00-00-00-00-C1" firstSwPort="8" secondSwMac="0A-00-00-00-00-C2" secondSwPort="0" />
+	</deviceTable>
 </controller>

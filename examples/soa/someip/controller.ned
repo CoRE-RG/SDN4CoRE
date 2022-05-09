@@ -18,7 +18,7 @@
 package sdn4core.examples.soa.someip;
 
 
-import sdn4core.controller.tsn.TSN_NC_OF_Controller;
+import sdn4core.controller.iptunnel.TSN_NC_OF_IPTunnel_Controller;
 
 module Controller extends TSN_NC_OF_IPTunnel_Controller
 {
