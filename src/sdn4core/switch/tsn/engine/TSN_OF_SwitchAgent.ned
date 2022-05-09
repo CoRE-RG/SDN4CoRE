@@ -12,23 +12,25 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
+// c Tobias Haugg, for HAW Hamburg
+// 
 
 package sdn4core.switch.tsn.engine;
 
-import sdn4core.switch.avb.engine.AVB_OF_RelayUnit;
+import sdn4core.switch.base.engine.OF_SwitchAgent;
+import sdn4core.switch.avb.engine.AVB_OF_SwitchAgent;
 
 //
-// The TSN_OF_RelayUnit is the switching engine of the TSN capable OpenFlow Switch.
+// The AVBOpenFlowRelay is the switching engine of the AVB capable OpenFlow Switch.
 // It is directly connected to the TCP module to communicate with the OF Controller.
 // It handles the forwarding of incoming packets by matching them with the OpenFlowTable 
 // (@see~IOpenFlowFlowTable) entries.
 // It adds the capability of handling the SRP protocol to the ~OF_RelayUnit module.
 //
-// @author Timo Haeckel, for HAW Hamburg
+// @author Tobias Haugg, for HAW Hamburg
 //
-simple TSN_OF_RelayUnit extends AVB_OF_RelayUnit
+simple TSN_OF_SwitchAgent extends AVB_OF_SwitchAgent
 {
     parameters:
-        @class(SDN4CoRE::TSN_OF_RelayUnit);
-    
+        @class(SDN4CoRE::TSN_OF_SwitchAgent);
 }

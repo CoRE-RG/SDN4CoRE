@@ -26,3 +26,7 @@ Demonstrates a medium sized TSN network. Traffic generators send Ethernet frames
   -  NetConf_Transaction: The standard netconf applications are replaced by transactional applications executing the three configurations as a network wide transaction (see controller.ini)
   -  NetConf_SyncTransaction: The transactions are executed time synchronous at all switches at a calculated worst case time for the transaction to finish
   -  NetConf_SyncTransaction_SoP: The synchronous transactions use the start of a new hyperperiod for the synchronous commit execution
+  
+- Expected results:
+ - Synchrounous traffic has a constant latency, due to the configuration applied to the GCL
+ - Non-Transactional updates result in an increased latencies

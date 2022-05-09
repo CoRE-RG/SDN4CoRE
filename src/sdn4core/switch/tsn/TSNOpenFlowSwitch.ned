@@ -27,7 +27,7 @@ import core4inet.services.avb.SRP.SRPTable;
 import core4inet.services.avb.SRP.SRProtocol;
 
 //
-// Model of an OpenFlow Ethernet switch that supports TSN ingress and egress control (@see~CoRE4INET::TSNPHYPort).
+// Model of an OpenFlow Ethernet switch that supports TSN ingress and egress control (@see~CoRE4INET::TSNEthernetInterface).
 // It forwards packets according to the flow table entries and is connected to the OpenFlow Controller.
 //
 // @author Timo Haeckel, for HAW Hamburg
@@ -36,8 +36,8 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
 {
     parameters:
         @display("i=device/switch;i2=OpenFlow-Logo-small");
-        relayUnitType = default("TSN_OF_RelayUnit");
-        switchAgentType = default("AVB_OF_SwitchAgent");
+        relayUnitType = default("OF_RelayUnit");
+        switchAgentType = default("TSN_OF_SwitchAgent");
         ethDataPlaneType = default("TSNEthernetInterface");
         ethControlPlaneType = default("TSNEtherNic");
         networkLayerType = default("RTNetworkLayer");

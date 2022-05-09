@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
-// c Timo Haeckel, for HAW Hamburg
+// c Timo Haeckel, Tobias Haugg, for HAW Hamburg
 // 
 
 #ifndef __SDN4CORE_StreamReservationControllerApp_H_
@@ -39,21 +39,35 @@ public:
 protected:
     virtual void initialize() override;
 
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details) override;
+
+    /**
+     * Forward a talkerAdvertise to the network after a successful reservation
+     * @param packetIn SRPFrame with TalkerAdvertise
+     */
+    void forwardTalkerAdvertise(openflow::OFP_Packet_In* packetIn);
+
+    /**
+     * Forward a listenerReady to the talker after a successful reservation
+     * @param packetIn SRPFrame with ListenerReady
+     */
+    void forwardListenerReady(openflow::OFP_Packet_In* packetIn);
+
     /**
      * Main processing engine of packet_in messages.
      *
      * Checks whether packet in is an srp or avb frame and handles them,
      * else the learning controller can handle it.
      *
-     * @param packet_in_msg The packet in message
+     * @param packetIn The packet in message
      */
-    virtual void processPacketIn(openflow::OFP_Packet_In *packet_in_msg) override;
+    virtual void processPacketIn(openflow::OFP_Packet_In *packetIn) override;
 
     /**
      * Implements how to process SRP packets.
-     * @param packet_in_msg Packet with the SRP message
+     * @param packetIn Packet with the SRP message
      */
-    void doSRP(openflow::OFP_Packet_In *packet_in_msg);
+    void handleSRPFromDataplane(openflow::OFP_Packet_In *packetIn);
 
     /**
      * Creates and sends an SRPFlowModification Message implementing a flow rule in the switch to forward AVB streams.
@@ -68,9 +82,9 @@ protected:
 
     /**
      * Forwards an SRP Packet to the switch to be processed.
-     * @param packet_in_msg the packet in from the switch
+     * @param packetIn the packet in from the switch
      */
-    virtual void forwardSRPPacket(openflow::OFP_Packet_In *packet_in_msg);
+    virtual void updateSwitchSRPTable(openflow::OFP_Packet_In *packetIn);
 
     /**
      * Loads an offline Configuration for the controller app regarding a connected switch
@@ -79,6 +93,23 @@ protected:
      * @return      true if a config was loaded.
      */
     virtual bool loadOfflineConfigFromXML(openflow::Switch_Info* info) override;
+
+    /**
+     * Interface function for processing new switch connections.
+     *
+     * calls loadOfflineConfigFromXML() for
+     * the switch and installs SRP rules on switch.
+     *
+     * @param info the new switch connected
+     */
+    virtual void processSwitchConnection(openflow::Switch_Info* info) override;
+
+    /**
+     * installs the necessary rules for forwarding srp to the controller
+     *
+     * @param info the new switch connected
+     */
+    virtual void installSRPRule(openflow::Switch_Info* info);
 
     /**
      * Exports the current state of the MAC and SRP table and creates an XML formatted string.

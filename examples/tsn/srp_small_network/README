@@ -1,0 +1,6 @@
+
+- This example shows the procedure of stream reservation via sdn.
+  - The network consists of two sinks, a source, an sdn controller, and a switch connecting all other nodes.
+  - Source1 acts as the talker within the network and starts advertising its stream 0.1s.
+    Sink1 and Sink2 are the listeners and subscribe to Source1's advertised stream.
+    After the first listener successfully registers, Source1 starts broadcasting one IEEE8021Q frame per class B interval
