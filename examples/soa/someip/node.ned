@@ -15,9 +15,9 @@
 
 package sdn4core.examples.soa.someip;
 
-import soqosmw.nodes.SOQoSMWHost;
+import soa4core.nodes.MiddlewareHost;
 
-module Node extends SOQoSMWHost
+module Node extends MiddlewareHost
 {
     parameters:   
 	submodules:

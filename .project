@@ -6,7 +6,7 @@
 		<project>CoRE4INET</project>
 		<project>inet</project>
 		<project>OpenFlow</project>
-		<project>SOQoSMW</project>
+		<project>SOA4CoRE</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

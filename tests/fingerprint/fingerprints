@@ -32,17 +32,17 @@ core4inetRoot = os.path.abspath("../../../CoRE4INET")
 openflowRoot = os.path.abspath("../../../OpenFlow")
 fico4omnetRoot = os.path.abspath("../../../FiCo4OMNeT")
 signalsandgatewaysRoot = os.path.abspath("../../../SignalsAndGateways")
-soqosmwRoot = os.path.abspath("../../../SOQoSMW")
+soa4coreRoot = os.path.abspath("../../../SOA4CoRE")
 sdn4coreRoot = os.path.abspath("../..")
 sep = ";" if sys.platform == 'win32' else ':'
-nedPath = inetRoot + os.sep + "src" + sep + core4inetRoot + os.sep + "src" + sep + openflowRoot + os.sep + "src" + sep + fico4omnetRoot + os.sep + "src"  + sep + signalsandgatewaysRoot + os.sep + "src" + sep + soqosmwRoot + os.sep + "src"\
+nedPath = inetRoot + os.sep + "src" + sep + core4inetRoot + os.sep + "src" + sep + openflowRoot + os.sep + "src" + sep + fico4omnetRoot + os.sep + "src"  + sep + signalsandgatewaysRoot + os.sep + "src" + sep + soa4coreRoot + os.sep + "src"\
 			+ sep + sdn4coreRoot + os.sep + "src" + sep + sdn4coreRoot + os.sep + "examples" + sep + sdn4coreRoot + os.sep + "tests" + os.sep + "smoke"
 inetLib = inetRoot + os.sep + "src" + os.sep + "INET"
 core4inetLib = core4inetRoot + os.sep + "src" + os.sep + "CoRE4INET"
 openflowLib = openflowRoot + os.sep + "src" + os.sep + "OpenFlow"
 fico4omnetLib = fico4omnetRoot + os.sep + "src" + os.sep + "FiCo4OMNeT"
 signalsandgatewaysLib = signalsandgatewaysRoot + os.sep + "src" + os.sep + "SignalsAndGateways"
-soqosmwLib = soqosmwRoot + os.sep + "src" + os.sep + "SOQoSMW"
+soa4coreLib = soa4coreRoot + os.sep + "src" + os.sep + "SOA4CoRE"
 sdn4coreLib = sdn4coreRoot + os.sep + "src" + os.sep + "SDN4CoRE"
 opp_run = "opp_run"
 cpuTimeLimit = "60s"
@@ -208,10 +208,10 @@ class FingerprintTestCase(SimulationTestCase):
         global sdn4coreRoot, opp_run, nedPath, cpuTimeLimit
         
         # add paths of other libraries
-        os.environ['LD_LIBRARY_PATH'] = inetRoot + os.sep + "src" + sep + core4inetRoot + os.sep + "src" + sep + openflowRoot + os.sep + "src" + sep + fico4omnetRoot + os.sep + "src" + sep + signalsandgatewaysRoot + sep + soqosmwRoot + os.sep + "src"
+        os.environ['LD_LIBRARY_PATH'] = inetRoot + os.sep + "src" + sep + core4inetRoot + os.sep + "src" + sep + openflowRoot + os.sep + "src" + sep + fico4omnetRoot + os.sep + "src" + sep + signalsandgatewaysRoot + sep + soa4coreRoot + os.sep + "src"
         # run the simulation
         workingdir = _iif(self.wd.startswith('/'), sdn4coreRoot + "/" + self.wd, self.wd)
-        command = opp_run + " -n " + nedPath + " -l " + inetLib + " -l " + core4inetLib + " -l " + openflowLib + " -l " + fico4omnetLib + " -l " + signalsandgatewaysLib + " -l " + soqosmwLib + " -l " + sdn4coreLib + \
+        command = opp_run + " -n " + nedPath + " -l " + inetLib + " -l " + core4inetLib + " -l " + openflowLib + " -l " + fico4omnetLib + " -l " + signalsandgatewaysLib + " -l " + soa4coreLib + " -l " + sdn4coreLib + \
         	 " -u Cmdenv " + self.args + \
             _iif(self.simtimelimit!="", " --sim-time-limit=" + self.simtimelimit, "") + \
             " --fingerprint=" + self.fingerprint + " --cpu-time-limit=" + cpuTimeLimit + \
