@@ -40,6 +40,7 @@ NetConfApplicationBase::~NetConfApplicationBase() {
 }
 
 void NetConfApplicationBase::initialize() {
+    SimTime configStartOffset = par("configStartOffset");
     cXMLElement* xmlServerConnections = par("serverConnections").xmlValue();
     if (xmlServerConnections) {
         if (strcmp(xmlServerConnections->getName(), "server_connections")
@@ -55,6 +56,11 @@ void NetConfApplicationBase::initialize() {
                     auto connectionList = NetConfAppConfigParserCollection::parseXMLConnectionList(
                             applicationsXML[i]->getChildrenByTagName("connection"), true);
                     for(auto connection : connectionList) {
+                        if(!configStartOffset.isZero()) {
+                            for(auto config : connection.configurations) {
+                                config->executeAt += configStartOffset;
+                            }
+                        }
                         _connections.push_back(connection);
                     }
                 }

@@ -27,11 +27,13 @@ import sdn4core.netconf.applications.INetConfApplication;
 //
 simple NetConfApplicationBase like INetConfApplication
 {
-     parameters:
-        @class(SDN4CoRE::NetConfApplicationBase);
+    parameters:
+ 	    @class(SDN4CoRE::NetConfApplicationBase);
         // xml format for NetConf server remotes parameters
         // example: see remotes.xml
         xml serverConnections= default(xml("<server_connections/>"));
+        // offsets all config start times from the xml config by configStartOffset seconds
+        double configStartOffset @unit(seconds) = default(0s);
     gates:
         // connection to NetConf client application 
         input applicationIn;
