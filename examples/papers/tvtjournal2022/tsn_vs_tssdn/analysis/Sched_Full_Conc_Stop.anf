@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
   <inputs>
-    <inputs name="/SDN4CoRE/examples/papers/journal2021/tsn_vs_tssdn/tssdn/results/Sched_Full_Conc_Stop-#0.sca"/>
-    <inputs name="/SDN4CoRE/examples/papers/journal2021/tsn_vs_tssdn/tssdn/results/Sched_Full_Conc_Stop-#0.vec"/>
-    <inputs name="/SDN4CoRE/examples/papers/journal2021/tsn_vs_tssdn/tsn/results/Sched_Full_Conc_Stop-#0.sca"/>
-    <inputs name="/SDN4CoRE/examples/papers/journal2021/tsn_vs_tssdn/tsn/results/Sched_Full_Conc_Stop-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/papers/tvtjournal2022/tsn_vs_tssdn/tssdn/results/Sched_Full_Conc_Stop-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/papers/tvtjournal2022/tsn_vs_tssdn/tssdn/results/Sched_Full_Conc_Stop-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/papers/tvtjournal2022/tsn_vs_tssdn/tsn/results/Sched_Full_Conc_Stop-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/papers/tvtjournal2022/tsn_vs_tssdn/tsn/results/Sched_Full_Conc_Stop-#0.vec"/>
   </inputs>
   <datasets>
     <datasets name="Latency All">
@@ -111,8 +111,8 @@
         <properties name="Legend.Position" value="Inside"/>
         <properties name="X.Axis.Min" value="0.1995"/>
         <properties name="X.Axis.Max" value="0.21"/>
-        <properties name="Line.Name//SDN4CoRE/examples/papers/journal2021/tsn_vs_tssdn/tsn/results/Scheduled_Full_Concurrence-#0.vec Scheduled_Full_Concurrence-0-20210520-13:47:02-24592 tsn.sink.app[0]" value="TSN Reserved"/>
-        <properties name="Line.Name//SDN4CoRE/examples/papers/journal2021/tsn_vs_tssdn/tssdn/results/Scheduled_Full_Concurrence-#0.vec Scheduled_Full_Concurrence-0-20210520-13:47:51-3740 tssdn.sink.app[0]" value="TSSDN Reserved"/>
+        <properties name="Line.Name//SDN4CoRE/examples/papers/tvtjournal2022/tsn_vs_tssdn/tsn/results/Scheduled_Full_Concurrence-#0.vec Scheduled_Full_Concurrence-0-20210520-13:47:02-24592 tsn.sink.app[0]" value="TSN Reserved"/>
+        <properties name="Line.Name//SDN4CoRE/examples/papers/tvtjournal2022/tsn_vs_tssdn/tssdn/results/Scheduled_Full_Concurrence-#0.vec Scheduled_Full_Concurrence-0-20210520-13:47:51-3740 tssdn.sink.app[0]" value="TSSDN Reserved"/>
       </items>
     </datasets>
   </datasets>

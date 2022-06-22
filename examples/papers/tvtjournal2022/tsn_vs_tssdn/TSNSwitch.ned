@@ -1,6 +1,4 @@
 //
-// c Timo Haeckel, for HAW Hamburg
-// 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -15,20 +13,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.papers.journal2021.tsn_vs_tssdn;
+package sdn4core.examples.papers.tvtjournal2022.tsn_vs_tssdn;
 
+// for TSN-OpenFlow-NetConf-Switch
+import sdn4core.switch.tsn.TSNNetConfSwitch;
 
-//CoRE4INET
-import core4inet.nodes.ethernet.tsn.TSNEtherHost;
-
-module Source extends TSNEtherHost
-{
+module TSNSwitch extends TSNNetConfSwitch{
 }
-
-
-//CoRE4INET
-//import core4inet.nodes.inet.RTIPHost;
-
-//module Source extends RTIPHost
-//{
-//}

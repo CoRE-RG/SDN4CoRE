@@ -13,10 +13,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.papers.journal2021.tsn_vs_tssdn;
+package sdn4core.examples.papers.tvtjournal2022.tsn_vs_tssdn;
 
 // for TSN-OpenFlow-NetConf-Switch
-import sdn4core.switch.tsn.TSNNetConfSwitch;
+import  sdn4core.switch.tsn.TSNOFNCSwitch;
 
-module TSNSwitch extends TSNNetConfSwitch{
+module TSSDNSwitch extends TSNOFNCSwitch{
 }
