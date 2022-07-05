@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
+  <inputs>
+    <inputs name="../tssdn/results/Sched_Full_Conc_Stop_Study_Start_Ordered_Fix*.vec"/>
+    <inputs name="../tssdn/results/Sched_Full_Conc_Stop_Study_Start_Ordered_Fix*.sca"/>
+  </inputs>
+  <datasets>
+    <datasets name="latency compared">
+      <items xsi:type="scave:Group" name="async">
+        <items xsi:type="scave:Add" filterPattern="module(*sink.app[0]) AND name(*rxLatency:v*)" type="VECTOR"/>
+        <items xsi:type="scave:LineChart"/>
+      </items>
+      <items xsi:type="scave:Group" name="sync s1">
+        <items xsi:type="scave:Add" filterPattern="module(*sink.app[1]) AND name(*5Latency:v*)" type="VECTOR"/>
+        <items xsi:type="scave:LineChart"/>
+      </items>
+      <items xsi:type="scave:Group" name="sync s2">
+        <items xsi:type="scave:Add" filterPattern="module(*sink.app[2]) AND name(*6Latency:v*)" type="VECTOR"/>
+        <items xsi:type="scave:LineChart"/>
+      </items>
+      <items xsi:type="scave:Group" name="sync s3">
+        <items xsi:type="scave:Add" filterPattern="module(*sink.app[3]) AND name(*7Latency:v*)" type="VECTOR"/>
+        <items xsi:type="scave:LineChart"/>
+      </items>
+    </datasets>
+  </datasets>
+  <chartSheets>
+    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.3/@items.1 //@datasets/@datasets.0/@items.2/@items.1 //@datasets/@datasets.0/@items.1/@items.1 //@datasets/@datasets.0/@items.0/@items.1"/>
+  </chartSheets>
+</scave:Analysis>

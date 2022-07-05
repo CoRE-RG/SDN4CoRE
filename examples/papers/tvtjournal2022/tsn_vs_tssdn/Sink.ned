@@ -15,19 +15,20 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.netconf.datastores.config.ieee8021qbv;
+package sdn4core.examples.papers.tvtjournal2022.tsn_vs_tssdn;
 
-import sdn4core.netconf.datastores.config.base.NetConfDataConfiguratorBase;
 
-//
-// Contains a IEEE8021Qbv switch implementation of a NetConf config data store.
-//
-// @author Timo Haeckel, for HAW Hamburg
-//
-simple NetConfDataConfiguratorIEEE8021Qbv extends NetConfDataConfiguratorBase
+//CoRE4INET
+import core4inet.nodes.ethernet.tsn.TSNEtherHost;
+
+module Sink extends TSNEtherHost
 {
-    parameters:
-        @class(SDN4CoRE::NetConfDataConfiguratorIEEE8021Qbv);
-        string etherMacModule = default("etherMAC");
-    //these modules are used via direct method calls.
 }
+
+
+//CoRE4INET
+//import core4inet.nodes.inet.RTIPHost;
+
+//module Sink extends RTIPHost
+//{
+//}

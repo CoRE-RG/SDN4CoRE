@@ -29,20 +29,21 @@ Define_Module(NetConfDataConfiguratorIEEE8021Qbv);
 void NetConfDataConfiguratorIEEE8021Qbv::initialize()
 {
     NetConfDataConfiguratorBase::initialize();
+
     //find number of ports
-    int numPorts = getParentModule()->getParentModule()->getSubmodule("etherMAC",0)->getVectorSize();
+    int numPorts = getParentModule()->getParentModule()->getSubmodule(par("etherMacModule"),0)->getVectorSize();
 
     //find IEEE8021QbvGateControlList modules of this device
     for(int i=0; i<numPorts; i++){
-        cModule* module = getParentModule()->getParentModule()->getSubmodule("etherMAC",i)->getSubmodule("shaper")->getSubmodule("gateControlList");
+        cModule* module = getParentModule()->getParentModule()->getSubmodule(par("etherMacModule"),i)->getSubmodule("shaper")->getSubmodule("gateControlList");
         if(module){
             if(IEEE8021QbvGateControlList* gateControlListModule = dynamic_cast<IEEE8021QbvGateControlList*>(module)){
                 _gateControlListModules[i] = gateControlListModule;
             } else {
-                cRuntimeError("Module found in \"^.etherMAC.shaper.gateControlList\", but is no IEEE8021QbvGateControlList");
+                cRuntimeError("Module found in \"^.etherMacModule.shaper.gateControlList\", but is no IEEE8021QbvGateControlList");
             }
         } else {
-            cRuntimeError("No Module found in \"^.etherMAC.shaper.gateControlList\"");
+            cRuntimeError("No Module found in \"^.etherMacModule.shaper.gateControlList\"");
         }
     }
 }

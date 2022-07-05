@@ -136,7 +136,7 @@ bool TransactionApp::scheduleNextConfigurationFor(Connection_t* connection){
         }
     }
     if(result){
-        scheduleTransactionStart(this->par("startTransaction").doubleValue());
+        scheduleTransactionStart(this->par("startTransaction").doubleValue() + this->par("configStartOffset").doubleValue());
     }
     return result;
 }

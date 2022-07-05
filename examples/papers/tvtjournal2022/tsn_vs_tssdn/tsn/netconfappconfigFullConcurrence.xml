@@ -1,0 +1,47 @@
+<!--
+This is an example file on how to declare remotes for an INetConfApplication.
+-->
+
+<server_connections>
+	<application client_host="controller" client_app="0">
+		<connection local_port="6123" remote_address="switchleft" remote_port="830">
+			<configure type="edit_config" module="IEEE8021Qbv">
+			 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;o,o,o,o,o,o,o,C:0.000264"/>
+		 	</configure>
+		</connection>
+		<connection local_port="6124" remote_address="switchright" remote_port="830">
+			<configure type="edit_config" module="IEEE8021Qbv">
+			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000141;C,C,C,C,C,C,C,o:0.000260;o,o,o,o,o,o,o,C:0.000392"/>
+		 	</configure>
+		</connection>
+	</application>
+	
+	<application client_host="controller" client_app="1">
+		<connection local_port="6130" remote_address="switchright" remote_port="830">
+			<configure type="edit_config" module="IEEE8021Qbv">
+			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;o,o,o,o,o,o,o,C:0.000392"/>
+		 	</configure>
+		</connection>
+	</application>
+	
+	<application client_host="controller" client_app="2">
+		<connection local_port="6141" remote_address="switchleft" remote_port="830">
+			<configure type="edit_config" module="IEEE8021Qbv">
+			 	<config port="0" gatecontrollist="o,o,o,o,o,o,o,C:0"/>
+		 	</configure>
+		</connection>
+		<connection local_port="6142" remote_address="switchright" remote_port="830">
+			<configure type="edit_config" module="IEEE8021Qbv">
+			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0;C,C,C,C,C,C,C,C:0.000013;C,C,C,C,C,C,C,o:0.000134;;o,o,o,o,o,o,o,C:0.000260"/>
+		 	</configure>
+		</connection>
+	</application>
+	
+	<application client_host="controller" client_app="3">
+		<connection local_port="6150" remote_address="switchright" remote_port="830">
+			<configure type="edit_config" module="IEEE8021Qbv">
+			 	<config port="2" gatecontrollist="o,o,o,o,o,o,o,C:0"/>
+		 	</configure>
+		</connection>
+	</application>
+</server_connections>
