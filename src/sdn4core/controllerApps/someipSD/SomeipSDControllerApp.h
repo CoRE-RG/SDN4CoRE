@@ -34,6 +34,15 @@ namespace SDN4CoRE {
  */
 class SomeipSDControllerApp: public PacketProcessorBase
 {
+public:
+    struct ServiceEntry {
+        uint16_t serviceID;
+        uint16_t instanceID;
+        uint8_t majorVersion;
+        uint8_t minorVersion;
+        std::list<SomeIpSDOption*> options;
+    };
+
   protected:
     virtual void initialize() override;
 
@@ -46,8 +55,27 @@ class SomeipSDControllerApp: public PacketProcessorBase
       */
      virtual void processPacketIn(openflow::OFP_Packet_In *packet_in_msg) override;
 
-    // ServiceTable* serviceTable;
+
+     // struct someIpSDHeader;
+     // typedef std::map<serviceId, instanceId, someIpSDHeader> serviceTable;
+     // std::map<int, map<instancTable>> serviceTable;
+     // std::map<int, someIpSDHeader> instanceTable;
+     typedef std::map<int, ServiceEntry*> InstanceMap;
+     typedef std::map<int, InstanceMap> ServiceInstanceMap;
+     ServiceInstanceMap serviceTable;
+
      void processSomeIpSDHeader(SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
+
+     /**
+      * looks for the service requested find entry in the controllers list of known offers
+      * @param findEntry someIpSD find request
+      * @return List of requested instance entries
+      *     containing zero elements if no service was found
+      *     containing one element if a specific instance was requested
+      *     containing all known instances if no specific instanceId was requested
+      */
+     std::list<ServiceEntry*> lookUpFindInMap(SomeIpSDEntry* findEntry);
+
 
 };
 

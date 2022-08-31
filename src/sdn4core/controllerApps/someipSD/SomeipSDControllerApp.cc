@@ -44,6 +44,21 @@ void SomeipSDControllerApp::initialize() {
     PacketProcessorBase::initialize();
 //    serviceTable = check_and_cast<ServiceTable*>(
 //            this->getModuleByPath(par("serviceTablePath")));
+
+
+    // initialize map:
+    // 1. Create ServiceEntry - a static entry to simulate an entry in an coming xml table
+    ServiceEntry* entry = new ServiceEntry();
+    // 2. fill entry
+    entry->instanceID = 0;
+    entry->majorVersion = 1;
+    entry->minorVersion = 0;
+    entry->options = std::list<SomeIpSDOption*>;
+    //...
+    // 3. insert into map
+    InstanceMap instances(); // calls map constructor
+    instances[entry->instanceID] = entry;
+    serviceTable[serviceId] = instances;
 }
 
 
@@ -64,7 +79,19 @@ void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
             // layer 4
             if (UDPPacket* transport = dynamic_cast<UDPPacket*>(eth->getEncapsulatedPacket()->getEncapsulatedPacket())) {
                 if (SomeIpSDHeader *someIpSDHeader = dynamic_cast<SomeIpSDHeader*>(transport->getEncapsulatedPacket()))  {
+                    // a) fill layeredInformation and attach control info
+                    LayeredInformation * layeredInformation = new LayeredInformation();
+                    layeredInformation->eth_src = eth->getSrc();
+                    someIpSDHeader->setControlInfo(layeredInformation);
                     processSomeIpSDHeader(someIpSDHeader);
+
+
+                    // b) fill layeredInformation... <-schlechteste option
+                    processSomeIpSDHeader(someIpSDHeader, layeredInformation);
+
+                    // c) forward packetin
+                    processSomeIpSDHeader(someIpSDHeader, packet_in_msg);
+
                 }
             }
         }
@@ -78,10 +105,11 @@ void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
 void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader) {
     std::list<SomeIpSDEntry*> entries = someIpSDHeader->getEncapEntries();
     for (std::list<SomeIpSDEntry*>::const_iterator it = entries.begin(); it != entries.end(); ++it) {
+        // 1 element aus der Liste
         switch ((*it)->getType()) {
             case SOA4CoRE::SomeIpSDEntryType::FIND:
                 EV << "FIND ARRIVED" << endl;
-                // processFindEntry(*it, someIpSDHeader);
+                processFindEntry(*it, someIpSDHeader);
                 break;
             case SOA4CoRE::SomeIpSDEntryType::OFFER:
                 EV << "OFFER ARRIVED" << endl;
@@ -101,6 +129,67 @@ void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader
     }
 }
 
+void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findEntry, SomeIpSDHeader* someIpSDHeader) {
+
+    list<ServiceEntry*> entries = lookUpFindInMap(findEntry);
+    if( entries.empty())
+    {
+       //nothing found - broadcast find
+    }
+        uint16_t serviceId = findEntry->getServiceID();
+        uint16_t instanceID = findEntry->getInstanceID();
+        uint8_t majorVersion = findEntry->getMajorVersion();
+        struct ServiceInformation {
+               serviceID;
+               uint16_t instanceID;
+               uint8_t majorVersion;
+        };
+        for (serviceInformation::const_iterator it = serviceInformation.begin(); it != serviceInformation.end(); ++it){
+            instanceTable.push_back(it);
+        }
+
+        serviceTable[serviceID] = {instanceId, instanceTable};
+
+}
+
+void SomeipSDControllerApp::sendOffer(SomeIpSDHeader* someIpSDHeader, SomeIPSDHeader* findSource){
+    // aus findSource die Zieladresse für das Offer
+    // den neuen Header mit encapsulated entry
+    // in OFP_Packet_Out verpacken und Layer 4-2 beachten
+
+}
+
+void SomeipSDControllerApp::buildOffer(SomeIpSDHeader* findSource){
+    // Header mit Daten aus xml-Datei erstellen
+    // SomeIpSDEntry aus xml erstellen
+    // SomeIpSDOptions erstellen
+    // Envelope mit den drei Datein
+    // entweder hier das sendOffer aufrufen
+    // oder Rückgabewert auf SomeIpSDHeader ändern und vielleicht in der processFindEntry verarbeiten
+
+}
+
+list<ServiceEntry*> SomeipSDControllerApp::lookUpFindInMap(SomeIpSDEntry* findEntry){
+    list<ServiceEntry*> returnList;
+    uint16_t requestedServiceId = findEntry->getServiceID();
+    auto found=serviceTable.find(requestedServiceId);
+    if (found != serviceTable.end()) {
+        auto instanceMap = found->second;
+        auto requestedInstanceId = findEntry->getInstanceID();
+        if (requestedInstanceId == 0xFFFF){
+            //all InstanceIDs shall be returned [PRS_SOMEIPSD_00351]
+            for (auto instance: instanceMap) {
+                returnList.push_back(instance);
+            }
+        } else {
+            auto foundInstance = instanceMap.find(requestedInstanceId);
+            if (foundInstance != instanceMap.end() ) {
+                returnList.push_back(foundInstance->second);
+            }
+        }
+    }
+    return returnList;
+}
 
 } /*end namespace SDN4CoRE*/
 
