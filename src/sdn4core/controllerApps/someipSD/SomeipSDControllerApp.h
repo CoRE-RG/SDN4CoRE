@@ -17,12 +17,16 @@
 #define __SDN4CORE_SOMEIPSDCONTROLLERAPP_H_
 
 #include <omnetpp.h>
+#include "sdn4core/utility/layeredInformation/LayeredInformation.h"
 #include "sdn4core/controllerApps/base/PacketProcessorBase.h"
 #include "soa4core/messages/someip/SomeIpSDHeader.h"
 //AUTO-GENERATED MESSAGES
 #include "soa4core/messages/someip/SomeIpSDEntry_m.h"
+#include "soa4core/messages/someip/SomeIpSDOption_m.h"
+
 // STD
 #include <map>
+#include <list>
 
 using namespace omnetpp;
 
@@ -35,15 +39,19 @@ namespace SDN4CoRE {
 class SomeipSDControllerApp: public PacketProcessorBase
 {
 public:
-    struct ServiceEntry {
-        uint16_t serviceID;
-        uint16_t instanceID;
-        uint8_t majorVersion;
-        uint8_t minorVersion;
-        std::list<SomeIpSDOption*> options;
+    struct ServiceInstance {
+    SOA4CoRE::ServiceEntry* entry;
+    std::list<SOA4CoRE::SomeIpSDOption*> optionList;
     };
+    typedef std::map<int, ServiceInstance> InstanceMap;
+    typedef std::map<int, InstanceMap> ServiceInstanceMap;
 
-  protected:
+protected:
+    ServiceInstanceMap serviceTable;
+//    int myPort;
+//    inet::MACAddress myMAC;
+//    inet::L3Address myIp;
+    LayeredInformation myLayeredInformation;
     virtual void initialize() override;
 
     /**
@@ -53,20 +61,15 @@ public:
       *
       * @param packet_in_msg The packet in message
       */
-     virtual void processPacketIn(openflow::OFP_Packet_In *packet_in_msg) override;
+    virtual void processPacketIn(openflow::OFP_Packet_In *packet_in_msg) override;
 
 
-     // struct someIpSDHeader;
-     // typedef std::map<serviceId, instanceId, someIpSDHeader> serviceTable;
-     // std::map<int, map<instancTable>> serviceTable;
-     // std::map<int, someIpSDHeader> instanceTable;
-     typedef std::map<int, ServiceEntry*> InstanceMap;
-     typedef std::map<int, InstanceMap> ServiceInstanceMap;
-     ServiceInstanceMap serviceTable;
 
-     void processSomeIpSDHeader(SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
-
-     /**
+    virtual void processSomeIpSDHeader(SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
+    virtual void processFindEntry(SOA4CoRE::SomeIpSDEntry* findEntry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
+    SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, std::list<ServiceInstance> foundInstances);
+    void sendOffer(SOA4CoRE::SomeIpSDHeader* someIpSDHeader, SOA4CoRE::SomeIpSDHeader* findSource);
+    /**
       * looks for the service requested find entry in the controllers list of known offers
       * @param findEntry someIpSD find request
       * @return List of requested instance entries
@@ -74,8 +77,7 @@ public:
       *     containing one element if a specific instance was requested
       *     containing all known instances if no specific instanceId was requested
       */
-     std::list<ServiceEntry*> lookUpFindInMap(SomeIpSDEntry* findEntry);
-
+     std::list<ServiceInstance> lookUpFindInMap(SOA4CoRE::SomeIpSDEntry* findEntry);
 
 };
 
