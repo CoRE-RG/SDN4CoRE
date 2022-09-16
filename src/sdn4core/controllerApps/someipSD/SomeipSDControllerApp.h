@@ -48,9 +48,6 @@ public:
 
 protected:
     ServiceInstanceMap serviceTable;
-//    int myPort;
-//    inet::MACAddress myMAC;
-//    inet::L3Address myIp;
     LayeredInformation myLayeredInformation;
     virtual void initialize() override;
 
@@ -65,8 +62,8 @@ protected:
 
 
 
-    virtual void processSomeIpSDHeader(SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
-    virtual void processFindEntry(SOA4CoRE::SomeIpSDEntry* findEntry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
+    void processSomeIpSDHeader(SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
+    void processFindEntry(SOA4CoRE::SomeIpSDEntry* findEntry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
     SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, std::list<ServiceInstance> foundInstances);
     void sendOffer(SOA4CoRE::SomeIpSDHeader* someIpSDHeader, SOA4CoRE::SomeIpSDHeader* findSource);
     /**

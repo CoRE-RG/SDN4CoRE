@@ -11,6 +11,7 @@
 #include <omnetpp/cobject.h>
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/networklayer/common/L3Address.h"
+#include "openflow/openflow/controller/Switch_Info.h"
 
 namespace SDN4CoRE {
 
@@ -19,6 +20,8 @@ public:
     inet::MACAddress eth_src;
     inet::L3Address ip_src;
     int transport_src;
+    int inPort;
+    openflow::Switch_Info* swInfo;
     LayeredInformation();
     virtual ~LayeredInformation();
 };
