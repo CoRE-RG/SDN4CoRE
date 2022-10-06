@@ -16,6 +16,8 @@
 #ifndef __SDN4CORE_SOMEIPSDCONTROLLERAPP_H_
 #define __SDN4CORE_SOMEIPSDCONTROLLERAPP_H_
 
+#define BROADCASTADDRESS "255.255.255.255"
+
 #include <omnetpp.h>
 #include "sdn4core/utility/layeredInformation/LayeredInformation.h"
 #include "sdn4core/controllerApps/base/PacketProcessorBase.h"
@@ -40,15 +42,46 @@ class SomeipSDControllerApp: public PacketProcessorBase
 {
 public:
     struct ServiceInstance {
-    SOA4CoRE::ServiceEntry* entry;
-    std::list<SOA4CoRE::SomeIpSDOption*> optionList;
+        SOA4CoRE::ServiceEntry* entry;
+        std::list<SOA4CoRE::SomeIpSDOption*> optionList;
+        ~ServiceInstance() {
+            if (entry) delete entry;
+            entry = nullptr;
+            for (auto elem: optionList) {
+                if (elem) delete elem;
+                elem = nullptr;
+            }
+            optionList.clear();
+        }
     };
+
     typedef std::map<int, ServiceInstance> InstanceMap;
     typedef std::map<int, InstanceMap> ServiceInstanceMap;
 
+    struct FindRequest {
+        SOA4CoRE::SomeIpSDHeader* requestHeader;
+        SOA4CoRE::ServiceEntry* entry;
+        std::list<SOA4CoRE::SomeIpSDOption*> optionList;
+        ~FindRequest() {
+            if (requestHeader) delete requestHeader;
+            requestHeader = nullptr;
+            if (entry) delete entry;
+            entry= nullptr;
+            for (auto elem: optionList) {
+                if (elem) delete elem;
+                elem = nullptr;
+            }
+            optionList.clear();
+        }
+    };
+
+    typedef std::map<int, std::list<FindRequest>> FindRequestMap;
+
 protected:
     ServiceInstanceMap serviceTable;
+    FindRequestMap findTable;
     LayeredInformation myLayeredInformation;
+    uint16_t controllerRequestID;
     virtual void initialize() override;
 
     /**
@@ -64,8 +97,11 @@ protected:
 
     void processSomeIpSDHeader(SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
     void processFindEntry(SOA4CoRE::SomeIpSDEntry* findEntry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
+    void processOfferEntry(SOA4CoRE::SomeIpSDEntry* offerEntry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
     SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, std::list<ServiceInstance> foundInstances);
+    SOA4CoRE::SomeIpSDHeader* buildFind(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry);
     void sendOffer(SOA4CoRE::SomeIpSDHeader* someIpSDHeader, SOA4CoRE::SomeIpSDHeader* findSource);
+    void sendFind(SOA4CoRE::SomeIpSDHeader*, SOA4CoRE::SomeIpSDHeader* findSource);
     /**
       * looks for the service requested find entry in the controllers list of known offers
       * @param findEntry someIpSD find request
@@ -75,7 +111,8 @@ protected:
       *     containing all known instances if no specific instanceId was requested
       */
      std::list<ServiceInstance> lookUpFindInMap(SOA4CoRE::SomeIpSDEntry* findEntry);
-
+     std::list<SOA4CoRE::SomeIpSDOption*> getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
+     void updateServiceTable(ServiceInstance newInfo);
 };
 
 } /*end namespace SDN4CoRE*/
