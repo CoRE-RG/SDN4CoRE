@@ -44,7 +44,7 @@ public:
     struct ServiceInstance {
         SOA4CoRE::ServiceEntry* entry;
         std::list<SOA4CoRE::SomeIpSDOption*> optionList;
-        ~ServiceInstance() {
+        void clear() {
             if (entry) delete entry;
             entry = nullptr;
             for (auto elem: optionList) {
@@ -62,7 +62,7 @@ public:
         SOA4CoRE::SomeIpSDHeader* requestHeader;
         SOA4CoRE::ServiceEntry* entry;
         std::list<SOA4CoRE::SomeIpSDOption*> optionList;
-        ~FindRequest() {
+        void clear() {
             if (requestHeader) delete requestHeader;
             requestHeader = nullptr;
             if (entry) delete entry;
@@ -96,7 +96,7 @@ protected:
 
 
     void processSomeIpSDHeader(SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
-    void processFindEntry(SOA4CoRE::SomeIpSDEntry* findEntry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
+    void processFindEntry(SOA4CoRE::SomeIpSDEntry* findInquiry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
     void processOfferEntry(SOA4CoRE::SomeIpSDEntry* offerEntry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
     SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, std::list<ServiceInstance> foundInstances);
     SOA4CoRE::SomeIpSDHeader* buildFind(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry);
@@ -112,7 +112,7 @@ protected:
       */
      std::list<ServiceInstance> lookUpFindInMap(SOA4CoRE::SomeIpSDEntry* findEntry);
      std::list<SOA4CoRE::SomeIpSDOption*> getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
-     void updateServiceTable(ServiceInstance newInfo);
+     void updateServiceTable(ServiceInstance& newInfo);
 };
 
 } /*end namespace SDN4CoRE*/

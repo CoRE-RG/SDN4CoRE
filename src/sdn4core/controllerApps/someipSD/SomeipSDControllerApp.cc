@@ -90,6 +90,8 @@ void SomeipSDControllerApp::initialize() {
     myLayeredInformation.eth_src.setAddress("0A:AA:00:00:00:0A");
     myLayeredInformation.ip_src = L3Address("10.0.0.2");
     myLayeredInformation.transport_src = SOMEIPSD_PORT;
+    myLayeredInformation.inPort = -1;
+    myLayeredInformation.swInfo = nullptr;
 
     //[PRS_SOMEIPSD_00158] dThe Session-ID (SOME/IP header) shall start with 1 and
     //be 1 even after wrapping.c(RS_SOMEIPSD_00001)
@@ -112,13 +114,13 @@ void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
             if (UDPPacket* transport = dynamic_cast<UDPPacket*>(eth->getEncapsulatedPacket()->getEncapsulatedPacket())) {
                 if (SomeIpSDHeader *someIpSDHeader = dynamic_cast<SomeIpSDHeader*>(transport->getEncapsulatedPacket()))  {
                     // a) fill layeredInformation and attach control info
-                    LayeredInformation * layeredInformation = new LayeredInformation();
-                    layeredInformation->eth_src = eth->getSrc();
-                    layeredInformation->ip_src = ip->getSourceAddress();
-                    layeredInformation->transport_src = transport->getSourcePort();
-                    layeredInformation->inPort = eth->getArrivalGate()->getIndex();
-                    layeredInformation->swInfo = controller->findSwitchInfoFor(packet_in_msg);
-                    someIpSDHeader->setControlInfo(layeredInformation);
+//                    LayeredInformation * layeredInformation = new LayeredInformation();
+//                    layeredInformation->eth_src = eth->getSrc();
+//                    layeredInformation->ip_src = ip->getSourceAddress();
+//                    layeredInformation->transport_src = transport->getSourcePort();
+//                    layeredInformation->inPort = eth->getArrivalGate()->getIndex();
+//                    layeredInformation->swInfo = controller->findSwitchInfoFor(packet_in_msg);
+//                    someIpSDHeader->setControlInfo(layeredInformation);
                     processSomeIpSDHeader(someIpSDHeader);
 //
 //          // Haben uns für a) entschieden - Optionen stehen lassen um Entscheidung zu begründen
@@ -139,16 +141,16 @@ void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
 
 void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader) {
     std::list<SomeIpSDEntry*> entries = someIpSDHeader->getEncapEntries();
-    for (std::list<SomeIpSDEntry*>::const_iterator it = entries.begin(); it != entries.end(); ++it) {
+    for (auto it = entries.begin(); it != entries.end(); ++it) {
         switch ((*it)->getType()) {
         // Hier wird jede entry einzeln verarbeitet, kann man ggf Entries gebündelt verarbeiten?
             case SOA4CoRE::SomeIpSDEntryType::FIND:
                 EV << "FIND ARRIVED" << endl;
-                processFindEntry(*it, someIpSDHeader);
+//                processFindEntry(*it, someIpSDHeader);
                 break;
             case SOA4CoRE::SomeIpSDEntryType::OFFER:
                 EV << "OFFER ARRIVED" << endl;
-                processOfferEntry(*it, someIpSDHeader);
+//                processOfferEntry(*it, someIpSDHeader);
                 break;
             case SOA4CoRE::SomeIpSDEntryType::SUBSCRIBEVENTGROUP:
                 EV << "SUBSCRIBEVENTGROUP ARRIVED" << endl;
@@ -167,7 +169,7 @@ void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader
 void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader) {
 
     std::list<ServiceInstance> entries = lookUpFindInMap(findInquiry);
-    if( entries.empty())
+    if(entries.empty())
     {
         //toDO nothing found - broadcast find
         // at first only build and send find
@@ -180,7 +182,7 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
         // und layeredInformation kopieren
         saveFind.requestHeader = someIpSDHeader->dup();
         LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
-        saveFind.requestHeader->setControlInfo(layeredInformation);
+        saveFind.requestHeader->setControlInfo(layeredInformation->dup());
         saveFind.entry = dynamic_cast<ServiceEntry*>(findInquiry->dup());
         saveFind.entry->setIndex1stOptions(0);
         std::list<SomeIpSDOption*> findOptions = getEntryOptions(findInquiry, someIpSDHeader);
@@ -195,7 +197,7 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
         if (found != findTable.end()) {
             findTable[requestedServiceId].push_back(saveFind);
         } else {
-            std::list<FindRequest> newFind {saveFind};
+            std::list<FindRequest> newFind = {saveFind};
 //            newFind.push_back(saveFind);
             findTable[requestedServiceId] = newFind;
         }
@@ -208,27 +210,31 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
 void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSDHeader* someIpSDHeader) {
     // update ServiceTable with offer
     // look for requested offers in findTable
-
+    std::list<ServiceInstance> entries;
     // ServiceInstance is a struct with ServiceEntry and optionList
     ServiceInstance instance;
     instance.entry = dynamic_cast<ServiceEntry*>(offerEntry->dup());
     instance.entry->setIndex1stOptions(0);
     instance.optionList = getEntryOptions(offerEntry, someIpSDHeader);
     // update-Funktion -> updateServiceTable(ServiceInstance)
+    entries.push_back(instance);
     updateServiceTable(instance);
 
 
     // finds durch offer beantworten
-    //wenn end iterator im find, dann überspringen
     auto foundX = findTable.find(offerEntry->getServiceID());
     std::list<FindRequest> findInstances = foundX->second;
     //if (!findInstances.empty()) {
     for (auto find: findInstances) {
         if (find.entry->getServiceID() == 0xFFFF) {
-            processFindEntry(find.entry, find.requestHeader);
+            SomeIpSDHeader* foundOffer = buildOffer(find.requestHeader, find.entry, entries);
+            sendOffer(foundOffer, find.requestHeader);
+//            processFindEntry(find.entry, find.requestHeader);
         } else if (find.entry->getServiceID() == find.entry->getServiceID()) {
-            processFindEntry(find.entry, find.requestHeader);
-//                delete(find);
+            SomeIpSDHeader* foundOffer = buildOffer(find.requestHeader, find.entry, entries);
+            sendOffer(foundOffer, find.requestHeader);
+//            processFindEntry(find.entry, find.requestHeader);
+//               auf Liste erase mit Index vom find delete(find);
         }
     }
     //}
@@ -297,7 +303,6 @@ SomeIpSDHeader* SomeipSDControllerApp::buildOffer(SomeIpSDHeader* findSource, So
     // list foundEntries --> struct with found entries and list of options
 
     // toDo Header mit Daten aus xml-Datei erstellen
-
     SomeIpSDHeader* header = new SomeIpSDHeader();
         header->setRequestID(findSource->getRequestID());
 
@@ -442,7 +447,7 @@ list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEnt
     return optionList;
 }
 
-void SomeipSDControllerApp::updateServiceTable(ServiceInstance newInfo) {
+void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
     // insert ServiceInstance in an InstanceMap and into ServiceInstanceMap called serviceTable
     // Case 1: ServiceID and InstanceID exist -> update value of InstanceMap -> entry
     // Case 2: ServiceID exists -> update InstanceMap -> new key&value
@@ -454,14 +459,34 @@ void SomeipSDControllerApp::updateServiceTable(ServiceInstance newInfo) {
         auto offeredInstance = newInfo.entry->getInstanceID();
         auto foundInstance = found->second.find(offeredInstance);
         if (foundInstance != found->second.end()) {
-            auto serviceInstance = serviceTable[newInfo.entry->getServiceID()].find(newInfo.entry->getInstanceID())->second;
+            auto serviceInstance = foundInstance->second;
+            for (auto iter = serviceInstance.optionList.begin(); iter != serviceInstance.optionList.end(); ) {
+                auto castIter = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter);
+                bool removed = false;
+                for (auto elem: newInfo.optionList) {
+                    auto castElem = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(elem);
+                    //if this 3 entries are the same, its the same Option -> delete from old list
+                    if (castElem->getIpv4Address() == castIter->getIpv4Address()
+                        && castElem->getL4Protocol() == castIter->getL4Protocol()
+                        && castElem->getPort() == castIter->getPort()) {
+                        iter = serviceInstance.optionList.erase(iter);
+                        removed = true;
+                        break;
+                    }
+                }
+                if (!removed) {
+                    ++iter;
+                }
+            }
+            // insert remaining Options in new list
             newInfo.optionList.merge(serviceInstance.optionList);
-            newInfo.optionList.unique();
-            newInfo.entry->setNum1stOptions(newInfo.optionList.size());
+         // geht nicht:   newInfo.optionList.unique();
+//            newInfo.entry->setNum1stOptions(newInfo.optionList.size());
 //      Wird das delete automatisch aufgerufen, wenn ich aus dem Scope rausgehe?
 //            delete(serviceTable[newInfo.entry->getServiceID()].find(newInfo.entry->getInstanceID())->second);
 //            Aufrufen: "Cannot delete"
-            serviceTable[newInfo.entry->getServiceID()].find(newInfo.entry->getInstanceID())->second = newInfo;
+            foundInstance->second.clear();
+            found->second[offeredInstance] = newInfo;
         } else {
             found->second[offeredInstance] = newInfo;
             serviceTable[newInfo.entry->getServiceID()] = found->second;

@@ -14,6 +14,14 @@ LayeredInformation::LayeredInformation() {
 
 }
 
+void LayeredInformation::copy(const LayeredInformation& other) {
+    this->eth_src = other.eth_src;
+    this->ip_src = other.ip_src;
+    this->transport_src = other.transport_src;
+    this->inPort = other.inPort;
+    this->swInfo = other.swInfo;
+}
+
 LayeredInformation::~LayeredInformation() {
     // TODO Auto-generated destructor stub
 }

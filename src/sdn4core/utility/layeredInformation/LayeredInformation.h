@@ -22,9 +22,32 @@ public:
     int transport_src;
     int inPort;
     openflow::Switch_Info* swInfo;
+
     LayeredInformation();
     virtual ~LayeredInformation();
+
+    LayeredInformation(const LayeredInformation& other) : omnetpp::cObject(other) {
+        copy(other);
+    }
+
+    /**
+     * @brief Assignment operator
+     */
+    LayeredInformation& operator=(const LayeredInformation& other)
+    {
+        if (this==&other) return *this;
+        cObject::operator=(other);
+        copy(other);
+        return *this;
+    }
+
+    virtual LayeredInformation *dup() const {return new LayeredInformation(*this);}
+
+private:
+    void copy(const LayeredInformation& other);
 };
+
+
 
 } /* namespace SDN4CoRE */
 
