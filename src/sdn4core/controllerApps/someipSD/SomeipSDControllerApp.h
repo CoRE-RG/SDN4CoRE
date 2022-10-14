@@ -75,11 +75,27 @@ public:
         }
     };
 
-    typedef std::map<int, std::list<FindRequest>> FindRequestMap;
+    typedef std::map<int, std::list<FindRequest>> requestMap;
+    ~SomeipSDControllerApp(){
+        for (auto elem : serviceTable){
+            for (auto element : elem.second) {
+                element.second.clear();
+            }
+            elem.second.clear();
+        }
+        serviceTable.clear();
 
+        for (auto elem : requestTable){
+                for (auto element : elem.second) {
+                    element.clear();
+                }
+                elem.second.clear();
+            }
+        requestTable.clear();
+    };
 protected:
     ServiceInstanceMap serviceTable;
-    FindRequestMap findTable;
+    requestMap requestTable;
     LayeredInformation myLayeredInformation;
     uint16_t controllerRequestID;
     virtual void initialize() override;

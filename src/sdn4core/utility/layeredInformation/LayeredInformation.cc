@@ -23,7 +23,7 @@ void LayeredInformation::copy(const LayeredInformation& other) {
 }
 
 LayeredInformation::~LayeredInformation() {
-    // TODO Auto-generated destructor stub
+
 }
 
 } /* namespace SDN4CoRE */
