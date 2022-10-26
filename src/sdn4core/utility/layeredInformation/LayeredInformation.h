@@ -18,10 +18,13 @@ namespace SDN4CoRE {
 class LayeredInformation: public omnetpp::cObject {
 public:
     inet::MACAddress eth_src;
+    inet::MACAddress eth_dst;
     inet::L3Address ip_src;
+    inet::L3Address ip_dst;
     int transport_src;
-    int inPort;
-    openflow::Switch_Info* swInfo;
+    int transport_dst;
+    int in_port;
+    openflow::Switch_Info* sw_info;
 
     LayeredInformation();
     virtual ~LayeredInformation();

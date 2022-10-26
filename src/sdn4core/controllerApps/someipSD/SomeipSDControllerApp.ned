@@ -24,4 +24,5 @@ simple SomeipSDControllerApp extends PacketProcessorBase
 {
     parameters:
         @class(SDN4CoRE::SomeipSDControllerApp);
+        string hostTablePath = default("^.controllerState.hostTable");
 }
