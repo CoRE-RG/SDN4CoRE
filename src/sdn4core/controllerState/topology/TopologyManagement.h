@@ -65,8 +65,8 @@ public:
      * @param hostMac The MAC address of the host
      * @return The output port number if found, else -1
      */
-    virtual int findOutportAtSwitch(std::string& switchId,
-            inet::MACAddress& hostMac);
+    virtual int findOutportAtSwitch(std::string switchId,
+            inet::MACAddress hostMac);
 
     /**
      * Find the outport for a host IP address at a certain switch.
@@ -74,8 +74,8 @@ public:
      * @param hostIp The IP address of the host
      * @return The output port number if found, else -1
      */
-    virtual int findOutportAtSwitch(std::string& switchId,
-            inet::L3Address& hostIp);
+    virtual int findOutportAtSwitch(std::string switchId,
+            inet::L3Address hostIp);
 
     /**
      * Find the outport for a host at a certain switch.
@@ -83,7 +83,7 @@ public:
      * @param host The HostEntry from the HostTable
      * @return The output port number if found, else -1
      */
-    virtual int findOutportAtSwitch(std::string& switchId,
+    virtual int findOutportAtSwitch(std::string switchId,
             HostTable::HostEntry* host);
 
     /**
@@ -91,14 +91,14 @@ public:
      * @param hostMac The MAC address of the host
      * @return The switchId and port pair connected to the host if found, else nullptr
      */
-    virtual SwitchPort findEdgePort(inet::MACAddress& hostMac);
+    virtual SwitchPort findEdgePort(inet::MACAddress hostMac);
 
     /**
      * Find out the edge device and port to which the host IP is connected.
      * @param hostIp The IP address of the host
      * @return The switchId and port pair connected to the host if found, else nullptr
      */
-    virtual SwitchPort findEdgePort(inet::L3Address& hostIp);
+    virtual SwitchPort findEdgePort(inet::L3Address hostIp);
 
     /**
      * Find out the edge device and port to which the host IP is connected.
@@ -114,8 +114,8 @@ public:
      * @return An ordered list representing the path through the network,
      *         empty list if no route was found
      */
-    virtual Route findRoute(std::string& fromSwitch,
-            inet::MACAddress& hostMac);
+    virtual Route findRoute(std::string fromSwitch,
+            inet::MACAddress hostMac);
 
     /**
      * Find a route through the topology to a host IP starting at a switch.
@@ -124,8 +124,8 @@ public:
      * @return An ordered list representing the path through the network,
      *         empty list if no route was found
      */
-    virtual Route findRoute(std::string& fromSwitch,
-            inet::L3Address& hostIp);
+    virtual Route findRoute(std::string fromSwitch,
+            inet::L3Address hostIp);
 
     /**
      * Find a route through the topology to a host starting at a switch.
@@ -134,7 +134,7 @@ public:
      * @return An ordered list representing the path through the network,
      *         empty list if no route was found
      */
-    virtual Route findRoute(std::string& fromSwitch,
+    virtual Route findRoute(std::string fromSwitch,
             HostTable::HostEntry* host);
 
 protected:
@@ -145,7 +145,7 @@ protected:
      * @return An ordered list representing the path through the network,
      *         empty list if no route was found
      */
-    virtual Route calculateRoute(std::string& fromSwitch,
+    virtual Route calculateRoute(std::string fromSwitch,
             HostTable::HostEntry* host);
 
     /**
@@ -154,7 +154,7 @@ protected:
      * @param host the host to look for
      * @return The outport if found, else -1
      */
-    virtual int findNextHopInCache(std::string& switchId,
+    virtual int findNextHopInCache(std::string switchId,
             HostTable::HostEntry* host);
 
     /**
@@ -162,7 +162,7 @@ protected:
      * @param switchId the switch of the entry
      * @param host the host of the entry
      */
-    virtual void cacheInvalidateNextHop(std::string& switchId,
+    virtual void cacheInvalidateNextHop(std::string switchId,
             HostTable::HostEntry* host);
 
     /**
@@ -171,7 +171,7 @@ protected:
      * @param host the host of the entry
      * @param port the port of the entry
      */
-    virtual void cacheNextHop(std::string& switchId,
+    virtual void cacheNextHop(std::string switchId,
             HostTable::HostEntry* host, int port);
 
     virtual void initialize() override;

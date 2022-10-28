@@ -52,8 +52,8 @@ int TopologyManagement::findOutportAtSwitch(Switch_Info* swInfo,
     return -1;
 }
 
-int TopologyManagement::findOutportAtSwitch(string& switchId,
-        MACAddress& hostMac) {
+int TopologyManagement::findOutportAtSwitch(string switchId,
+        MACAddress hostMac) {
     if (hostMac.isBroadcast() || hostMac.isMulticast()
             || hostMac.isUnspecified()) {
         return -1;
@@ -62,8 +62,8 @@ int TopologyManagement::findOutportAtSwitch(string& switchId,
             hostTable->getHostForMacAddress(hostMac));
 }
 
-int TopologyManagement::findOutportAtSwitch(string& switchId,
-        L3Address& hostIp) {
+int TopologyManagement::findOutportAtSwitch(string switchId,
+        L3Address hostIp) {
     if (hostIp.isBroadcast() || hostIp.isMulticast()
             || hostIp.isUnspecified()) {
         return -1;
@@ -71,7 +71,7 @@ int TopologyManagement::findOutportAtSwitch(string& switchId,
     return findOutportAtSwitch(switchId, hostTable->getHostForIpAddress(hostIp));
 }
 
-int TopologyManagement::findOutportAtSwitch(string& switchId,
+int TopologyManagement::findOutportAtSwitch(string switchId,
         HostTable::HostEntry* host) {
     Enter_Method
     ("TopologyManagement::findOutportAtSwitch()");
@@ -88,11 +88,11 @@ int TopologyManagement::findOutportAtSwitch(string& switchId,
     return -1;
 }
 
-SwitchPort TopologyManagement::findEdgePort(MACAddress& hostMac) {
+SwitchPort TopologyManagement::findEdgePort(MACAddress hostMac) {
     return findEdgePort(hostTable->getHostForMacAddress(hostMac));
 }
 
-SwitchPort TopologyManagement::findEdgePort(L3Address& hostIp) {
+SwitchPort TopologyManagement::findEdgePort(L3Address hostIp) {
     return findEdgePort(hostTable->getHostForIpAddress(hostIp));
 }
 
@@ -106,17 +106,17 @@ SwitchPort TopologyManagement::findEdgePort(HostTable::HostEntry* host) {
     return SwitchPort();
 }
 
-TopologyManagement::Route TopologyManagement::findRoute(string& fromSwitch,
-        MACAddress& hostMac) {
+TopologyManagement::Route TopologyManagement::findRoute(string fromSwitch,
+        MACAddress hostMac) {
     return findRoute(fromSwitch, hostTable->getHostForMacAddress(hostMac));
 }
 
-TopologyManagement::Route TopologyManagement::findRoute(string& fromSwitch,
-        L3Address& hostIp) {
+TopologyManagement::Route TopologyManagement::findRoute(string fromSwitch,
+        L3Address hostIp) {
     return findRoute(fromSwitch, hostTable->getHostForIpAddress(hostIp));
 }
 
-TopologyManagement::Route TopologyManagement::findRoute(string& fromSwitch,
+TopologyManagement::Route TopologyManagement::findRoute(string fromSwitch,
         HostTable::HostEntry* host) {
     Route route;
     if (host) {
@@ -125,7 +125,7 @@ TopologyManagement::Route TopologyManagement::findRoute(string& fromSwitch,
     return route;
 }
 
-TopologyManagement::Route TopologyManagement::calculateRoute(string& fromSwitch,
+TopologyManagement::Route TopologyManagement::calculateRoute(string fromSwitch,
         HostTable::HostEntry* host) {
     // check if abort recursion!
     if (host->switch_id == fromSwitch) {
@@ -160,7 +160,7 @@ TopologyManagement::Route TopologyManagement::calculateRoute(string& fromSwitch,
     return Route();
 }
 
-int TopologyManagement::findNextHopInCache(string& switchId,
+int TopologyManagement::findNextHopInCache(string switchId,
         HostTable::HostEntry* host) {
     auto iter = cachedHops.find(host->macAddress);
     if (iter != cachedHops.end()) {
@@ -172,7 +172,7 @@ int TopologyManagement::findNextHopInCache(string& switchId,
     return -1;
 }
 
-void TopologyManagement::cacheInvalidateNextHop(std::string& switchId,
+void TopologyManagement::cacheInvalidateNextHop(std::string switchId,
         HostTable::HostEntry* host) {
     auto iter = cachedHops.find(host->macAddress);
     if (iter != cachedHops.end()) {
@@ -183,7 +183,7 @@ void TopologyManagement::cacheInvalidateNextHop(std::string& switchId,
     }
 }
 
-void TopologyManagement::cacheNextHop(string& switchId,
+void TopologyManagement::cacheNextHop(string switchId,
         HostTable::HostEntry* host, int port) {
     auto iter = cachedHops.find(host->macAddress);
     if (iter != cachedHops.end()) {
