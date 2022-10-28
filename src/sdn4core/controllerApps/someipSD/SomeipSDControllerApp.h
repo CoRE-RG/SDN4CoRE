@@ -22,7 +22,9 @@
 #include "sdn4core/utility/layeredInformation/LayeredInformation.h"
 #include "sdn4core/controllerApps/base/PacketProcessorBase.h"
 #include "soa4core/messages/someip/SomeIpSDHeader.h"
+#include "sdn4core/controllerState/devices/DeviceTable.h"
 #include "sdn4core/controllerState/hosts/HostTable.h"
+#include "sdn4core/controllerState/topology/TopologyManagement.h"
 //AUTO-GENERATED MESSAGES
 #include "soa4core/messages/someip/SomeIpSDEntry_m.h"
 #include "soa4core/messages/someip/SomeIpSDOption_m.h"
@@ -121,6 +123,7 @@ protected:
     void processFindEntry(SOA4CoRE::SomeIpSDEntry* findInquiry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
     void processOfferEntry(SOA4CoRE::SomeIpSDEntry* offerEntry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
     void processSubscribeEventGroupEntry(SOA4CoRE::SomeIpSDEntry* entry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
+    void processSubscribeEventGroupAckEntry(SOA4CoRE::SomeIpSDEntry* entry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
 
     SOA4CoRE::SomeIpSDHeader* buildFind(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry);
     SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, std::list<ServiceInstance> foundInstances);
@@ -159,6 +162,14 @@ protected:
      * A management module handling all MAC operations.
      */
     HostTable* hostTable;
+    /**
+     * A management module handling all MAC operations.
+     */
+    DeviceTable* deviceTable;
+    /**
+     * A management module handling all MAC operations.
+     */
+    TopologyManagement* topology;
 };
 
 } /*end namespace SDN4CoRE*/

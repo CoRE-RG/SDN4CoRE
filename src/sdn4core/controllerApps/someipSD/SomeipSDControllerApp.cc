@@ -50,6 +50,10 @@ void SomeipSDControllerApp::initialize() {
     PacketProcessorBase::initialize();
     hostTable = check_and_cast<HostTable*>(
             this->getModuleByPath(par("hostTablePath")));
+    deviceTable = check_and_cast<DeviceTable*>(
+            this->getModuleByPath(par("deviceTablePath")));
+    topology = check_and_cast<TopologyManagement*>(
+            this->getModuleByPath(par("topologyManagementPath")));
 
 
     // 1. Create ServiceEntry - a static entry to answer the first incoming find-message
@@ -144,7 +148,7 @@ void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader
                 break;
             case SOA4CoRE::SomeIpSDEntryType::SUBSCRIBEVENTGROUPACK:
                 EV << "SUBSCRIBEVENTGROUPACK ARRIVED" << endl;
-                // processSubscribeEventGroupAckEntry(*it, someIpSDHeader);
+                processSubscribeEventGroupAckEntry(*it, someIpSDHeader);
                 break;
             default:
                 EV << "Unknown type" << std::endl;
@@ -245,6 +249,54 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     controller->sendPacketOut(packetOut, instance.layeredInformation->sw_info->getSocket());
 
     // note the subscription in the subscriptions table
+}
+
+void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* entry, SomeIpSDHeader* someIpSDHeader) {
+    LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
+    // find service in service table
+    // find subscription in subscription table
+
+    // check if multicast or unicast endpoint
+    auto options = getEntryOptions(entry, someIpSDHeader);
+    if (options.size() != 1) {
+        throw cRuntimeError("Subscription acknowledgement must have exactly one endpoint option");
+    }
+    SomeIpSDOption* option = options.front();
+    switch(option->getType()) {
+    case SomeIpSDOptionType::IPV4ENDPOINT: {
+        IPv4EndpointOption* unicast = dynamic_cast<IPv4EndpointOption*>(option);
+        // find route from the switch were the subAck arrived to the destination IP
+        string sw_addr = layeredInformation->sw_info->getMacAddress();
+        IPv4Address ip_dst = unicast->getIpv4Address();
+        TopologyManagement::Route route = topology->findRoute(layeredInformation->sw_info->getMacAddress(), unicast->getIpv4Address());
+        if(route.empty()){
+            throw cRuntimeError("Could not find a route for acknowledged subscription");
+        }
+        // create the match
+        auto builder = OFMatchFactory::getBuilder();
+        builder->setField(OFPXMT_OFB_IPV4_DST, &(unicast->getIpv4Address()));
+
+        break;
+    }
+    case SomeIpSDOptionType::IPV4MULTICAST: {
+        IPv4MulticastOption* mcast = dynamic_cast<IPv4MulticastOption*>(option);
+        break;
+    }
+    default:
+        throw cRuntimeError("Option type not supported.");
+    }
+    // install/update flow along the path
+    // check if connection already exists
+    // if exists & multicast --> check if subscriber is already in the flow
+    // if exists & not multicast --> refresh flow to not expire
+    // if !exitsts --> create flow
+
+
+
+
+    // forward subscription ack to subscriber
+
+
 }
 
 SomeIpSDHeader* SomeipSDControllerApp::buildFind(SomeIpSDHeader* findSource, SomeIpSDEntry* findInquiry){
