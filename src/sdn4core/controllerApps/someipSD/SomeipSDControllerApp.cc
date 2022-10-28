@@ -162,6 +162,7 @@ void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader
 void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader) {
 
     std::list<ServiceInstance> entries = lookUpServiceInMap(findInquiry->getServiceID(), findInquiry->getInstanceID());
+    LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     if(entries.empty())
     {
         SomeIpSDHeader* myFind = buildFind(someIpSDHeader, findInquiry);
@@ -169,8 +170,7 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
 
         FindRequest saveFind;
         saveFind.requestHeader = someIpSDHeader->dup();
-        LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
-        saveFind.requestHeader->setControlInfo(layeredInformation->dup());
+        saveFind.requestHeader->setControlInfo(findInfo->dup());
         saveFind.entry = dynamic_cast<ServiceEntry*>(findInquiry->dup());
         saveFind.entry->setIndex1stOptions(0);
         std::list<SomeIpSDOption*> findOptions = getEntryOptions(findInquiry, someIpSDHeader);
@@ -188,7 +188,8 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
         }
     } else {
         SomeIpSDHeader* foundOffer = buildOffer(someIpSDHeader, findInquiry, entries);
-        sendOffer(foundOffer, someIpSDHeader);
+        sendOffer(foundOffer, someIpSDHeader, findInfo, entries.front().layeredInformation);
+        // TODO maybe use controller layered info if multiple entries
     }
 }
 
@@ -206,14 +207,17 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
 
 
     auto foundX = requestTable.find(offerEntry->getServiceID());
-    std::list<FindRequest> findInstances = foundX->second;
-    for (auto find: findInstances) {
-        if (find.entry->getServiceID() == 0xFFFF) {
-            SomeIpSDHeader* foundOffer = buildOffer(find.requestHeader, find.entry, entries);
-            sendOffer(foundOffer, find.requestHeader);
-        } else if (find.entry->getServiceID() == find.entry->getServiceID()) {
-            SomeIpSDHeader* foundOffer = buildOffer(find.requestHeader, find.entry, entries);
-            sendOffer(foundOffer, find.requestHeader);
+    if(foundX != requestTable.end()) {
+        std::list<FindRequest> findInstances = foundX->second;
+        for (auto find: findInstances) {
+            LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(find.requestHeader->getControlInfo());
+            if (find.entry->getServiceID() == 0xFFFF) {
+                SomeIpSDHeader* foundOffer = buildOffer(find.requestHeader, find.entry, entries);
+                sendOffer(foundOffer, find.requestHeader, findInfo, instance.layeredInformation);
+            } else if (find.entry->getServiceID() == find.entry->getServiceID()) {
+                SomeIpSDHeader* foundOffer = buildOffer(find.requestHeader, find.entry, entries);
+                sendOffer(foundOffer, find.requestHeader, findInfo, instance.layeredInformation);
+            }
         }
     }
 }
@@ -229,7 +233,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     }
     ServiceInstance& instance = instances.front(); // for readability and comfort
     // get dest ip of the service and compare to the dest id in layered information
-    L3Address& destination = instance.layeredInformation->ip_dst;
+    L3Address& destination = instance.layeredInformation->ip_src;
     if (destination != layeredInformation->ip_dst) {
         throw cRuntimeError("The subscription was sent to a different destination than known to the controller for the service instance!");
     }
@@ -278,6 +282,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
         // create the match
         auto builder = OFMatchFactory::getBuilder();
         builder->setField(OFPXMT_OFB_IPV4_DST, &(unicast->getIpv4Address()));
+        builder->setField(OFPXMT_OFB_UDP_DST, &(unicast->getIpv4Address()));
 
         break;
     }
@@ -298,6 +303,12 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
 
 
     // forward subscription ack to subscriber
+    SomeIpSDHeader* header = buildSubscribeEventGroupAck(someIpSDHeader, entry);
+    EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation);
+    uint32_t outports [] = {(uint32_t)instance.layeredInformation->in_port};
+    OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
+            outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
+
 
 
 }
@@ -412,53 +423,15 @@ void SomeipSDControllerApp::sendFind(SomeIpSDHeader* find, SomeIpSDHeader* findS
     controller->sendPacketOut(packetOut, info->sw_info->getSocket());
 }
 
-void SomeipSDControllerApp::sendOffer(SomeIpSDHeader* offer, SomeIpSDHeader* findSource){
+void SomeipSDControllerApp::sendOffer(SomeIpSDHeader* offer, SomeIpSDHeader* findSource, LayeredInformation* infoFind, LayeredInformation* infoOffer){
+    EthernetIIFrame *eth2Frame = encapSDHeader(offer, infoOffer, infoFind);
 
-    LayeredInformation* info = dynamic_cast<LayeredInformation*>(findSource->getControlInfo());
+    uint32_t outports [] = {(uint32_t)infoFind->in_port};
+    OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
+            outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
+    packetOut->setKind(TCP_C_SEND);
 
-    //Layer 4
-    UDPPacket *udpPacket = new UDPPacket(offer->getName());
-        udpPacket->setByteLength(UDP_HEADER_BYTES);
-        udpPacket->encapsulate(offer);
-        udpPacket->setSourcePort(myLayeredInformation.transport_src);
-        udpPacket->setDestinationPort(info->transport_src);
-
-    //Layer 3
-    IPv4Datagram *datagram = new IPv4Datagram(offer->getName());
-    IPv4Address dest = info->ip_src.toIPv4();
-    IPv4Address src = myLayeredInformation.ip_src.toIPv4();
-    short ttl = 1;
-        datagram->setByteLength(IP_HEADER_BYTES);
-        datagram->encapsulate(udpPacket);
-        datagram->setDestAddress(dest);
-        datagram->setSrcAddress(src);
-        datagram->setMoreFragments(false);
-        datagram->setTimeToLive(ttl);
-        datagram->setTransportProtocol(17); //the UDP-standard protocol-id
-
-    // Layer 2
-    EthernetIIFrame *eth2Frame = new EthernetIIFrame(offer->getName());
-        eth2Frame->setSrc(myLayeredInformation.eth_src);
-        eth2Frame->setDest(info->eth_src);
-        eth2Frame->encapsulate(datagram);
-        if (eth2Frame->getByteLength() < MIN_ETHERNET_FRAME_BYTES)
-            eth2Frame->setByteLength(MIN_ETHERNET_FRAME_BYTES); // "padding"
-
-    // Openflow
-    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-        packetOut->getHeader().version = OFP_VERSION;
-        packetOut->getHeader().type = OFPT_PACKET_OUT;
-        packetOut->setBuffer_id(OFP_NO_BUFFER);
-        packetOut->setByteLength(24);
-        packetOut->encapsulate(eth2Frame);
-//        packetOut->setIn_port(eth2Frame->getArrivalGate()->getIndex());
-    ofp_action_output *action_output = new ofp_action_output();
-    action_output->port = info->in_port;
-        packetOut->setActionsArraySize(1);
-        packetOut->setActions(0, *action_output);
-        packetOut->setKind(TCP_C_SEND);
-
-    controller->sendPacketOut(packetOut, info->sw_info->getSocket());
+    controller->sendPacketOut(packetOut, infoFind->sw_info->getSocket());
 }
 
 list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {
