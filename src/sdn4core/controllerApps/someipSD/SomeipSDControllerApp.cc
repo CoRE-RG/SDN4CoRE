@@ -31,7 +31,7 @@
 #include "openflow/openflow/protocol/OFMatchFactory.h"
 //CoRE4INET
 #include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
-//#include "core4inet/utilities/customWatch.h"
+#include "core4inet/utilities/customWatch.h"
 
 using namespace inet;
 using namespace std;
@@ -93,8 +93,8 @@ void SomeipSDControllerApp::initialize() {
     //be 1 even after wrapping.c(RS_SOMEIPSD_00001)
     // important for the finds the controller sends
     controllerRequestID = 0x0001;
-//    WATCH_MAPMAP(serviceTable);
-//    WATCH_LISTMAP(requestTable);
+    WATCH_MAPMAP(serviceTable);
+    WATCH_LISTMAP(requestTable);
 }
 
 void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader) {
