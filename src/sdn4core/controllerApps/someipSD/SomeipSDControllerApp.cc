@@ -31,6 +31,7 @@
 #include "openflow/openflow/protocol/OFMatchFactory.h"
 //CoRE4INET
 #include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
+//#include "core4inet/utilities/customWatch.h"
 
 using namespace inet;
 using namespace std;
@@ -40,7 +41,6 @@ using namespace SOA4CoRE;
 
 namespace SDN4CoRE {
 
-// Löschen, wenn Datenstruktur zum Speichern der Offers vorhanden
 #define MAJOR_VERSION 0xFF       // see [PRS_SOMEIPSD_00351],[PRS_SOMEIPSD_00356],[PRS_SOMEIPSD_00386],[PRS_SOMEIPSD_00391]
 #define MINOR_VERSION 0xFFFFFFFF // see [PRS_SOMEIPSD_00351],[PRS_SOMEIPSD_00356],[PRS_SOMEIPSD_00386],[PRS_SOMEIPSD_00391]
 #define TTL 0xFFFFFF             // see [PRS_SOMEIPSD_00351],[PRS_SOMEIPSD_00356],[PRS_SOMEIPSD_00386],[PRS_SOMEIPSD_00391]
@@ -93,58 +93,8 @@ void SomeipSDControllerApp::initialize() {
     //be 1 even after wrapping.c(RS_SOMEIPSD_00001)
     // important for the finds the controller sends
     controllerRequestID = 0x0001;
-}
-
-
-void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
-    // layer 2
-    if (EthernetIIFrame* eth = dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket())) {
-        //layer 3
-        if (INetworkDatagram* ip = dynamic_cast<INetworkDatagram *>(eth->getEncapsulatedPacket())) {
-            // layer 4
-            if (UDPPacket* transport = dynamic_cast<UDPPacket*>
-                                        (eth->getEncapsulatedPacket()->getEncapsulatedPacket())) {
-                if (SomeIpSDHeader* someIpSDHeader = dynamic_cast<SomeIpSDHeader*>
-                                                        (transport->getEncapsulatedPacket()))  {
-                    //set layeredInformation and attach control info
-                    LayeredInformation* layeredInformation = new LayeredInformation();
-                    layeredInformation->eth_src = eth->getSrc();
-                    layeredInformation->ip_src = ip->getSourceAddress();
-                    layeredInformation->transport_src = transport->getSourcePort();
-                    layeredInformation->inPort = eth->getArrivalGate()->getIndex();
-                    layeredInformation->swInfo = controller->findSwitchInfoFor(packet_in_msg);
-                    someIpSDHeader->setControlInfo(layeredInformation);
-                    processSomeIpSDHeader(someIpSDHeader);
-                }
-            }
-        }
-    }
-}
-
-void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader) {
-    std::list<SomeIpSDEntry*> entries = someIpSDHeader->getEncapEntries();
-    for (auto it = entries.begin(); it != entries.end(); ++it) {
-        switch ((*it)->getType()) {
-            case SOA4CoRE::SomeIpSDEntryType::FIND:
-                EV << "FIND ARRIVED" << endl;
-                processFindEntry(*it, someIpSDHeader);
-                break;
-            case SOA4CoRE::SomeIpSDEntryType::OFFER:
-                EV << "OFFER ARRIVED" << endl;
-                processOfferEntry(*it, someIpSDHeader);
-                break;
-            case SOA4CoRE::SomeIpSDEntryType::SUBSCRIBEVENTGROUP:
-                EV << "SUBSCRIBEVENTGROUP ARRIVED" << endl;
-                // processSubscribeEventGroupEntry(*it, someIpSDHeader);
-                break;
-            case SOA4CoRE::SomeIpSDEntryType::SUBSCRIBEVENTGROUPACK:
-                EV << "SUBSCRIBEVENTGROUPACK ARRIVED" << endl;
-                // processSubscribeEventGroupAckEntry(*it, someIpSDHeader);
-                break;
-            default:
-                EV << "Unknown type" << std::endl;
-        }
-    }
+//    WATCH_MAPMAP(serviceTable);
+//    WATCH_LISTMAP(requestTable);
 }
 
 void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader) {
@@ -373,8 +323,9 @@ list<SomeipSDControllerApp::ServiceInstance> SomeipSDControllerApp::lookUpFindIn
 list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {
     int optionPosition = xEntry->getIndex1stOptions();
     int optionQuantity = xEntry->getNum1stOptions();
-    std::list<SomeIpSDOption*> optionList = header->getEncapOptions();
-    std::_List_iterator<SomeIpSDOption*> optionListIterator = optionList.begin();
+    std::list<SomeIpSDOption*> optionList;
+    std::list<SomeIpSDOption*> optList = header->getEncapOptions();
+    std::_List_iterator<SomeIpSDOption*> optionListIterator = optList.begin();
     std::advance(optionListIterator, optionPosition);
     for (int firstOptionsIdx = 0; firstOptionsIdx < optionQuantity; firstOptionsIdx++) {
         SomeIpSDOption* option = *optionListIterator;
@@ -384,19 +335,23 @@ list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEnt
     return optionList;
 }
 
+//void SomeipSDControllerApp::updateRequestTable(requestInstance& newInfo){
+//
+//}
+
 void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
-    // insert ServiceInstance in an InstanceMap and into ServiceInstanceMap called serviceTable
+    // insert ServiceInstance in an InstanceMap - this into ServiceInstanceMap called serviceTable
     // Case 1: ServiceID and InstanceID exist -> update value of InstanceMap -> entry
     // Case 2: ServiceID exists -> update InstanceMap -> new key value
     // Case 3: neither nor exists -> update serviceTable key key value
     auto offeredServiceId = newInfo.entry->getServiceID();
-    auto found = serviceTable.find(offeredServiceId);
+    auto found = serviceTable.find(offeredServiceId); //ServiceID exists in ServiceTable?
     // Case 1 or 2:
     if (found != serviceTable.end()) {
-        auto offeredInstance = newInfo.entry->getInstanceID();
-        auto foundInstance = found->second.find(offeredInstance);
+        auto offeredInstance = newInfo.entry->getInstanceID(); //Which Instance is offered
+        auto foundInstance = found->second.find(offeredInstance); //InstanceID exists in Table?
         if (foundInstance != found->second.end()) {
-            auto serviceInstance = foundInstance->second;
+            auto serviceInstance = foundInstance->second;//
             for (auto iter = serviceInstance.optionList.begin(); iter != serviceInstance.optionList.end(); ) {
                 auto castIter = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter);
                 bool removed = false;
@@ -416,8 +371,11 @@ void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
                 }
             }
             // insert remaining Options in new list
-            newInfo.optionList.merge(serviceInstance.optionList);
-//            foundInstance->second.clear();
+            for (auto elem: serviceInstance.optionList) {
+                newInfo.optionList.push_back(elem);
+            }
+//            newInfo.optionList.merge(serviceInstance.optionList);
+            foundInstance->second.clear();
             found->second[offeredInstance] = newInfo;
         } else {
             found->second[offeredInstance] = newInfo;
@@ -429,6 +387,57 @@ void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
         serviceTable[newInfo.entry->getServiceID()] = newMap;
     }
 
+}
+
+void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader) {
+    std::list<SomeIpSDEntry*> entries = someIpSDHeader->getEncapEntries();
+    for (auto it = entries.begin(); it != entries.end(); ++it) {
+        switch ((*it)->getType()) {
+            case SOA4CoRE::SomeIpSDEntryType::FIND:
+                EV << "FIND ARRIVED" << endl;
+                processFindEntry(*it, someIpSDHeader);
+                break;
+            case SOA4CoRE::SomeIpSDEntryType::OFFER:
+                EV << "OFFER ARRIVED" << endl;
+                processOfferEntry(*it, someIpSDHeader);
+                break;
+            case SOA4CoRE::SomeIpSDEntryType::SUBSCRIBEVENTGROUP:
+                EV << "SUBSCRIBEVENTGROUP ARRIVED" << endl;
+                // processSubscribeEventGroupEntry(*it, someIpSDHeader);
+                break;
+            case SOA4CoRE::SomeIpSDEntryType::SUBSCRIBEVENTGROUPACK:
+                EV << "SUBSCRIBEVENTGROUPACK ARRIVED" << endl;
+                // processSubscribeEventGroupAckEntry(*it, someIpSDHeader);
+                break;
+            default:
+                EV << "Unknown type" << std::endl;
+        }
+    }
+}
+
+void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
+    // layer 2
+    if (EthernetIIFrame* eth = dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket())) {
+        //layer 3
+        if (INetworkDatagram* ip = dynamic_cast<INetworkDatagram *>(eth->getEncapsulatedPacket())) {
+            // layer 4
+            if (UDPPacket* transport = dynamic_cast<UDPPacket*>
+                                        (eth->getEncapsulatedPacket()->getEncapsulatedPacket())) {
+                if (SomeIpSDHeader* someIpSDHeader = dynamic_cast<SomeIpSDHeader*>
+                                                        (transport->getEncapsulatedPacket()))  {
+                    //set layeredInformation and attach control info
+                    LayeredInformation* layeredInformation = new LayeredInformation();
+                    layeredInformation->eth_src = eth->getSrc();
+                    layeredInformation->ip_src = ip->getSourceAddress();
+                    layeredInformation->transport_src = transport->getSourcePort();
+                    layeredInformation->inPort = eth->getArrivalGate()->getIndex();
+                    layeredInformation->swInfo = controller->findSwitchInfoFor(packet_in_msg);
+                    someIpSDHeader->setControlInfo(layeredInformation);
+                    processSomeIpSDHeader(someIpSDHeader);
+                }
+            }
+        }
+    }
 }
 
 } /*end namespace SDN4CoRE*/
