@@ -1,0 +1,11 @@
+<controller>
+	<offerTable>
+		<host nodeName="Node1" macAddress="1A-A5-B5-70-41-6E" vids="0" switch_id="0A-00-00-00-00-C1" port="0" />
+		<host nodeName="Node2" macAddress="42-C3-12-D1-D3-4B" vids="0" switch_id="0A-00-00-00-00-C1" port="1" />
+		<host nodeName="Node3" macAddress="1A-A5-E5-71-41-6E" vids="0" switch_id="0A-00-00-00-00-C2" port="0" />
+		<host nodeName="Node4" macAddress="1A-A5-E5-72-41-6E" vids="0" switch_id="0A-00-00-00-00-C2" port="1" />
+	</offerTable>
+	<deviceTable>
+		<deviceLink firstSwMac="0A-00-00-00-00-C1" firstSwPort="2" secondSwMac="0A-00-00-00-00-C2" secondSwPort="2" />
+	</deviceTable>
+</controller>
