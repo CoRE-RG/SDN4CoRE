@@ -210,7 +210,7 @@ SomeIpSDHeader* SomeipSDControllerApp::buildOffer(SomeIpSDHeader* findSource, So
     // findEntry --> information what is requested
     // list foundEntries --> struct with found entries and list of options
 
-    SomeIpSDHeader* header = new SomeIpSDHeader();
+    SomeIpSDHeader* header = new SomeIpSDHeader("SOME/IP SD - OFFER");
         header->setRequestID(findSource->getRequestID());
 
     // create offer - encap each found entry with corresponding options
