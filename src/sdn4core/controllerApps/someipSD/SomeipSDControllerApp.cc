@@ -29,6 +29,8 @@
 #include "openflow/messages/OFP_Packet_In_m.h"
 #include "openflow/openflow/protocol/OFMessageFactory.h"
 #include "openflow/openflow/protocol/OFMatchFactory.h"
+//CoRE4INET
+//#include "core4inet/utilities/customWatch.h"
 
 using namespace inet;
 using namespace std;
@@ -38,7 +40,6 @@ using namespace SOA4CoRE;
 
 namespace SDN4CoRE {
 
-// Löschen, wenn Datenstruktur zum Speichern der Offers vorhanden
 #define MAJOR_VERSION 0xFF       // see [PRS_SOMEIPSD_00351],[PRS_SOMEIPSD_00356],[PRS_SOMEIPSD_00386],[PRS_SOMEIPSD_00391]
 #define MINOR_VERSION 0xFFFFFFFF // see [PRS_SOMEIPSD_00351],[PRS_SOMEIPSD_00356],[PRS_SOMEIPSD_00386],[PRS_SOMEIPSD_00391]
 #define TTL 0xFFFFFF             // see [PRS_SOMEIPSD_00351],[PRS_SOMEIPSD_00356],[PRS_SOMEIPSD_00386],[PRS_SOMEIPSD_00391]
@@ -154,6 +155,8 @@ void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader
                 EV << "Unknown type" << std::endl;
         }
     }
+//    WATCH_MAPMAP(serviceTable);
+//    WATCH_LISTMAP(requestTable);
 }
 
 void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader) {
@@ -461,8 +464,9 @@ void SomeipSDControllerApp::sendOffer(SomeIpSDHeader* offer, SomeIpSDHeader* fin
 list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {
     int optionPosition = xEntry->getIndex1stOptions();
     int optionQuantity = xEntry->getNum1stOptions();
-    std::list<SomeIpSDOption*> optionList = header->getEncapOptions();
-    std::_List_iterator<SomeIpSDOption*> optionListIterator = optionList.begin();
+    std::list<SomeIpSDOption*> optionList;
+    std::list<SomeIpSDOption*> optList = header->getEncapOptions();
+    std::_List_iterator<SomeIpSDOption*> optionListIterator = optList.begin();
     std::advance(optionListIterator, optionPosition);
     for (int firstOptionsIdx = 0; firstOptionsIdx < optionQuantity; firstOptionsIdx++) {
         SomeIpSDOption* option = *optionListIterator;
@@ -472,19 +476,23 @@ list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEnt
     return optionList;
 }
 
+//void SomeipSDControllerApp::updateRequestTable(requestInstance& newInfo){
+//
+//}
+
 void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
-    // insert ServiceInstance in an InstanceMap and into ServiceInstanceMap called serviceTable
+    // insert ServiceInstance in an InstanceMap - this into ServiceInstanceMap called serviceTable
     // Case 1: ServiceID and InstanceID exist -> update value of InstanceMap -> entry
     // Case 2: ServiceID exists -> update InstanceMap -> new key value
     // Case 3: neither nor exists -> update serviceTable key key value
     auto offeredServiceId = newInfo.entry->getServiceID();
-    auto found = serviceTable.find(offeredServiceId);
+    auto found = serviceTable.find(offeredServiceId); //ServiceID exists in ServiceTable?
     // Case 1 or 2:
     if (found != serviceTable.end()) {
-        auto offeredInstance = newInfo.entry->getInstanceID();
-        auto foundInstance = found->second.find(offeredInstance);
+        auto offeredInstance = newInfo.entry->getInstanceID(); //Which Instance is offered
+        auto foundInstance = found->second.find(offeredInstance); //InstanceID exists in Table?
         if (foundInstance != found->second.end()) {
-            auto serviceInstance = foundInstance->second;
+            auto serviceInstance = foundInstance->second;//
             for (auto iter = serviceInstance.optionList.begin(); iter != serviceInstance.optionList.end(); ) {
                 auto castIter = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter);
                 bool removed = false;
@@ -504,8 +512,11 @@ void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
                 }
             }
             // insert remaining Options in new list
-            newInfo.optionList.merge(serviceInstance.optionList);
-//            foundInstance->second.clear();
+            for (auto elem: serviceInstance.optionList) {
+                newInfo.optionList.push_back(elem);
+            }
+//            newInfo.optionList.merge(serviceInstance.optionList);
+            foundInstance->second.clear();
             found->second[offeredInstance] = newInfo;
         } else {
             found->second[offeredInstance] = newInfo;

@@ -83,7 +83,7 @@ public:
         }
     };
 
-    typedef std::map<int, std::list<FindRequest>> requestMap;
+    typedef std::map<int, std::list<FindRequest>> RequestMap;
 
     ~SomeipSDControllerApp(){
         for (auto elem : serviceTable){
@@ -104,7 +104,7 @@ public:
     };
 protected:
     ServiceInstanceMap serviceTable;
-    requestMap requestTable;
+    RequestMap requestTable;
     LayeredInformation myLayeredInformation;
     uint16_t controllerRequestID;
     virtual void initialize() override;
