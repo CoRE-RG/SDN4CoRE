@@ -30,7 +30,7 @@
 #include "openflow/openflow/protocol/OFMessageFactory.h"
 #include "openflow/openflow/protocol/OFMatchFactory.h"
 //CoRE4INET
-//#include "core4inet/utilities/customWatch.h"
+#include "core4inet/utilities/customWatch.h"
 
 using namespace inet;
 using namespace std;
@@ -98,6 +98,9 @@ void SomeipSDControllerApp::initialize() {
     //be 1 even after wrapping.c(RS_SOMEIPSD_00001)
     // important for the finds the controller sends
     controllerRequestID = 0x0001;
+
+    WATCH_MAPMAP(serviceTable);
+    WATCH_LISTMAP(requestTable);
 }
 
 void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
@@ -155,8 +158,6 @@ void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader
                 EV << "Unknown type" << std::endl;
         }
     }
-//    WATCH_MAPMAP(serviceTable);
-//    WATCH_LISTMAP(requestTable);
 }
 
 void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader) {

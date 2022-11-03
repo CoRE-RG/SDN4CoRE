@@ -172,6 +172,24 @@ protected:
     TopologyManagement* topology;
 };
 
+std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::ServiceInstance& instance)
+{
+    os << "entry{";
+    os << " serviceID=" << instance.entry->getServiceID();
+    os << " instanceID=" << instance.entry->getInstanceID();
+    os << "}";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::FindRequest& request)
+{
+    os << "entry{";
+    os << " serviceID=" << request.entry->getServiceID();
+    os << " instanceID=" << request.entry->getInstanceID();
+    os << "}";
+    return os;
+}
+
 } /*end namespace SDN4CoRE*/
 
 #endif

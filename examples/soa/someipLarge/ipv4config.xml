@@ -1,0 +1,8 @@
+<config>
+
+    <interface hosts="Node1 Node2 Node3 Node4 controller" names="phy0" address="192.168.178.x" /> <!-- data plane -->
+    <route hosts="Node1 Node2 Node3 Node4" destination="*" interface="phy0" metric="50"/>
+    
+    <interface among="controller switch1 switch2" names="eth0" address="10.0.0.x"/> <!-- control plane -->    
+    
+</config>

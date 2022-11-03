@@ -1,0 +1,4 @@
+<services>
+	<service name="service1Publisher" node="Node1" id="1" port="3171"/>
+	<service name="service3Publisher" node="Node3" id="3" port="3173"/>
+</services>
