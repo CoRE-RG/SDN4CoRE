@@ -30,6 +30,8 @@
 #include "soa4core/messages/someip/SomeIpSDOption_m.h"
 //CoRE4INET
 #include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
+//SOA4CoRE
+#include "soa4core/serviceidentifier/ServiceIdentifier.h"
 
 // STD
 #include <map>
@@ -85,6 +87,39 @@ public:
 
     typedef std::map<int, std::list<FindRequest>> RequestMap;
 
+    struct Subscription {
+        SOA4CoRE::ServiceIdentifier service;
+        // from provider / publisher
+        LayeredInformation providerInformation;
+        SOA4CoRE::IPv4EndpointOption providerEndpoint;
+        // to consumer / subscriber
+        LayeredInformation consumerInformation;
+        SOA4CoRE::IPv4EndpointOption consumerEndpoint;
+        // control information
+        bool active = false;
+        bool waitingForAck = false;
+
+        bool isConsumer(LayeredInformation otherInformation, SOA4CoRE::IPv4EndpointOption otherEndpoint) {
+            return otherInformation.eth_src == consumerInformation.eth_src
+                    && otherInformation.ip_src == consumerInformation.ip_src
+                    && otherInformation.transport_src == consumerInformation.transport_src
+                    && otherEndpoint.getIpv4Address() == consumerEndpoint.getIpv4Address()
+                    && otherEndpoint.getPort() == consumerEndpoint.getPort();
+        }
+
+        bool isProvider(LayeredInformation otherInformation, SOA4CoRE::IPv4EndpointOption otherEndpoint) {
+            return otherInformation.eth_src == providerInformation.eth_src
+                    && otherInformation.ip_src == providerInformation.ip_src
+                    && otherInformation.transport_src == providerInformation.transport_src
+                    && otherEndpoint.getIpv4Address() == providerEndpoint.getIpv4Address()
+                    && otherEndpoint.getPort() == providerEndpoint.getPort();
+        }
+    };
+
+    typedef std::list<Subscription> ServiceInstanceSubscriptionList;
+    typedef std::map<int, ServiceInstanceSubscriptionList> IntanceSubscriptionMap;
+    typedef std::map<int, IntanceSubscriptionMap> SubscriptionMap;
+
     ~SomeipSDControllerApp(){
         for (auto elem : serviceTable){
             for (auto element : elem.second) {
@@ -105,6 +140,7 @@ public:
 protected:
     ServiceInstanceMap serviceTable;
     RequestMap requestTable;
+    SubscriptionMap subscriptionTable;
     LayeredInformation myLayeredInformation;
     uint16_t controllerRequestID;
     virtual void initialize() override;
@@ -186,6 +222,21 @@ std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::FindRequ
     os << "entry{";
     os << " serviceID=" << request.entry->getServiceID();
     os << " instanceID=" << request.entry->getInstanceID();
+    os << "}";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::Subscription& sub)
+{
+//    os << "{ service {";
+//    os << " serviceID=" << sub.service.getServiceId();
+//    os << ", instanceID=" << sub.service.getInstanceId();
+//    os << "}";
+    os << ", provider {";
+    os << " IP=" << sub.providerInformation.ip_src.str();
+    os << "}";
+    os << ", consumer {";
+    os << " IP=" << sub.consumerInformation.ip_src.str();
     os << "}";
     return os;
 }

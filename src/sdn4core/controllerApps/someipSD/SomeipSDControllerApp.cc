@@ -101,6 +101,7 @@ void SomeipSDControllerApp::initialize() {
 
     WATCH_MAPMAP(serviceTable);
     WATCH_LISTMAP(requestTable);
+    WATCH_LISTMAPMAP(subscriptionTable);
 }
 
 void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
@@ -227,6 +228,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     // find service to subscribe to is in our service table
     std::list<ServiceInstance> instances = lookUpServiceInMap(entry->getServiceID(), entry->getInstanceID());
+    // TODO send NACK or throw error
     if(instances.size() <= 0) {
         throw cRuntimeError("The requested service instance to subscribe to could not be found!");
     } else if(instances.size() > 1) {
@@ -238,6 +240,42 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     if (destination != layeredInformation->ip_dst) {
         throw cRuntimeError("The subscription was sent to a different destination than known to the controller for the service instance!");
     }
+
+    auto entryOptions = getEntryOptions(entry, someIpSDHeader);
+    if(entryOptions.size() != 1) {
+        throw cRuntimeError("Exactly one endpoint information must be present in subscribtion.");
+    }
+    IPv4EndpointOption* endpoint = dynamic_cast<IPv4EndpointOption*>(entryOptions.front());
+    // update local subscription table
+    bool subKnown = false;
+    if(subscriptionTable.find(entry->getServiceID()) != subscriptionTable.end()) {
+        if(subscriptionTable[entry->getServiceID()].find(entry->getInstanceID()) != subscriptionTable[entry->getServiceID()].end()) {
+            // we know a subscription for this service instance
+            for (auto & sub : subscriptionTable[entry->getServiceID()][entry->getInstanceID()]) {
+                if(sub.isConsumer(*(layeredInformation), *(endpoint))) {
+                    // already known!
+                    sub.waitingForAck = true;
+                    subKnown = true;
+                    break;
+                }
+            }
+        } else {
+            subscriptionTable[entry->getServiceID()][entry->getInstanceID()] = ServiceInstanceSubscriptionList();
+        }
+    } else {
+        subscriptionTable[entry->getServiceID()] = IntanceSubscriptionMap();
+        subscriptionTable[entry->getServiceID()][entry->getInstanceID()] = ServiceInstanceSubscriptionList();
+    }
+    if(!subKnown) {
+        Subscription subscription;
+        subscription.service = ServiceIdentifier(entry->getServiceID(),entry->getInstanceID());
+        subscription.providerInformation = *(instance.layeredInformation);
+        subscription.consumerInformation = *(layeredInformation);
+        subscription.consumerEndpoint = *(endpoint);
+        subscription.waitingForAck = true;
+        subscriptionTable[entry->getServiceID()][entry->getInstanceID()].push_back(subscription);
+    }
+
     // build subscribe eventgroup
     SomeIpSDHeader* header = buildSubscribeEventGroup(someIpSDHeader, entry);
     // build packet out
@@ -245,70 +283,60 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     uint32_t outports [] = {(uint32_t)instance.layeredInformation->in_port};
     OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
             outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
-    // find outport in host table
-//    int outport = hostTable->getHostForIpAddress();
-    // a) drop if unknown as service must have been offered already
-//    if (outport == -1) {
-//            throw cRuntimeError("The destination of a subscription should be already known!");
-//    }
-    // b) forward to the next hop
-    // c) forward directly to switch port connected to the dest host
     packetOut->setKind(TCP_C_SEND);
     controller->sendPacketOut(packetOut, instance.layeredInformation->sw_info->getSocket());
-
-    // note the subscription in the subscriptions table
 }
 
 void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* entry, SomeIpSDHeader* someIpSDHeader) {
-    LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
-    // find service in service table
-    // find subscription in subscription table
-
-    // check if multicast or unicast endpoint
-    auto options = getEntryOptions(entry, someIpSDHeader);
-    if (options.size() != 1) {
-        throw cRuntimeError("Subscription acknowledgement must have exactly one endpoint option");
-    }
-    SomeIpSDOption* option = options.front();
-    switch(option->getType()) {
-    case SomeIpSDOptionType::IPV4ENDPOINT: {
-        IPv4EndpointOption* unicast = dynamic_cast<IPv4EndpointOption*>(option);
-        // find route from the switch were the subAck arrived to the destination IP
-        string sw_addr = layeredInformation->sw_info->getMacAddress();
-        IPv4Address ip_dst = unicast->getIpv4Address();
-        TopologyManagement::Route route = topology->findRoute(layeredInformation->sw_info->getMacAddress(), unicast->getIpv4Address());
-        if(route.empty()){
-            throw cRuntimeError("Could not find a route for acknowledged subscription");
-        }
-        // create the match
-        auto builder = OFMatchFactory::getBuilder();
-        builder->setField(OFPXMT_OFB_IPV4_DST, &(unicast->getIpv4Address()));
-        builder->setField(OFPXMT_OFB_UDP_DST, &(unicast->getIpv4Address()));
-
-        break;
-    }
-    case SomeIpSDOptionType::IPV4MULTICAST: {
-        IPv4MulticastOption* mcast = dynamic_cast<IPv4MulticastOption*>(option);
-        break;
-    }
-    default:
-        throw cRuntimeError("Option type not supported.");
-    }
-    // install/update flow along the path
-    // check if connection already exists
-    // if exists & multicast --> check if subscriber is already in the flow
-    // if exists & not multicast --> refresh flow to not expire
-    // if !exitsts --> create flow
-
-
-
-
-    // forward subscription ack to subscriber
-    SomeIpSDHeader* header = buildSubscribeEventGroupAck(someIpSDHeader, entry);
-    EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation);
-    uint32_t outports [] = {(uint32_t)instance.layeredInformation->in_port};
-    OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
-            outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
+//    LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
+//    // find service in service table
+//    // find subscription in subscription table
+//
+//    // check if multicast or unicast endpoint
+//    auto options = getEntryOptions(entry, someIpSDHeader);
+//    if (options.size() != 1) {
+//        throw cRuntimeError("Subscription acknowledgement must have exactly one endpoint option");
+//    }
+//    SomeIpSDOption* option = options.front();
+//    switch(option->getType()) {
+//    case SomeIpSDOptionType::IPV4ENDPOINT: {
+//        IPv4EndpointOption* unicast = dynamic_cast<IPv4EndpointOption*>(option);
+//        // find route from the switch were the subAck arrived to the destination IP
+//        string sw_addr = layeredInformation->sw_info->getMacAddress();
+//        IPv4Address ip_dst = unicast->getIpv4Address();
+//        TopologyManagement::Route route = topology->findRoute(layeredInformation->sw_info->getMacAddress(), unicast->getIpv4Address());
+//        if(route.empty()){
+//            throw cRuntimeError("Could not find a route for acknowledged subscription");
+//        }
+//        // create the match
+//        auto builder = OFMatchFactory::getBuilder();
+//        builder->setField(OFPXMT_OFB_IPV4_DST, &(unicast->getIpv4Address()));
+//        builder->setField(OFPXMT_OFB_UDP_DST, &(unicast->getIpv4Address()));
+//
+//        break;
+//    }
+//    case SomeIpSDOptionType::IPV4MULTICAST: {
+//        IPv4MulticastOption* mcast = dynamic_cast<IPv4MulticastOption*>(option);
+//        break;
+//    }
+//    default:
+//        throw cRuntimeError("Option type not supported.");
+//    }
+//    // install/update flow along the path
+//    // check if connection already exists
+//    // if exists & multicast --> check if subscriber is already in the flow
+//    // if exists & not multicast --> refresh flow to not expire
+//    // if !exitsts --> create flow
+//
+//
+//
+//
+//    // forward subscription ack to subscriber
+//    SomeIpSDHeader* header = buildSubscribeEventGroupAck(someIpSDHeader, entry);
+//    EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation);
+//    uint32_t outports [] = {(uint32_t)instance.layeredInformation->in_port};
+//    OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
+//            outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
 
 
 
