@@ -70,6 +70,7 @@ public:
 
     struct FindRequest {
         SOA4CoRE::SomeIpSDHeader* requestHeader;
+        LayeredInformation* layeredInformation;
         SOA4CoRE::ServiceEntry* entry;
         std::list<SOA4CoRE::SomeIpSDOption*> optionList;
         void clear() {
@@ -210,19 +211,28 @@ protected:
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::ServiceInstance& instance)
 {
-    os << "entry{";
-    os << " serviceID=" << instance.entry->getServiceID();
-    os << " instanceID=" << instance.entry->getInstanceID();
-    os << "}";
+    os << "offer{";
+    os << " source=" << instance.layeredInformation->ip_src.str();
+    os << " endpoints{ ";
+    for(auto option : instance.optionList) {
+        if(SOA4CoRE::IPv4EndpointOption* endpoint = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(option)) {
+            os << "{";
+            os << " IP=" << endpoint->getIpv4Address().str();
+            os << ", port=" << endpoint->getPort();
+            os << ", protocol=" << (uint32) endpoint->getL4Protocol();
+            os << " } ";
+        }
+    }
+    os << "} }";
     return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::FindRequest& request)
 {
-    os << "entry{";
-    os << " serviceID=" << request.entry->getServiceID();
-    os << " instanceID=" << request.entry->getInstanceID();
-    os << "}";
+    os << "find{";
+    os << " source=" << request.layeredInformation->ip_src.str();
+    os << " service=" << request.entry->getServiceID() << " instance=" << request.entry->getInstanceID();
+    os << " }";
     return os;
 }
 
@@ -232,7 +242,7 @@ std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::Subscrip
 //    os << " serviceID=" << sub.service.getServiceId();
 //    os << ", instanceID=" << sub.service.getInstanceId();
 //    os << "}";
-    os << ", provider {";
+    os << "provider {";
     os << " IP=" << sub.providerInformation.ip_src.str();
     os << "}";
     os << ", consumer {";

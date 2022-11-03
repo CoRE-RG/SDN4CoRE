@@ -172,12 +172,13 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
 
         FindRequest saveFind;
         saveFind.requestHeader = someIpSDHeader->dup();
-        saveFind.requestHeader->setControlInfo(findInfo->dup());
+        saveFind.requestHeader->setControlInfo(findInfo->dup()); // todo remove!
+        saveFind.layeredInformation = findInfo->dup();
         saveFind.entry = dynamic_cast<ServiceEntry*>(findInquiry->dup());
         saveFind.entry->setIndex1stOptions(0);
         std::list<SomeIpSDOption*> findOptions = getEntryOptions(findInquiry, someIpSDHeader);
-        for (auto option: findOptions) {
-            saveFind.optionList.push_back(option);
+        for (auto optIt = findOptions.begin(); optIt != findOptions.end(); optIt++) {
+            saveFind.optionList.push_back((*optIt));
         }
         // insert into map
         uint16_t requestedServiceId = findInquiry->getServiceID();
@@ -211,14 +212,14 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
     auto foundX = requestTable.find(offerEntry->getServiceID());
     if(foundX != requestTable.end()) {
         std::list<FindRequest> findInstances = foundX->second;
-        for (auto find: findInstances) {
-            LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(find.requestHeader->getControlInfo());
-            if (find.entry->getServiceID() == 0xFFFF) {
-                SomeIpSDHeader* foundOffer = buildOffer(find.requestHeader, find.entry, entries);
-                sendOffer(foundOffer, find.requestHeader, findInfo, instance.layeredInformation);
-            } else if (find.entry->getServiceID() == find.entry->getServiceID()) {
-                SomeIpSDHeader* foundOffer = buildOffer(find.requestHeader, find.entry, entries);
-                sendOffer(foundOffer, find.requestHeader, findInfo, instance.layeredInformation);
+        for (auto it = findInstances.begin(); it != findInstances.end(); it++) {
+            LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(it->requestHeader->getControlInfo());
+            if (it->entry->getServiceID() == 0xFFFF) {
+                SomeIpSDHeader* foundOffer = buildOffer(it->requestHeader, it->entry, entries);
+                sendOffer(foundOffer, it->requestHeader, findInfo, instance.layeredInformation);
+            } else if (it->entry->getServiceID() == it->entry->getServiceID()) {
+                SomeIpSDHeader* foundOffer = buildOffer(it->requestHeader, it->entry, entries);
+                sendOffer(foundOffer, it->requestHeader, findInfo, instance.layeredInformation);
             }
         }
     }
@@ -251,10 +252,12 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     if(subscriptionTable.find(entry->getServiceID()) != subscriptionTable.end()) {
         if(subscriptionTable[entry->getServiceID()].find(entry->getInstanceID()) != subscriptionTable[entry->getServiceID()].end()) {
             // we know a subscription for this service instance
-            for (auto & sub : subscriptionTable[entry->getServiceID()][entry->getInstanceID()]) {
-                if(sub.isConsumer(*(layeredInformation), *(endpoint))) {
+            for (auto it = subscriptionTable[entry->getServiceID()][entry->getInstanceID()].begin();
+                    it != subscriptionTable[entry->getServiceID()][entry->getInstanceID()].end();
+                    it++) {
+                if(it->isConsumer(*(layeredInformation), *(endpoint))) {
                     // already known!
-                    sub.waitingForAck = true;
+                    it->waitingForAck = true;
                     subKnown = true;
                     break;
                 }
@@ -358,8 +361,8 @@ SomeIpSDHeader* SomeipSDControllerApp::buildFind(SomeIpSDHeader* findSource, Som
     header->encapEntry(newFind);
 
     std::list<SomeIpSDOption*> oldOptionList = getEntryOptions(findInquiry, findSource);
-    for (auto option: oldOptionList) {
-        header->encapOption(option);
+    for (auto it = oldOptionList.begin(); it != oldOptionList.end(); it++) {
+        header->encapOption(*it);
     }
     return header;
 }
@@ -374,14 +377,16 @@ SomeIpSDHeader* SomeipSDControllerApp::buildOffer(SomeIpSDHeader* findSource, So
 
     // create offer - encap each found entry with corresponding options
     int optionsIndex = 0;
-    for (auto instance: foundInstances) {
+    for (auto it = foundInstances.begin(); it != foundInstances.end(); it++) {
+        SomeipSDControllerApp::ServiceInstance& instance = *it;
         int numOptions = instance.optionList.size();
-        instance.entry->setNum1stOptions(numOptions);
-        instance.entry->setIndex1stOptions(optionsIndex);
-        header->encapEntry(instance.entry->dup());
+        ServiceEntry* entry = instance.entry->dup();
+        entry->setNum1stOptions(numOptions);
+        entry->setIndex1stOptions(optionsIndex);
+        header->encapEntry(entry);
         if (numOptions != 0) {
-            for (auto option: instance.optionList){
-            header->encapOption(option->dup());
+            for (auto optIt = instance.optionList.begin(); optIt != instance.optionList.end(); optIt++) {
+                header->encapOption((*optIt)->dup());
             }
         }
         optionsIndex += numOptions;
@@ -399,8 +404,8 @@ SOA4CoRE::SomeIpSDHeader* SomeipSDControllerApp::buildSubscribeEventGroup(
     entryDup->setNum1stOptions(entryOptions.size());
     entryDup->setIndex1stOptions(0);
     if (entryOptions.size() > 0) {
-        for (auto option: entryOptions){
-            header->encapOption(option->dup());
+        for (auto it = entryOptions.begin(); it != entryOptions.end(); it++) {
+            header->encapOption((*it)->dup());
         }
     }
     header->encapEntry(entryDup);
@@ -498,6 +503,7 @@ void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
             for (auto iter = serviceInstance.optionList.begin(); iter != serviceInstance.optionList.end(); ) {
                 auto castIter = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter);
                 bool removed = false;
+
                 for (auto elem: newInfo.optionList) {
                     auto castElem = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(elem);
                     //if this 3 entries are the same, its the same Option -> delete from old list
