@@ -367,7 +367,7 @@ SomeIpSDHeader* SomeipSDControllerApp::buildFind(SomeIpSDHeader* findSource, Som
     return header;
 }
 
-SomeIpSDHeader* SomeipSDControllerApp::buildOffer(SomeIpSDHeader* findSource, SomeIpSDEntry* findEntry, list<ServiceInstance> foundInstances){
+SomeIpSDHeader* SomeipSDControllerApp::buildOffer(SomeIpSDHeader* findSource, SomeIpSDEntry* findEntry, list<ServiceInstance>& foundInstances){
     // findSource --> information about requester in the layered information
     // findEntry --> information what is requested
     // list foundEntries --> struct with found entries and list of options
@@ -483,74 +483,71 @@ list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEnt
     return optionList;
 }
 
-//void SomeipSDControllerApp::updateRequestTable(requestInstance& newInfo){
-//
-//}
-
 void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
-    // insert ServiceInstance in an InstanceMap - this into ServiceInstanceMap called serviceTable
-    // Case 1: ServiceID and InstanceID exist -> update value of InstanceMap -> entry
-    // Case 2: ServiceID exists -> update InstanceMap -> new key value
-    // Case 3: neither nor exists -> update serviceTable key key value
-    auto offeredServiceId = newInfo.entry->getServiceID();
-    auto found = serviceTable.find(offeredServiceId); //ServiceID exists in ServiceTable?
-    // Case 1 or 2:
+    uint16_t offeredServiceId = newInfo.entry->getServiceID();
+    uint16_t offeredInstance = newInfo.entry->getInstanceID(); //Which Instance is offered
+    //ServiceID exists in ServiceTable?
+    auto found = serviceTable.find(offeredServiceId);
     if (found != serviceTable.end()) {
-        auto offeredInstance = newInfo.entry->getInstanceID(); //Which Instance is offered
-        auto foundInstance = found->second.find(offeredInstance); //InstanceID exists in Table?
+        //InstanceID exists in Table?
+        auto foundInstance = found->second.find(offeredInstance);
         if (foundInstance != found->second.end()) {
-            auto serviceInstance = foundInstance->second;//
-            for (auto iter = serviceInstance.optionList.begin(); iter != serviceInstance.optionList.end(); ) {
-                auto castIter = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter);
-                bool removed = false;
-
-                for (auto elem: newInfo.optionList) {
-                    auto castElem = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(elem);
-                    //if this 3 entries are the same, its the same Option -> delete from old list
-                    if (castElem->getIpv4Address() == castIter->getIpv4Address()
-                        && castElem->getL4Protocol() == castIter->getL4Protocol()
-                        && castElem->getPort() == castIter->getPort()) {
-                        iter = serviceInstance.optionList.erase(iter);
-                        removed = true;
+            // Case 1: ServiceID and InstanceID exist -> update value of InstanceMap -> entry
+            ServiceInstance& serviceInstance = foundInstance->second;//
+            for (auto oldOptionIter = serviceInstance.optionList.begin(); oldOptionIter != serviceInstance.optionList.end(); ++oldOptionIter) {
+                bool update = false;
+                //check if there is already an option of the same type
+                for (auto newOptionIter = newInfo.optionList.begin(); newOptionIter != newInfo.optionList.end(); newOptionIter++) {
+                    if((*newOptionIter)->getType() == (*oldOptionIter)->getType()) {
+                        // option of same type exists
+                        // there can be multiple ipv4 options for different protocols
+                        if(IPv4EndpointOption* newOption = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*newOptionIter)) {
+                            if(IPv4EndpointOption* oldOption = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*oldOptionIter)) {
+                                if (newOption->getL4Protocol() == oldOption->getL4Protocol()) {
+                                    // mark for replacement
+                                    update = true;
+                                }
+                            }
+                        } else {
+                            // both should not be IPv4 so mark for replacement
+                            update = true;
+                        }
+                    }
+                    if(update) {
+                        //already found
                         break;
                     }
                 }
-                if (!removed) {
-                    ++iter;
+                if(!update) {
+                    // insert old option
+                    newInfo.optionList.push_back((*oldOptionIter)->dup());
                 }
             }
-            // insert remaining Options in new list
-            for (auto elem: serviceInstance.optionList) {
-                newInfo.optionList.push_back(elem);
-            }
-//            newInfo.optionList.merge(serviceInstance.optionList);
-            foundInstance->second.clear();
-            found->second[offeredInstance] = newInfo;
+            // now newInfo is complete
+            // cleanup old instance
+            serviceInstance.clear();
         } else {
-            found->second[offeredInstance] = newInfo;
-            serviceTable[newInfo.entry->getServiceID()] = found->second;
+            // Case 2: ServiceID exists but instance unknown -> update InstanceMap new key value
         }
     } else {
-        InstanceMap newMap;
-        newMap[newInfo.entry->getInstanceID()] = newInfo;
-        serviceTable[newInfo.entry->getServiceID()] = newMap;
+        // Case 3: neither service nor instance known -> update serviceTable key key value
+        serviceTable[offeredServiceId] = InstanceMap();
     }
-
+    serviceTable[offeredServiceId][offeredInstance] = newInfo;
 }
 
 list<SomeipSDControllerApp::ServiceInstance> SomeipSDControllerApp::lookUpServiceInMap(uint16_t requestedServiceId, uint16_t requestedInstanceId){
     list<ServiceInstance> returnList;
     auto found = serviceTable.find(requestedServiceId);
     if (found != serviceTable.end()) {
-        auto instanceMap = found->second;
         if (requestedInstanceId == 0xFFFF){
             //all InstanceIDs shall be returned [PRS_SOMEIPSD_00351]
-            for (auto instance: instanceMap) {
-                returnList.push_back(instance.second);
+            for (auto iter = found->second.begin(); iter != found->second.end(); iter++) {
+                returnList.push_back(iter->second);
             }
         } else {
-            auto foundInstance = instanceMap.find(requestedInstanceId);
-            if (foundInstance != instanceMap.end() ) {
+            auto foundInstance = found->second.find(requestedInstanceId);
+            if (foundInstance != found->second.end()) {
                 returnList.push_back(foundInstance->second);
             }
         }

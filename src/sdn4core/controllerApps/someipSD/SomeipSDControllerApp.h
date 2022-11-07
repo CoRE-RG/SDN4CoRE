@@ -163,7 +163,7 @@ protected:
     void processSubscribeEventGroupAckEntry(SOA4CoRE::SomeIpSDEntry* entry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
 
     SOA4CoRE::SomeIpSDHeader* buildFind(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry);
-    SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, std::list<ServiceInstance> foundInstances);
+    SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, std::list<ServiceInstance>& foundInstances);
     SOA4CoRE::SomeIpSDHeader* buildSubscribeEventGroup(SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry);
 
     void sendFind(SOA4CoRE::SomeIpSDHeader*, SOA4CoRE::SomeIpSDHeader* findSource);
@@ -212,10 +212,12 @@ protected:
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::ServiceInstance& instance)
 {
     os << "offer{";
-    os << " source=" << instance.layeredInformation->ip_src.str();
+    if(instance.layeredInformation) {
+        os << " source=" << instance.layeredInformation->ip_src.str();
+    }
     os << " endpoints{ ";
-    for(auto option : instance.optionList) {
-        if(SOA4CoRE::IPv4EndpointOption* endpoint = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(option)) {
+    for (auto iter = instance.optionList.begin(); iter != instance.optionList.end(); ++iter) {
+        if(SOA4CoRE::IPv4EndpointOption* endpoint = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter)) {
             os << "{";
             os << " IP=" << endpoint->getIpv4Address().str();
             os << ", port=" << endpoint->getPort();
