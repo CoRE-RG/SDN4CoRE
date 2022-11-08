@@ -76,6 +76,8 @@ public:
         void clear() {
             if (requestHeader) delete requestHeader;
             requestHeader = nullptr;
+            if (layeredInformation) delete layeredInformation;
+            layeredInformation = nullptr;
             if (entry) delete entry;
             entry= nullptr;
             for (auto elem: optionList) {
@@ -124,18 +126,18 @@ public:
     ~SomeipSDControllerApp(){
         for (auto idIter : serviceTable){
             for (auto instanceIter : idIter.second) {
-                instanceIter.second->clear();
+                instanceIter.second.clear();
             }
             idIter.second.clear();
         }
         serviceTable.clear();
 
-        for (auto elem : requestTable){
-                for (auto element : elem.second) {
-                    element.clear();
-                }
-                elem.second.clear();
+        for (auto idIter : requestTable){
+            for (auto request : idIter.second) {
+                request.clear();
             }
+            idIter.second.clear();
+        }
         requestTable.clear();
     };
 protected:
@@ -240,16 +242,18 @@ std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::FindRequ
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::Subscription& sub)
 {
-//    os << "{ service {";
-//    os << " serviceID=" << sub.service.getServiceId();
-//    os << ", instanceID=" << sub.service.getInstanceId();
-//    os << "}";
     os << "provider {";
-    os << " IP=" << sub.providerInformation.ip_src.str();
+    os << " IP=" << sub.providerEndpoint.getIpv4Address().str();
+    os << ", port=" << sub.providerEndpoint.getPort();
+    os << ", protocol=" << (uint32) sub.providerEndpoint.getL4Protocol();
     os << "}";
     os << ", consumer {";
-    os << " IP=" << sub.consumerInformation.ip_src.str();
+    os << " IP=" << sub.consumerEndpoint.getIpv4Address().str();
+    os << ", port=" << sub.consumerEndpoint.getPort();
+    os << ", protocol=" << (uint32) sub.consumerEndpoint.getL4Protocol();
     os << "}";
+    os << ", active=" << sub.active;
+    os << ", waitingForAck=" << sub.waitingForAck;
     return os;
 }
 

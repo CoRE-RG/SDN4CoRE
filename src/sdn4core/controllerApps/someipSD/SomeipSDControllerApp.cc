@@ -208,7 +208,7 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
     // look for requested offers in requestTable
     auto foundX = requestTable.find(offerEntry->getServiceID());
     if(foundX != requestTable.end()) {
-        std::list<ServiceInstance*> entries;
+        std::list<ServiceInstance> entries;
         entries.push_back(instance);
         std::list<FindRequest> findInstances = foundX->second;
         for (auto it = findInstances.begin(); it != findInstances.end(); it++) {
@@ -277,6 +277,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
         subscription.waitingForAck = true;
         subscriptionTable[entry->getServiceID()][entry->getInstanceID()].push_back(subscription);
     }
+    delete endpoint;
 
     // build subscribe eventgroup
     SomeIpSDHeader* header = buildSubscribeEventGroup(someIpSDHeader, entry);
@@ -287,6 +288,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
             outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
     packetOut->setKind(TCP_C_SEND);
     controller->sendPacketOut(packetOut, instance.layeredInformation->sw_info->getSocket());
+    delete eth2Frame;
 }
 
 void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* entry, SomeIpSDHeader* someIpSDHeader) {
@@ -404,7 +406,7 @@ SOA4CoRE::SomeIpSDHeader* SomeipSDControllerApp::buildSubscribeEventGroup(
     entryDup->setIndex1stOptions(0);
     if (entryOptions.size() > 0) {
         for (auto it = entryOptions.begin(); it != entryOptions.end(); it++) {
-            header->encapOption((*it)->dup());
+            header->encapOption((*it));
         }
     }
     header->encapEntry(entryDup);
@@ -465,6 +467,8 @@ void SomeipSDControllerApp::sendOffer(SomeIpSDHeader* offer, SomeIpSDHeader* fin
     packetOut->setKind(TCP_C_SEND);
 
     controller->sendPacketOut(packetOut, infoFind->sw_info->getSocket());
+
+    delete eth2Frame;
 }
 
 list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {
@@ -483,10 +487,8 @@ list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEnt
 }
 
 void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
-    uint16_t offeredServiceId = newInfo.entry->getServiceID();
-    uint16_t offeredInstance = newInfo.entry->getInstanceID(); //Which Instance is offered
-    uint16_t serviceId = newInfo->entry->getServiceID();
-    uint16_t instanceId = newInfo->entry->getInstanceID(); //Which Instance is offered
+    uint16_t serviceId = newInfo.entry->getServiceID();
+    uint16_t instanceId = newInfo.entry->getInstanceID(); //Which Instance is offered
     //ServiceID exists in ServiceTable?
     auto found = serviceTable.find(serviceId);
     if (found != serviceTable.end()) {
