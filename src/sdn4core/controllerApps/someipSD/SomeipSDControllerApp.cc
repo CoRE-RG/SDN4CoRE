@@ -198,19 +198,18 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
 
 void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSDHeader* someIpSDHeader) {
     // update ServiceTable with offer
-    // look for requested offers in requestTable
-    std::list<ServiceInstance> entries;
     ServiceInstance instance;
     instance.entry = dynamic_cast<ServiceEntry*>(offerEntry->dup());
     instance.entry->setIndex1stOptions(0);
     instance.layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo())->dup();
     instance.optionList = getEntryOptions(offerEntry, someIpSDHeader);
-    entries.push_back(instance);
     updateServiceTable(instance);
 
-
+    // look for requested offers in requestTable
     auto foundX = requestTable.find(offerEntry->getServiceID());
     if(foundX != requestTable.end()) {
+        std::list<ServiceInstance*> entries;
+        entries.push_back(instance);
         std::list<FindRequest> findInstances = foundX->second;
         for (auto it = findInstances.begin(); it != findInstances.end(); it++) {
             LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(it->requestHeader->getControlInfo());
@@ -486,11 +485,13 @@ list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEnt
 void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
     uint16_t offeredServiceId = newInfo.entry->getServiceID();
     uint16_t offeredInstance = newInfo.entry->getInstanceID(); //Which Instance is offered
+    uint16_t serviceId = newInfo->entry->getServiceID();
+    uint16_t instanceId = newInfo->entry->getInstanceID(); //Which Instance is offered
     //ServiceID exists in ServiceTable?
-    auto found = serviceTable.find(offeredServiceId);
+    auto found = serviceTable.find(serviceId);
     if (found != serviceTable.end()) {
         //InstanceID exists in Table?
-        auto foundInstance = found->second.find(offeredInstance);
+        auto foundInstance = found->second.find(instanceId);
         if (foundInstance != found->second.end()) {
             // Case 1: ServiceID and InstanceID exist -> update value of InstanceMap -> entry
             ServiceInstance& serviceInstance = foundInstance->second;//
@@ -531,9 +532,9 @@ void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
         }
     } else {
         // Case 3: neither service nor instance known -> update serviceTable key key value
-        serviceTable[offeredServiceId] = InstanceMap();
+        serviceTable[serviceId] = InstanceMap();
     }
-    serviceTable[offeredServiceId][offeredInstance] = newInfo;
+    serviceTable[serviceId][instanceId] = newInfo;
 }
 
 list<SomeipSDControllerApp::ServiceInstance> SomeipSDControllerApp::lookUpServiceInMap(uint16_t requestedServiceId, uint16_t requestedInstanceId){

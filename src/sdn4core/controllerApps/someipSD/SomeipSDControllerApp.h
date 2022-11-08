@@ -49,8 +49,8 @@ class SomeipSDControllerApp: public PacketProcessorBase
 {
 public:
     struct ServiceInstance {
-        SOA4CoRE::ServiceEntry* entry;
-        LayeredInformation* layeredInformation;
+        SOA4CoRE::ServiceEntry* entry = nullptr;
+        LayeredInformation* layeredInformation = nullptr;
         std::list<SOA4CoRE::SomeIpSDOption*> optionList;
         void clear() {
             if (entry) delete entry;
@@ -122,11 +122,11 @@ public:
     typedef std::map<int, IntanceSubscriptionMap> SubscriptionMap;
 
     ~SomeipSDControllerApp(){
-        for (auto elem : serviceTable){
-            for (auto element : elem.second) {
-                element.second.clear();
+        for (auto idIter : serviceTable){
+            for (auto instanceIter : idIter.second) {
+                instanceIter.second->clear();
             }
-            elem.second.clear();
+            idIter.second.clear();
         }
         serviceTable.clear();
 
