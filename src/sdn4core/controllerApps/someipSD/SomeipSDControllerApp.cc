@@ -292,58 +292,53 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
 }
 
 void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* entry, SomeIpSDHeader* someIpSDHeader) {
-//    LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
-//    // find service in service table
-//    // find subscription in subscription table
-//
-//    // check if multicast or unicast endpoint
-//    auto options = getEntryOptions(entry, someIpSDHeader);
-//    if (options.size() != 1) {
-//        throw cRuntimeError("Subscription acknowledgement must have exactly one endpoint option");
-//    }
-//    SomeIpSDOption* option = options.front();
-//    switch(option->getType()) {
-//    case SomeIpSDOptionType::IPV4ENDPOINT: {
-//        IPv4EndpointOption* unicast = dynamic_cast<IPv4EndpointOption*>(option);
-//        // find route from the switch were the subAck arrived to the destination IP
-//        string sw_addr = layeredInformation->sw_info->getMacAddress();
-//        IPv4Address ip_dst = unicast->getIpv4Address();
-//        TopologyManagement::Route route = topology->findRoute(layeredInformation->sw_info->getMacAddress(), unicast->getIpv4Address());
-//        if(route.empty()){
-//            throw cRuntimeError("Could not find a route for acknowledged subscription");
-//        }
-//        // create the match
-//        auto builder = OFMatchFactory::getBuilder();
-//        builder->setField(OFPXMT_OFB_IPV4_DST, &(unicast->getIpv4Address()));
-//        builder->setField(OFPXMT_OFB_UDP_DST, &(unicast->getIpv4Address()));
-//
-//        break;
-//    }
-//    case SomeIpSDOptionType::IPV4MULTICAST: {
-//        IPv4MulticastOption* mcast = dynamic_cast<IPv4MulticastOption*>(option);
-//        break;
-//    }
-//    default:
-//        throw cRuntimeError("Option type not supported.");
-//    }
-//    // install/update flow along the path
-//    // check if connection already exists
-//    // if exists & multicast --> check if subscriber is already in the flow
-//    // if exists & not multicast --> refresh flow to not expire
-//    // if !exitsts --> create flow
-//
-//
-//
-//
-//    // forward subscription ack to subscriber
-//    SomeIpSDHeader* header = buildSubscribeEventGroupAck(someIpSDHeader, entry);
-//    EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation);
-//    uint32_t outports [] = {(uint32_t)instance.layeredInformation->in_port};
-//    OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
-//            outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
-
-
-
+    LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
+    uint16_t serviceId = entry->getServiceID();
+    uint16_t instanceId = entry->getInstanceID();
+    // find subscription in subscription table
+    if(subscriptionTable.find(serviceId) == subscriptionTable.end()
+            || subscriptionTable[serviceId].find(instanceId) == subscriptionTable[serviceId].end()) {
+        throw cRuntimeError("No subscription for service instance to be acknowledged.");
+    }
+    ServiceInstanceSubscriptionList& subscriptions = subscriptionTable[serviceId][instanceId];
+    bool requested = false;
+    for (auto iter = subscriptions.begin(); iter != subscriptions.end(); iter++) {
+        if(iter->waitingForAck && iter->consumerInformation.ip_src == layeredInformation->ip_dst) {
+            // subscription requested and response is for this specific consumer
+            requested = true;
+            iter->waitingForAck = false;
+            if(!iter->active) {
+                // set provider information from subscribe ack in subscription
+                auto options = getEntryOptions(entry, someIpSDHeader);
+                if (options.size() != 1) {
+                    throw cRuntimeError("Subscription acknowledgement must have exactly one endpoint option");
+                }
+                if(IPv4EndpointOption* endpoint = dynamic_cast<IPv4EndpointOption*>(options.front())) {
+                    iter->providerEndpoint = *endpoint;
+                    iter->providerInformation = *layeredInformation;
+                    delete endpoint;
+                } else {
+                    throw cRuntimeError("Provider option is no IPv4 endpoint");
+                }
+                installFlowForSubscription(*iter);
+                // forward subscription ack to subscriber
+                SomeIpSDHeader* header = buildSubscribeEventGroupAck(someIpSDHeader, entry);
+                EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation, &iter->consumerInformation);
+                uint32_t outports [] = {(uint32_t)iter->consumerInformation.in_port};
+                OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
+                        outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
+                packetOut->setKind(TCP_C_SEND);
+                controller->sendPacketOut(packetOut, iter->consumerInformation.sw_info->getSocket());
+                delete eth2Frame;
+                iter->active = true;
+            }
+            // consumer handled the sub ack!
+            break;
+        }
+    }
+    if(!requested) {
+        throw cRuntimeError("No subscription requested for service instance.");
+    }
 }
 
 SomeIpSDHeader* SomeipSDControllerApp::buildFind(SomeIpSDHeader* findSource, SomeIpSDEntry* findInquiry){
@@ -399,6 +394,23 @@ SomeIpSDHeader* SomeipSDControllerApp::buildOffer(SomeIpSDHeader* findSource, So
 SOA4CoRE::SomeIpSDHeader* SomeipSDControllerApp::buildSubscribeEventGroup(
         SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry) {
     SomeIpSDHeader* header = new SomeIpSDHeader("SOME/IP SD - SUBSCRIBEEVENTGROUP");
+    header->setRequestID(source->getRequestID());
+    auto entryOptions = getEntryOptions(entry, source);
+    auto entryDup = entry->dup();
+    entryDup->setNum1stOptions(entryOptions.size());
+    entryDup->setIndex1stOptions(0);
+    if (entryOptions.size() > 0) {
+        for (auto it = entryOptions.begin(); it != entryOptions.end(); it++) {
+            header->encapOption((*it));
+        }
+    }
+    header->encapEntry(entryDup);
+    return header;
+}
+
+SOA4CoRE::SomeIpSDHeader* SomeipSDControllerApp::buildSubscribeEventGroupAck(
+        SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry) {
+    SomeIpSDHeader* header = new SomeIpSDHeader("SOME/IP SD - SUBSCRIBEEVENTGROUPACK");
     header->setRequestID(source->getRequestID());
     auto entryOptions = getEntryOptions(entry, source);
     auto entryDup = entry->dup();
@@ -469,6 +481,40 @@ void SomeipSDControllerApp::sendOffer(SomeIpSDHeader* offer, SomeIpSDHeader* fin
     controller->sendPacketOut(packetOut, infoFind->sw_info->getSocket());
 
     delete eth2Frame;
+}
+
+void SomeipSDControllerApp::installFlowForSubscription(Subscription& sub) {
+    // flow specification
+    IPv4Address ip_src = sub.providerEndpoint.getIpv4Address();
+    uint16_t tp_src = sub.providerEndpoint.getPort();
+    uint8_t ip_proto = sub.consumerEndpoint.getL4Protocol();
+    IPv4Address ip_dst = sub.consumerEndpoint.getIpv4Address();
+    uint16_t tp_dst = sub.consumerEndpoint.getPort();
+    IPv4Address ip_host_dst = sub.getDstHostIp();
+
+    // TODO add mcast support!!
+    bool isMcast = sub.isMcast();
+
+    // find route from the switch were the subAck arrived to the consumer IP
+    TopologyManagement::Route route = topology->findRoute(
+            topology->findEdgePort(ip_src).switchId, ip_host_dst);
+    if(route.empty()){
+        throw cRuntimeError("Could not find a route for acknowledged subscription");
+    }
+    // create the match
+    auto builder = OFMatchFactory::getBuilder();
+    builder->setField(OFPXMT_OFB_IPV4_SRC, &(ip_src));
+    builder->setField(OFPXMT_OFB_UDP_SRC, &(tp_src));
+    builder->setField(OFPXMT_OFB_IP_PROTO, &(ip_proto));
+    builder->setField(OFPXMT_OFB_IPV4_DST, &(ip_dst));
+    builder->setField(OFPXMT_OFB_UDP_DST, &(tp_dst));
+    for(SwitchPort& switchPort : route) {
+        int inport = topology->findOutportAtSwitch(switchPort.switchId, ip_src);
+        builder->setField(OFPXMT_OFB_IN_PORT, &(inport));
+        oxm_basic_match match = builder->build();
+        TCPSocket* socket = controller->findSocketForChassisId(switchPort.switchId);
+        sendFlowModMessage(ofp_flow_mod_command::OFPFC_ADD, match, switchPort.port, socket, _idleTimeout, _hardTimeout);
+    }
 }
 
 list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {

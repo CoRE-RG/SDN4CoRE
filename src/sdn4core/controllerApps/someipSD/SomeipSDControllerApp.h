@@ -117,6 +117,17 @@ public:
                     && otherEndpoint.getIpv4Address() == providerEndpoint.getIpv4Address()
                     && otherEndpoint.getPort() == providerEndpoint.getPort();
         }
+
+        bool isMcast() {
+            return consumerEndpoint.getType() == SOA4CoRE::SomeIpSDOptionType::IPV4MULTICAST;
+        }
+
+        IPv4Address getDstHostIp() {
+            if(isMcast()) {
+                return consumerInformation.ip_src.toIPv4();
+            }
+            return consumerEndpoint.getIpv4Address();
+        }
     };
 
     typedef std::list<Subscription> ServiceInstanceSubscriptionList;
@@ -167,9 +178,12 @@ protected:
     SOA4CoRE::SomeIpSDHeader* buildFind(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry);
     SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, std::list<ServiceInstance>& foundInstances);
     SOA4CoRE::SomeIpSDHeader* buildSubscribeEventGroup(SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry);
+    SOA4CoRE::SomeIpSDHeader* buildSubscribeEventGroupAck(SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry);
 
     void sendFind(SOA4CoRE::SomeIpSDHeader*, SOA4CoRE::SomeIpSDHeader* findSource);
     void sendOffer(SOA4CoRE::SomeIpSDHeader* offer, SOA4CoRE::SomeIpSDHeader* findSource, LayeredInformation* infoFind, LayeredInformation* infoOffer);
+
+    void installFlowForSubscription(Subscription& sub);
 
     std::list<SOA4CoRE::SomeIpSDOption*> getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
     void updateServiceTable(ServiceInstance& newInfo);
