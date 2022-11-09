@@ -48,6 +48,9 @@ namespace SDN4CoRE {
 class SomeipSDControllerApp: public PacketProcessorBase
 {
 public:
+    /**
+     * struct to save a single offer-message with the corresponding options
+     */
     struct ServiceInstance {
         SOA4CoRE::ServiceEntry* entry = nullptr;
         LayeredInformation* layeredInformation = nullptr;
@@ -65,7 +68,14 @@ public:
         }
     };
 
+    /**
+     *  InstanceMap includes all available instances sorted by InstanceIDs as key
+     *  used to insert the instances into the ServiceInstanceMap
+     */
     typedef std::map<int, ServiceInstance> InstanceMap;
+    /**
+     *  Map includes all available services sorted by ServiceIDs as key
+     */
     typedef std::map<int, InstanceMap> ServiceInstanceMap;
 
     struct FindRequest {
@@ -88,6 +98,9 @@ public:
         }
     };
 
+    /**
+    * RequestMap:Contains all Find-Messages that are not answered
+    */
     typedef std::map<int, std::list<FindRequest>> RequestMap;
 
     struct Subscription {
@@ -134,6 +147,9 @@ public:
     typedef std::map<int, ServiceInstanceSubscriptionList> IntanceSubscriptionMap;
     typedef std::map<int, IntanceSubscriptionMap> SubscriptionMap;
 
+    /**
+     *  Cleans the serviceTable for finishing the simulation
+     */
     ~SomeipSDControllerApp(){
         for (auto idIter : serviceTable){
             for (auto instanceIter : idIter.second) {
