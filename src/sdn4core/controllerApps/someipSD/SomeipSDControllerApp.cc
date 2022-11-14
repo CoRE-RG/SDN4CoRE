@@ -172,7 +172,6 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
 
         FindRequest saveFind;
         saveFind.requestHeader = someIpSDHeader->dup();
-        saveFind.requestHeader->setControlInfo(findInfo->dup()); // todo remove!
         saveFind.layeredInformation = findInfo->dup();
         saveFind.entry = dynamic_cast<ServiceEntry*>(findInquiry->dup());
         saveFind.entry->setIndex1stOptions(0);
@@ -184,6 +183,15 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
         uint16_t requestedServiceId = findInquiry->getServiceID();
         auto found = requestTable.find(requestedServiceId);
         if (found != requestTable.end()) {
+            for (auto findIt = found->second.begin(); findIt !=found->second.end(); findIt++){
+                if (findIt->entry->getInstanceID() == saveFind.entry->getInstanceID()){
+                    if (findIt->layeredInformation->eth_src == saveFind.layeredInformation->eth_src) {
+                        findIt->clear();
+                        found->second.erase(findIt--);
+                    }
+                }
+            }
+//            requestTable[requestedServiceId] = found->second;
             requestTable[requestedServiceId].push_back(saveFind);
         } else {
             std::list<FindRequest> newFind = {saveFind};
@@ -205,22 +213,29 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
     instance.optionList = getEntryOptions(offerEntry, someIpSDHeader);
     updateServiceTable(instance);
 
-    // look for requested offers in requestTable
+    // look for requested offer in requestTable
     auto foundX = requestTable.find(offerEntry->getServiceID());
     if(foundX != requestTable.end()) {
+        // to build an offer we need a list of ServiceInstances although we only have one offer
         std::list<ServiceInstance> entries;
         entries.push_back(instance);
-        std::list<FindRequest> findInstances = foundX->second;
+        // Iteration of the InstanceMap
+        std::list<FindRequest>& findInstances = foundX->second;
         for (auto it = findInstances.begin(); it != findInstances.end(); it++) {
-            LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(it->requestHeader->getControlInfo());
-            if (it->entry->getServiceID() == 0xFFFF) {
-                SomeIpSDHeader* foundOffer = buildOffer(it->requestHeader, it->entry, entries);
-                sendOffer(foundOffer, it->requestHeader, findInfo, instance.layeredInformation);
-            } else if (it->entry->getServiceID() == it->entry->getServiceID()) {
-                SomeIpSDHeader* foundOffer = buildOffer(it->requestHeader, it->entry, entries);
-                sendOffer(foundOffer, it->requestHeader, findInfo, instance.layeredInformation);
+            if ((it->entry->getInstanceID() == 0xFFFF) || (it->entry->getInstanceID() == instance.entry->getInstanceID())) {
+                SomeIpSDHeader* foundRequest = buildOffer(it->requestHeader, it->entry, entries);
+                sendOffer(foundRequest, it->requestHeader, it->layeredInformation, instance.layeredInformation);
+                // toDo delete request
+                it->clear();
+                findInstances.erase(it--);
             }
         }
+        if (findInstances.empty()){
+            requestTable.erase(foundX);
+        }
+//        else {
+//        requestTable[instance.entry->getServiceID()] = findInstances;
+//        }
     }
 }
 
