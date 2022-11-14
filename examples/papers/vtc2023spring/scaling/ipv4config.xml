@@ -1,0 +1,8 @@
+<config>
+
+    <interface hosts="publisher* subscriber* controller" names="phy0" address="192.168.178.x" /> <!-- data plane -->
+    <route hosts="publisher* subscriber* router*" destination="*" interface="phy0" metric="50"/>
+    
+    <interface among="controller switch*" names="eth0" address="10.0.0.x"/> <!-- control plane -->    
+    
+</config>
