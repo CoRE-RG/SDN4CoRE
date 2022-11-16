@@ -23,7 +23,7 @@ import inet.node.inet.Router;
 network vtc23_scaling_switch
 {
     parameters:
-        int numSwitches = default(1);
+        int numSwitches = default(2);
         int numPublishers = default(1);
         int numSubscribers = default(1);
     types:
@@ -68,6 +68,6 @@ network vtc23_scaling_switch
         
         // subscriber connections
         for i=0..numSubscribers-1 {
-            subscribers[i].ethg <--> HOST_LINK <--> switches[numRouters-1].ethg++;
+            subscribers[i].ethg <--> HOST_LINK <--> switches[numSwitches-1].ethg++;
         }  
 }

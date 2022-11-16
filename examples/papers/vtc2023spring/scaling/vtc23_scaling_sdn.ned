@@ -22,7 +22,7 @@ import core4inet.nodes.ethernet.IEEE8021Q.IEEE8021QEtherSwitch;
 network vtc23_scaling_sdn
 {
     parameters:
-        int numSwitches = default(1);
+        int numSwitches = default(2);
         int numPublishers = default(1);
         int numSubscribers = default(1);
     types:
