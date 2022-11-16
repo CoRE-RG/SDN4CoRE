@@ -88,7 +88,7 @@ void SomeipSDControllerApp::initialize() {
 //    instances[entry->getInstanceID()] = instance;
 //    serviceTable[entry->getServiceID()] = instances;
 
-    myLayeredInformation.eth_src.setAddress("0A:AA:00:00:00:0A");
+    myLayeredInformation.eth_src.setAddress("C0:C0:C0:C0:C0:C0");
     myLayeredInformation.ip_src = L3Address("10.0.0.2");
     myLayeredInformation.transport_src = SOMEIPSD_PORT;
     myLayeredInformation.in_port = -1;
@@ -106,7 +106,6 @@ void SomeipSDControllerApp::initialize() {
 
 void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
     Switch_Info* swInfo = controller->findSwitchInfoFor(packet_in_msg);
-    hostTable->update(packet_in_msg, swInfo);
 
     // layer 2
     if (EthernetIIFrame* eth = dynamic_cast<EthernetIIFrame *>(packet_in_msg->getEncapsulatedPacket())) {
@@ -117,6 +116,10 @@ void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
                                         (eth->getEncapsulatedPacket()->getEncapsulatedPacket())) {
                 if (SomeIpSDHeader* someIpSDHeader = dynamic_cast<SomeIpSDHeader*>
                                                         (transport->getEncapsulatedPacket()))  {
+                    if(ip->getSourceAddress() == myLayeredInformation.ip_src) {
+                        return; // ignore packets send by the controller
+                    }
+                    hostTable->update(packet_in_msg, swInfo);
                     //set layeredInformation and attach control info
                     LayeredInformation* layeredInformation = new LayeredInformation();
                     layeredInformation->eth_src = eth->getSrc();
@@ -163,8 +166,9 @@ void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader
 
 void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader) {
 
-    std::list<ServiceInstance> entries = lookUpServiceInMap(findInquiry->getServiceID(), findInquiry->getInstanceID());
     LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
+    std::list<ServiceInstance> entries = lookUpServiceInMap(findInquiry->getServiceID(), findInquiry->getInstanceID());
+
     if(entries.empty())
     {
         SomeIpSDHeader* myFind = buildFind(someIpSDHeader, findInquiry);
