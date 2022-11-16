@@ -22,7 +22,7 @@ import core4inet.nodes.ethernet.IEEE8021Q.IEEE8021QEtherSwitch;
 network vtc23_scaling_sdn
 {
     parameters:
-        int numRouters = default(1);
+        int numSwitches = default(1);
         int numPublishers = default(1);
         int numSubscribers = default(1);
     types:
@@ -47,7 +47,7 @@ network vtc23_scaling_sdn
         subscribers[numSubscribers]: Node {
         }  
 
-        switches[numRouters]: Switch {
+        switches[numSwitches]: Switch {
             parameters:
         }
 
@@ -65,11 +65,11 @@ network vtc23_scaling_sdn
 
     connections:
         // backbone links
-        for i=0..numRouters-2 {
+        for i=0..numSwitches-2 {
         	switches[i].gateDataPlane++ <--> BACKBONE_LINK <--> switches[i+1].gateDataPlane++;
         	switches[i].gateControlPlane <--> BACKBONE_LINK <--> ethswitch.ethg++;
         } 
-    	switches[numRouters-1].gateControlPlane <--> BACKBONE_LINK <--> ethswitch.ethg++;
+    	switches[numSwitches-1].gateControlPlane <--> BACKBONE_LINK <--> ethswitch.ethg++;
         controller.ethg++ <--> ETH_1GBIT <--> ethswitch.ethg++;
         
         // publisher connections
@@ -79,6 +79,6 @@ network vtc23_scaling_sdn
         
         // subscriber connections
         for i=0..numSubscribers-1 {
-            subscribers[i].ethg <--> HOST_LINK <--> switches[numRouters-1].gateDataPlane++;
+            subscribers[i].ethg <--> HOST_LINK <--> switches[numSwitches-1].gateDataPlane++;
         }  
 }

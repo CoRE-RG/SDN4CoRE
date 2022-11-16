@@ -23,7 +23,7 @@ import inet.node.inet.Router;
 network vtc23_scaling_switch
 {
     parameters:
-        int numRouters = default(1);
+        int numSwitches = default(1);
         int numPublishers = default(1);
         int numSubscribers = default(1);
     types:
@@ -48,7 +48,7 @@ network vtc23_scaling_switch
         subscribers[numSubscribers]: Node {
         }          
         
-        routers[numRouters]: IEEE8021QEtherSwitch {
+        switches[numSwitches]: IEEE8021QEtherSwitch {
         }
 
         configurator: IPv4NetworkConfigurator {
@@ -57,17 +57,17 @@ network vtc23_scaling_switch
 
     connections:
         // backbone links
-        for i=0..numRouters-2 {
-            routers[i].ethg++ <--> BACKBONE_LINK <--> routers[i+1].ethg++;
+        for i=0..numSwitches-2 {
+            switches[i].ethg++ <--> BACKBONE_LINK <--> switches[i+1].ethg++;
         } 
         
         // publisher connections
         for i=0..numPublishers-1 {
-            publishers[i].ethg <--> HOST_LINK <--> routers[0].ethg++;
+            publishers[i].ethg <--> HOST_LINK <--> switches[0].ethg++;
         }  
         
         // subscriber connections
         for i=0..numSubscribers-1 {
-            subscribers[i].ethg <--> HOST_LINK <--> routers[numRouters-1].ethg++;
+            subscribers[i].ethg <--> HOST_LINK <--> switches[numRouters-1].ethg++;
         }  
 }
