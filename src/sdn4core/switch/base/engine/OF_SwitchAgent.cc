@@ -314,6 +314,8 @@ void OF_SwitchAgent::receiveSignal(cComponent *src, simsignal_t id, cObject *val
         }else if(tableMissSign == id){
             handleMissMatchedPacket(tmp);
         }
+    } else {
+        delete value;
     }
 }
 
