@@ -146,7 +146,7 @@ protected:
      *         empty list if no route was found
      */
     virtual Route calculateRoute(std::string fromSwitch,
-            HostTable::HostEntry* host);
+            HostTable::HostEntry* host, std::string previousSwitch = "");
 
     /**
      * Looks up the host and switchId combination in the cache and returns the outport.

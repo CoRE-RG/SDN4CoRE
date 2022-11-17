@@ -126,7 +126,7 @@ TopologyManagement::Route TopologyManagement::findRoute(string fromSwitch,
 }
 
 TopologyManagement::Route TopologyManagement::calculateRoute(string fromSwitch,
-        HostTable::HostEntry* host) {
+        HostTable::HostEntry* host, string previousSwitch) {
     // check if abort recursion!
     if (host->switch_id == fromSwitch) {
         cacheNextHop(fromSwitch, host, host->portno);
@@ -137,7 +137,7 @@ TopologyManagement::Route TopologyManagement::calculateRoute(string fromSwitch,
     if (cachedPort != -1) {
         SwitchPort linked = deviceTable->getLinkedSwitchPort(fromSwitch,
                 cachedPort);
-        Route route = calculateRoute(linked.switchId, host);
+        Route route = calculateRoute(linked.switchId, host, fromSwitch);
         if (!route.empty()) {
             route.push_front(SwitchPort(fromSwitch, cachedPort));
             return route;
@@ -150,7 +150,11 @@ TopologyManagement::Route TopologyManagement::calculateRoute(string fromSwitch,
     vector<DeviceLink_t> links = deviceTable->getDeviceLinksForSwitch(
             fromSwitch);
     for (auto& link : links) {
-        Route route = calculateRoute(link.second.switchId, host);
+        if(link.second.switchId == previousSwitch) {
+            // prevent loops
+            continue;
+        }
+        Route route = calculateRoute(link.second.switchId, host, fromSwitch);
         if (!route.empty()) {
             cacheNextHop(fromSwitch, host, link.first.port);
             route.push_front(SwitchPort(link.first.switchId, link.first.port));

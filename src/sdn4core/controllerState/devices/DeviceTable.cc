@@ -79,7 +79,7 @@ SwitchPort DeviceTable::getLinkedSwitchPort(std::string& swMac, int port) {
 vector<DeviceLink_t> DeviceTable::getDeviceLinksForSwitch(
         std::string& swMac) {
     vector<DeviceLink_t> knownLinks;
-    for (auto link : links) {
+    for (auto& link : links) {
         if(link.first.switchId == swMac) {
             DeviceLink_t deviceLink (link.first, link.second);
             knownLinks.push_back(deviceLink);
