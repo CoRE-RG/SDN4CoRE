@@ -55,6 +55,7 @@ void SomeipSDControllerApp::initialize() {
             this->getModuleByPath(par("deviceTablePath")));
     topology = check_and_cast<TopologyManagement*>(
             this->getModuleByPath(par("topologyManagementPath")));
+    forwardOfferMulticast = this->par("forwardOfferMulticast");
 
 
     // 1. Create ServiceEntry - a static entry to answer the first incoming find-message
@@ -195,7 +196,6 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
                     }
                 }
             }
-//            requestTable[requestedServiceId] = found->second;
             requestTable[requestedServiceId].push_back(saveFind);
         } else {
             std::list<FindRequest> newFind = {saveFind};
@@ -217,6 +217,14 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
     instance.optionList = getEntryOptions(offerEntry, someIpSDHeader);
     updateServiceTable(instance);
 
+    //toDo &&broadcastMulticast true
+    if (instance.layeredInformation->ip_dst.isMulticast() && forwardOfferMulticast) {
+        // broadcast offer, function is implemented in sendFind
+        SomeIpSDHeader* dupHeader = someIpSDHeader->dup();
+        dupHeader->setControlInfo(someIpSDHeader->getControlInfo()->dup());
+        sendFind(dupHeader, dupHeader);
+    }
+
     // look for requested offer in requestTable
     auto foundX = requestTable.find(offerEntry->getServiceID());
     if(foundX != requestTable.end()) {
@@ -229,7 +237,6 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
             if ((it->entry->getInstanceID() == 0xFFFF) || (it->entry->getInstanceID() == instance.entry->getInstanceID())) {
                 SomeIpSDHeader* foundRequest = buildOffer(it->requestHeader, it->entry, entries);
                 sendOffer(foundRequest, it->requestHeader, it->layeredInformation, instance.layeredInformation);
-                // toDo delete request
                 it->clear();
                 findInstances.erase(it--);
             }

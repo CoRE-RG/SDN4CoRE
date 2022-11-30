@@ -27,5 +27,6 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         string hostTablePath = default("^.controllerState.hostTable");
         string deviceTablePath = default("^.controllerState.deviceTable");
         string topologyManagementPath = default("^.controllerState.topology");
+        bool forwardOfferMulticast = default(true);
         packetFilterWhitelist = default("udpSrc=30490");
 }
