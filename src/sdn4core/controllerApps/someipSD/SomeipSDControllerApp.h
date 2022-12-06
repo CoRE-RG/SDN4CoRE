@@ -239,6 +239,7 @@ protected:
      * A management module handling all MAC operations.
      */
     TopologyManagement* topology;
+    bool forwardOfferMulticast;
 };
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::ServiceInstance& instance)
