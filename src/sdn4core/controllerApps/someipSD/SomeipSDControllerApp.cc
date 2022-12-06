@@ -118,10 +118,9 @@ void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
                                         (eth->getEncapsulatedPacket()->getEncapsulatedPacket())) {
                 if (SomeIpSDHeader* someIpSDHeader = dynamic_cast<SomeIpSDHeader*>
                                                         (transport->getEncapsulatedPacket()))  {
-                    if(ip->getSourceAddress() == myLayeredInformation.ip_src) {
-                        return; // ignore packets send by the controller
+                    if(ip->getSourceAddress() != myLayeredInformation.ip_src) {
+                        hostTable->update(packet_in_msg, swInfo);
                     }
-                    hostTable->update(packet_in_msg, swInfo);
                     //set layeredInformation and attach control info
                     LayeredInformation* layeredInformation = new LayeredInformation();
                     layeredInformation->eth_src = eth->getSrc();
@@ -171,8 +170,15 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
     LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     std::list<ServiceInstance> entries = lookUpServiceInMap(findInquiry->getServiceID(), findInquiry->getInstanceID());
 
-    if(entries.empty())
-    {
+    if(findInfo->ip_src == myLayeredInformation.ip_src) {
+        // this is a find forwarded by the controller
+        if(!entries.empty()) {
+            // we have already answered this when the offer arrived
+            return;
+        }
+        // still unknown so forward
+        sendFind(someIpSDHeader->dup(), someIpSDHeader);
+    } else if(entries.empty()) {
         SomeIpSDHeader* myFind = buildFind(someIpSDHeader, findInquiry);
         sendFind(myFind, someIpSDHeader);
 
@@ -210,21 +216,27 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
 }
 
 void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSDHeader* someIpSDHeader) {
+    LayeredInformation* info =  dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
+    //toDo &&broadcastMulticast true
+    if (info->ip_dst.isMulticast() && forwardOfferMulticast) {
+        // broadcast offer, function is implemented in sendFind
+        SomeIpSDHeader* dupHeader = someIpSDHeader->dup();
+        dupHeader->removeControlInfo();
+        sendFind(dupHeader, someIpSDHeader);
+    }
+
+    if(info->ip_src == myLayeredInformation.ip_src) {
+        // this is an offer forwarded by the controller
+        return;
+    }
+
     // update ServiceTable with offer
     ServiceInstance instance;
     instance.entry = dynamic_cast<ServiceEntry*>(offerEntry->dup());
     instance.entry->setIndex1stOptions(0);
-    instance.layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo())->dup();
+    instance.layeredInformation = info->dup();
     instance.optionList = getEntryOptions(offerEntry, someIpSDHeader);
     updateServiceTable(instance);
-
-    //toDo &&broadcastMulticast true
-    if (instance.layeredInformation->ip_dst.isMulticast() && forwardOfferMulticast) {
-        // broadcast offer, function is implemented in sendFind
-        SomeIpSDHeader* dupHeader = someIpSDHeader->dup();
-        dupHeader->setControlInfo(someIpSDHeader->getControlInfo()->dup());
-        sendFind(dupHeader, dupHeader);
-    }
 
     // look for requested offer in requestTable
     auto foundX = requestTable.find(offerEntry->getServiceID());
@@ -261,7 +273,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     ServiceInstance& instance = instances.front(); // for readability and comfort
     // get dest ip of the service and compare to the dest id in layered information
     L3Address& destination = instance.layeredInformation->ip_src;
-    if (destination != layeredInformation->ip_dst) {
+    if (destination != layeredInformation->ip_dst && destination != myLayeredInformation.ip_src) {
         throw cRuntimeError("The subscription was sent to a different destination than known to the controller for the service instance!");
     }
 
