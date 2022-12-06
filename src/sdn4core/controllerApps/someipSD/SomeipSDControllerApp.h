@@ -240,6 +240,7 @@ protected:
      */
     TopologyManagement* topology;
     bool forwardOfferMulticast;
+    IPv4Address someipMcastAddress;
 };
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::ServiceInstance& instance)

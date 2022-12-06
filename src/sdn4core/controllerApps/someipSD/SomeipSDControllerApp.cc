@@ -56,6 +56,7 @@ void SomeipSDControllerApp::initialize() {
     topology = check_and_cast<TopologyManagement*>(
             this->getModuleByPath(par("topologyManagementPath")));
     forwardOfferMulticast = this->par("forwardOfferMulticast");
+    someipMcastAddress = IPv4Address(par("someipMcastAddress").stringValue());
 
 
     // 1. Create ServiceEntry - a static entry to answer the first incoming find-message
@@ -244,9 +245,6 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
         if (findInstances.empty()){
             requestTable.erase(foundX);
         }
-//        else {
-//        requestTable[instance.entry->getServiceID()] = findInstances;
-//        }
     }
 }
 
@@ -467,7 +465,7 @@ void SomeipSDControllerApp::sendFind(SomeIpSDHeader* find, SomeIpSDHeader* findS
         datagram->setByteLength(IP_HEADER_BYTES);
         datagram->encapsulate(udpPacket);
         datagram->setSrcAddress(src);
-        datagram->setDestinationAddress(inet::IPv4Address(BROADCASTADDRESS));
+        datagram->setDestinationAddress(someipMcastAddress);
         datagram->setMoreFragments(false);
         datagram->setTimeToLive(ttl);
         datagram->setTransportProtocol(17); //the UDP-standard protocol-id
@@ -519,7 +517,7 @@ void SomeipSDControllerApp::installFlowForSubscription(Subscription& sub) {
     IPv4Address ip_host_dst = sub.getDstHostIp();
 
     // TODO add mcast support!!
-    bool isMcast = sub.isMcast();
+//    bool isMcast = sub.isMcast();
 
     // find route from the switch were the subAck arrived to the consumer IP
     TopologyManagement::Route route = topology->findRoute(

@@ -27,6 +27,8 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         string hostTablePath = default("^.controllerState.hostTable");
         string deviceTablePath = default("^.controllerState.deviceTable");
         string topologyManagementPath = default("^.controllerState.topology");
+        // SOME/IP multicast address
+        string someipMcastAddress = default("224.0.2.254");
         bool forwardOfferMulticast = default(true);
         packetFilterWhitelist = default("udpSrc=30490");
 }
