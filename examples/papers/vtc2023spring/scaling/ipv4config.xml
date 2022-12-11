@@ -3,6 +3,7 @@
     <interface hosts="publisher* subscriber*" names="phy0" address="192.168.x.x" /> <!-- data plane -->
     <route hosts="publisher* subscriber*" destination="*" interface="phy0" metric="50"/>
     
-    <interface among="controller switch*" names="eth0" address="10.0.0.x"/> <!-- control plane -->    
+    <interface hosts="switch*" names="eth0" address="10.0.x.x"/> <!-- control plane -->
+    <interface hosts="controller*" names="eth*" address="10.0.x.x"/> <!-- control plane -->  
     
 </config>
