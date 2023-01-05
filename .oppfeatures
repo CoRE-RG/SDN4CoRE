@@ -1,2 +1,19 @@
 <features cppSourceRoots="src" definesFile="src/sdn4core/features.h">
+    <feature
+        id="SOA4CoRE"
+        name="SOA4CoRE support"
+        description = "Enables support for service oriented communication from SOA4CoRE with SDN controller apps. The SOA4CoRE Framework has to be enabled in the dependencies."
+        initiallyEnabled = "true"
+        requires = ""
+        labels = ""
+        nedPackages = "
+                       sdn4core.controllerApps.someipSD
+                       sdn4core.examples.soa.someip
+                       sdn4core.examples.soa.someipLarge
+                       sdn4core.examples.papers.vtc2023spring
+                      "
+        extraSourceFolders = ""
+        compileFlags = "-DWITH_SOA4CORE"
+        linkerFlags = ""
+        />
 </features>
