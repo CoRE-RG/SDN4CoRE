@@ -51,10 +51,10 @@ network vtc23_scaling_sdn
             parameters:
         }
 
-        ethswitch: IEEE8021QEtherSwitch {
-           	parameters:
-           	    hardware_delay = 3us;
-        }
+//        ethswitch: IEEE8021QEtherSwitch {
+//           	parameters:
+//           	    hardware_delay = 3us;
+//        }
 
         controller: Controller {
         }
@@ -67,10 +67,10 @@ network vtc23_scaling_sdn
         // backbone links
         for i=0..numSwitches-2 {
         	switches[i].gateDataPlane++ <--> BACKBONE_LINK <--> switches[i+1].gateDataPlane++;
-        	switches[i].gateControlPlane <--> BACKBONE_LINK <--> ethswitch.ethg++;
+        	switches[i].gateControlPlane <--> BACKBONE_LINK <--> controller.ethg++;
         } 
-    	switches[numSwitches-1].gateControlPlane <--> BACKBONE_LINK <--> ethswitch.ethg++;
-        controller.ethg++ <--> ETH_1GBIT <--> ethswitch.ethg++;
+    	switches[numSwitches-1].gateControlPlane <--> BACKBONE_LINK <--> controller.ethg++;
+//        controller.ethg++ <--> ETH_1GBIT <--> ethswitch.ethg++;
         
         // publisher connections
         for i=0..numPublishers-1 {
