@@ -18,7 +18,19 @@ package sdn4core.controllerApps.someipSD;
 import sdn4core.controllerApps.base.PacketProcessorBase;
 
 //
-// TODO auto-generated module
+// SomeipSDControllerApp is an SDN controller application that handles 
+// the service oriented architectures. The implementation controls the SOME/IP protocol
+// which is implemented in the SOA4CoRE framework.
+//
+// If this app is used together with a learning app (@see~LearningControllerApp)
+// it should be configured with a packetFilterBlacklist = default("udpSrc=30490")
+// so the SOME/IP SD is not forwarded automatically.
+// 
+// @note This app is still in an early implementation stage and does not support 
+//		 the full SOME/IP feature set!
+//       Many features are missing and might not be implemented efficiently. 
+//
+// @author Jan Schmitt-Solbrig, Timo Haeckel, for HAW Hamburg
 //
 simple SomeipSDControllerApp extends PacketProcessorBase
 {

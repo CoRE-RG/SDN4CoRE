@@ -11,6 +11,8 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
+//
+// c Timo Haeckel, Jan Schmitt-Solbrig, for HAW Hamburg
 // 
 
 #ifndef __SDN4CORE_SOMEIPSDCONTROLLERAPP_H_
@@ -43,7 +45,15 @@ using namespace omnetpp;
 namespace SDN4CoRE {
 
 /**
- * TODO - Generated class
+// SomeipSDControllerApp is an SDN controller application that handles
+// the service oriented architectures. The implementation controls the SOME/IP protocol
+// which is implemented in the SOA4CoRE framework.
+//
+// @note This app is still in an early implementation stage and does not support
+//       the full SOME/IP feature set!
+//       Many features are missing and might not be implemented efficiently.
+//
+// @author Jan Schmitt-Solbrig, Timo Haeckel, for HAW Hamburg
  */
 class SomeipSDControllerApp: public PacketProcessorBase
 {
