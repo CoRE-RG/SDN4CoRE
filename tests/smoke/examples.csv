@@ -1,11 +1,12 @@
 # workingdir,                                                   args,                                                                    simtimelimit,      fingerprint
 /examples/of_test,                                              -f of_test.ini -c General -r 0
-/examples/avb_of_test,                                          -f avb_of_test.ini -c General -r 0                             
+/examples/avb_of_test,                                          -f avb_of_test.ini -c General -r 0
 /examples/papers/vtc2019/withoutSDN,                            -f omnetpp.ini -c General -r 0
 /examples/papers/vtc2019/withSDN,                               -f vtc2019_with_sdn.ini -c General -r 0
 /examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c General -r 0
 /examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c OneClientOneServerOneApp -r 0
 /examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c TwoClientOneServer -r 0
+/examples/netconf_test/ofnc_flowmod_test,                       -f omnetpp.ini -c General -r 0
 /examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c FiveClientThreeServer -r 0
 /examples/IEEE8021Qbv/of_test,                                  -f IEEE8021Qbv_of_test.ini -c General -r 0
 /examples/IEEE8021Qbv/small_network_of,                         -f omnetpp.ini -c General -r 0
@@ -13,7 +14,9 @@
 /examples/IEEE8021Qbv/small_network_ofnc,                       -f omnetpp.ini -c General -r 0
 /examples/IEEE8021Qbv/small_network_ofnc,                       -f omnetpp.ini -c With_Crosstraffic -r 0
 /examples/tsn/medium_network,                                   -f omnetpp.ini -c General -r 0
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c AsyncTraffic -r 0
 /examples/tsn/medium_network,                                   -f omnetpp.ini -c OpenFlow_static_TDMA -r 0
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c OpenFlow_static_TDMA_w_Async -r 0
 /examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf -r 0
 /examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart -r 0
 /examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Transaction -r 0
@@ -22,6 +25,14 @@
 /examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_SyncTransaction -r 0
 /examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_SyncTransaction_SoP -r 0
 /examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_Multipart_SyncTransaction_Sop -r 0
+/examples/tsn/medium_network,                                   -f omnetpp.ini -c NetConf_MP_SyncTrans_SoP_w_Async -r 0
+/examples/tsn/srp_small_network,                                -f omnetpp.ini -c General -r 0
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c General -r 0
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy -r 0
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy_WithCT -r 0
+/examples/soa/someip,                                           -f omnetpp.ini -c General -r 0
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c General -r 0
+/examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c SDN -r 0
+/examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c SDNVanilla -r 0
+/examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c Switch -r 0
+

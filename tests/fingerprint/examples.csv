@@ -6,7 +6,7 @@
 /examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c General -r 0,                                            10s,             8fef-67a8
 /examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c OneClientOneServerOneApp -r 0,                           10s,             e053-abda
 /examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c TwoClientOneServer -r 0,                                 10s,             33eb-4c62
-/examples/netconf_test/ofnc_flowmod_test,                       -f omnetpp.ini -c General -r 0,                                           0.4s,             4c14-430d
+/examples/netconf_test/ofnc_flowmod_test,                       -f omnetpp.ini -c General -r 0,                                           0.4s,             fcc7-2907
 /examples/netconf_test/netconf_test_standardhost,               -f omnetpp.ini -c FiveClientThreeServer -r 0,                              10s,             a123-a219
 /examples/IEEE8021Qbv/of_test,                                  -f IEEE8021Qbv_of_test.ini -c General -r 0,                              1000s,             466b-8af2
 /examples/IEEE8021Qbv/small_network_of,                         -f omnetpp.ini -c General -r 0,                                           0.5s,             6d2c-199d
@@ -30,4 +30,9 @@
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c General -r 0,                                            10s,             1ea3-f108
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy -r 0,                                           5s,             8562-7786
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy_WithCT -r 0,                                    5s,             c40e-6c72
+/examples/soa/someip,                                           -f omnetpp.ini -c General -r 0,                                           0.2s,             525e-d969
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c General -r 0,                                           0.2s,             6df5-9938
+/examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c SDN -r 0,                                                 1s,             dc80-3f66
+/examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c SDNVanilla -r 0,                                          1s,             dc80-3f66
+/examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c Switch -r 0,                                              1s,             7791-222c
 
