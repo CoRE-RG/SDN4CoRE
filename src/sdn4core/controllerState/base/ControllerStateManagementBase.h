@@ -193,7 +193,7 @@ protected:
      */
     const std::map<std::string, cModule*>& getAllSwitches() {
         refreshCachedSwitches();
-        return cachedSwitchPorts;
+        return cachedSwitches;
     }
 
     /**
