@@ -14,12 +14,20 @@ ifndef CORE4INET_PROJ
         $(error "Cannot find CoRE4INET framework in the usual location. You have to set the PATH to INET in the INET_PROJ variable")
     endif
 endif
-#Try to detect INET if variable is not set
+#Try to detect OpenFlow if variable is not set
 ifndef OPENFLOW_PROJ
     ifneq ($(wildcard ../OpenFlow),)
         OPENFLOW_PROJ=../../OpenFlow
     else
         $(error "Cannot find OpenFlow framework in the usual location. You have to set the PATH to OpenFlow in the OPENFLOW_PROJ variable")
+    endif
+endif
+#Try to detect SOA4CoRE if variable is not set
+ifndef SOA4CORE_PROJ
+    ifneq ($(wildcard ../SOA4CoRE),)
+        SOA4CORE_PROJ=../../SOA4CoRE
+    else
+        $(error "Cannot find SOA4CoRE framework in the usual location. You have to set the PATH to SOA4CoRE in the SOA4CoRE_PROJ variable")
     endif
 endif
 
@@ -40,7 +48,7 @@ else
     DBG_SUFFIX=
 endif
 
-MAKEMAKE_OPTIONS := -f --deep --no-deep-includes -O out -KINET_PROJ=$(INET_PROJ) -KCORE4INET_PROJ=$(CORE4INET_PROJ) -KOPENFLOW_PROJ=$(OPENFLOW_PROJ) -I. -I$(INET_PROJ)/src/ -I$(CORE4INET_PROJ)/src/ -I$(OPENFLOW_PROJ)/src/ -L$(INET_PROJ)/src -L$(CORE4INET_PROJ)/src -L$(OPENFLOW_PROJ)/src -lCoRE4INET$(DBG_SUFFIX) -lINET$(DBG_SUFFIX) -lOpenFlow$(DBG_SUFFIX)
+MAKEMAKE_OPTIONS := -f --deep --no-deep-includes -O out -KINET_PROJ=$(INET_PROJ) -KCORE4INET_PROJ=$(CORE4INET_PROJ) -KOPENFLOW_PROJ=$(OPENFLOW_PROJ) -KSOA4CORE_PROJ=$(SOA4CORE_PROJ) -I. -I$(INET_PROJ)/src/ -I$(CORE4INET_PROJ)/src/ -I$(OPENFLOW_PROJ)/src/ -I$(SOA4CORE_PROJ)/src/ -L$(INET_PROJ)/src -L$(CORE4INET_PROJ)/src -L$(OPENFLOW_PROJ)/src -L$(SOA4CORE_PROJ)/src -lCoRE4INET$(DBG_SUFFIX) -lINET$(DBG_SUFFIX) -lOpenFlow$(DBG_SUFFIX) -lSOA4CoRE$(DBG_SUFFIX)
 
 makefiles: makefiles-so
 
