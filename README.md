@@ -1,6 +1,7 @@
 # SDN4CoRE
 
 SDN4CoRE (Software-Defined Networking for Communication over Realtime Ethernet) is an open-source extension for the event-based simulation of programmable (software-defined) real-time Ethernet networks in the [OMNEST/OMNeT++](https://omnetpp.org/) simulation system. It is based on the [INET-Framework](https://inet.omnetpp.org/), providing internet technologies, the [CoRE4INET Framework](https://github.com/CoRE-RG/CoRE4INET), providing real-time Ethernet protocols such as AS6802, AVB and TSN, and the [OpenFlow Framework](https://github.com/CoRE-RG/OpenFlow), originally developed at the University of Würzburg, Germany, providing a programmability option via the OpenFlow protocol.
+Recently we added a SOME/IP controller application which depends on the [SOA4CoRE Framework](https://github.com/CoRE-RG/SOA4CoRE).
 SDN4CoRE provides programmable network devices and controllers for different Ethernet extensions such as IEEE802.1Qbv and AVB (including SRP) and various management protocols such as NetConf and OpenFlow. It was created by the [CoRE (Communication over Realtime Ethernet)](https://core-researchgroup.de/) and the [INET (Internet Technologies)](https://inet.haw-hamburg.de/) research group at the [HAW-Hamburg (Hamburg University of Applied Sciences)](https://www.haw-hamburg.de/english.html).
 
 <img src="/doc/images/sdn4core.png" alt="SDN4CoRE Environment" width="75%">
@@ -14,6 +15,8 @@ If you have trouble pulling changes, try rebasing your changes to the current Gi
 Release of Netconf transaction model including time synchronous and non time synchronous transactions. As well as chnages to many netconf moudules.
 
 Model release including programmable devices and controllers for IEEE802.1Q, IEEE802.1Qbv, AVB/SRP via OpenFlow and NetConf.
+
+SOME/IP Service Discovery Controller Application added, depends on SOA4CoRE Framework.
 
 ## References
 If you would like to reference this project please use the following [publication](https://doi.org/10.29007/w71t):
