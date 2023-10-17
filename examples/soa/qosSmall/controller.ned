@@ -1,4 +1,6 @@
 //
+// c Timo Haeckel, for HAW Hamburg
+// 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -15,12 +17,18 @@
 
 package sdn4core.examples.soa.qosSmall;
 
-import  sdn4core.switch.tsn.TSNOFNCSwitch;
+import sdn4core.controller.tsn.TSN_NC_OF_Controller;
 
-module Switch extends TSNOFNCSwitch
+module Controller extends TSN_NC_OF_Controller
 {
     parameters:
-        hardware_delay = 8us;
-        of_service_time = 100us;
-        switchAgent.parallelProcessing = true;
+        serviceTime = 100us;
+        OF_Controller.parallelProcessing = true;
+        numControllerApps = 3;
+        controllerApps[0].typename = "LearningControllerApp";
+        controllerApps[0].packetFilterBlacklist = "etherType=0x88CC;udpSrc=30490";
+        controllerApps[0].matchAll = true;
+        controllerApps[1].typename = "LLDPControllerApp";
+		controllerApps[2].typename = "SomeipSDControllerApp";
+        
 }

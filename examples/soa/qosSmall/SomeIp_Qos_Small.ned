@@ -22,28 +22,41 @@ network SomeIp_Qos_Small
 {
     parameters:
     submodules:
-        configurator: IPv4NetworkConfigurator;
+        configurator: IPv4NetworkConfigurator {
+         	parameters:
+     	       config = xmldoc("ipv4config.xml");
+        }
         
         N[4]: Node;
         
         CT[2]: Node;
         
-        S[3]: Switch;
+        S[3]: Switch {
+            switchAgent.connectAddress = "controller";
+			switchAgent.connectAt = 0s;
+        }
+        
+        controller: Controller;
         
     connections:
+        // connect controplane
+        S[0].gateControlPlane <--> Eth100M <--> controller.ethg++;
+        S[1].gateControlPlane <--> Eth100M <--> controller.ethg++;
+        S[2].gateControlPlane <--> Eth100M <--> controller.ethg++;
+        
         // connect switches
-        S[0].ethg++ <--> Eth100M <--> S[1].ethg++;
-        S[1].ethg++ <--> Eth100M <--> S[2].ethg++;
+        S[0].gateDataPlane++ <--> Eth100M <--> S[1].gateDataPlane++;
+        S[1].gateDataPlane++ <--> Eth100M <--> S[2].gateDataPlane++;
         
         // connect nodes
-        N[0].ethg++ <--> Eth100M <--> S[0].ethg++;
-        N[1].ethg++ <--> Eth100M <--> S[1].ethg++;
-        N[2].ethg++ <--> Eth100M <--> S[2].ethg++;
-        N[3].ethg++ <--> Eth100M <--> S[1].ethg++;
+        N[0].ethg++ <--> Eth100M <--> S[0].gateDataPlane++;
+        N[1].ethg++ <--> Eth100M <--> S[1].gateDataPlane++;
+        N[2].ethg++ <--> Eth100M <--> S[2].gateDataPlane++;
+        N[3].ethg++ <--> Eth100M <--> S[1].gateDataPlane++;
         
         // connect ct nodes
         
-        CT[0].ethg++ <--> Eth100M <--> S[0].ethg++;
-        CT[1].ethg++ <--> Eth100M <--> S[2].ethg++;
+        CT[0].ethg++ <--> Eth100M <--> S[0].gateDataPlane++;
+        CT[1].ethg++ <--> Eth100M <--> S[2].gateDataPlane++;
         
 }

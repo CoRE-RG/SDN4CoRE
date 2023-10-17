@@ -1,0 +1,9 @@
+<config>
+
+    <interface hosts="N* CT*" names="eth0" address="192.168.x.x" /> <!-- data plane -->
+    <route hosts="N* CT*" destination="*" interface="eth0" metric="50"/>
+    
+    <interface hosts="S*" names="eth0" address="10.0.x.x"/> <!-- control plane -->
+    <interface hosts="controller*" names="eth*" address="10.0.x.x"/> <!-- control plane -->  
+    
+</config>
