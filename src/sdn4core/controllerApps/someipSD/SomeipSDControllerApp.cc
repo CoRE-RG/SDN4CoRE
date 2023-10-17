@@ -358,7 +358,13 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
                 } else {
                     throw cRuntimeError("Provider option is no IPv4 endpoint");
                 }
-                installFlowForSubscription(*iter);
+
+                if(iter->isMcast()) {
+                    installFlowForMulticastSubscription(*iter);
+                } else {
+                    installFlowForUnicastSubscription(*iter);
+                }
+
                 // forward subscription ack to subscriber
                 SomeIpSDHeader* header = buildSubscribeEventGroupAck(someIpSDHeader, entry);
                 EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation, &iter->consumerInformation);
@@ -521,24 +527,21 @@ void SomeipSDControllerApp::sendOffer(SomeIpSDHeader* offer, SomeIpSDHeader* fin
     delete eth2Frame;
 }
 
-void SomeipSDControllerApp::installFlowForSubscription(Subscription& sub) {
+void SomeipSDControllerApp::installFlowForUnicastSubscription(Subscription& sub) {
     // flow specification
     IPv4Address ip_src = sub.providerEndpoint.getIpv4Address();
     uint16_t tp_src = sub.providerEndpoint.getPort();
     uint8_t ip_proto = sub.consumerEndpoint.getL4Protocol();
     IPv4Address ip_dst = sub.consumerEndpoint.getIpv4Address();
     uint16_t tp_dst = sub.consumerEndpoint.getPort();
-    IPv4Address ip_host_dst = sub.getDstHostIp();
-
-    // TODO add mcast support!!
-//    bool isMcast = sub.isMcast();
 
     // find route from the switch were the subAck arrived to the consumer IP
     TopologyManagement::Route route = topology->findRoute(
-            topology->findEdgePort(ip_src).switchId, ip_host_dst);
+            topology->findEdgePort(ip_src).switchId, ip_dst);
     if(route.empty()){
         throw cRuntimeError("Could not find a route for acknowledged subscription");
     }
+
     // create the match
     auto builder = OFMatchFactory::getBuilder();
     builder->setField(OFPXMT_OFB_IPV4_SRC, &(ip_src));
@@ -546,12 +549,65 @@ void SomeipSDControllerApp::installFlowForSubscription(Subscription& sub) {
     builder->setField(OFPXMT_OFB_IP_PROTO, &(ip_proto));
     builder->setField(OFPXMT_OFB_IPV4_DST, &(ip_dst));
     builder->setField(OFPXMT_OFB_UDP_DST, &(tp_dst));
+    // follow the route and install flows
     for(SwitchPort& switchPort : route) {
         int inport = topology->findOutportAtSwitch(switchPort.switchId, ip_src);
         builder->setField(OFPXMT_OFB_IN_PORT, &(inport));
         oxm_basic_match match = builder->build();
         TCPSocket* socket = controller->findSocketForChassisId(switchPort.switchId);
         sendFlowModMessage(ofp_flow_mod_command::OFPFC_ADD, match, switchPort.port, socket, _idleTimeout, _hardTimeout);
+    }
+}
+
+void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& sub) {
+    // flow specification valid for all subscriptions of this provider
+    IPv4Address ip_host_src = sub.getSrcHostIp();
+    uint8_t ip_proto = sub.consumerEndpoint.getL4Protocol();
+    IPv4Address ip_mcast_dst = sub.consumerEndpoint.getIpv4Address();
+    uint16_t tp_mcast_dst = sub.consumerEndpoint.getPort();
+
+    // create the match
+    auto builder = OFMatchFactory::getBuilder();
+    builder->setField(OFPXMT_OFB_IPV4_SRC, &(ip_host_src));
+//    builder->setField(OFPXMT_OFB_UDP_SRC, &(tp_src)); // transport src is unknown from mcast source endpoints
+    builder->setField(OFPXMT_OFB_IP_PROTO, &(ip_proto));
+    builder->setField(OFPXMT_OFB_IPV4_DST, &(ip_mcast_dst));
+    builder->setField(OFPXMT_OFB_UDP_DST, &(tp_mcast_dst));
+
+    // collect routes to all subscribers
+    ServiceInstanceSubscriptionList& subscriptions = subscriptionTable[sub.service.getServiceId()][sub.service.getInstanceId()];
+    TopologyManagement::McastRoute mcastRoute;
+    for (auto iter = subscriptions.begin(); iter != subscriptions.end(); iter++) {
+        // is active sub or the one that just has been added
+        if((*iter) == sub || iter->active) {
+            IPv4Address ip_host_dst = iter->getDstHostIp();
+
+            // find route from the provider switch to the consumer IP
+            TopologyManagement::Route route = topology->findRoute(
+                    topology->findEdgePort(ip_host_src).switchId, ip_host_dst);
+            if(route.empty()){
+                throw cRuntimeError("Could not find a route for acknowledged subscription");
+            }
+            mcastRoute.mergeRoute(route);
+        }
+    }
+
+    for(auto& hop : mcastRoute.mcastRoute) {
+        // hop first is switchid, second is port list
+        int inport = topology->findOutportAtSwitch(hop.first, ip_host_src);
+        builder->setField(OFPXMT_OFB_IN_PORT, &(inport));
+        oxm_basic_match match = builder->build();
+        uint32_t outports [hop.second.size()];
+        int i = 0;
+        for (auto port : hop.second) {
+            outports [i++] = port;
+        }
+        auto flowMod = OFMessageFactory::instance()->createFlowModMessage(
+                ofp_flow_mod_command::OFPFC_ADD, match, this->priority, outports, hop.second.size(), _idleTimeout, _hardTimeout);
+        TCPSocket* socket = controller->findSocketForChassisId(hop.first);
+        EV << "sendFlowModMessage" << '\n';
+        numFlowMod++;
+        socket->send(flowMod);
     }
 }
 

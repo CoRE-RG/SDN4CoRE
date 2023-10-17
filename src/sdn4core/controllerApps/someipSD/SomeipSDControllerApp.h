@@ -125,6 +125,12 @@ public:
         bool active = false;
         bool waitingForAck = false;
 
+        inline bool operator==(const Subscription& other) {
+            return isConsumer(other.consumerInformation, other.consumerEndpoint)
+                    && isProvider(other.providerInformation, other.providerEndpoint);
+        }
+        inline bool operator!=(const Subscription& other) { return !(*this == other); }
+
         bool isConsumer(LayeredInformation otherInformation, SOA4CoRE::IPv4EndpointOption otherEndpoint) {
             return otherInformation.eth_src == consumerInformation.eth_src
                     && otherInformation.ip_src == consumerInformation.ip_src
@@ -150,6 +156,13 @@ public:
                 return consumerInformation.ip_src.toIPv4();
             }
             return consumerEndpoint.getIpv4Address();
+        }
+
+        IPv4Address getSrcHostIp() {
+            if(isMcast()) {
+                return providerInformation.ip_src.toIPv4();
+            }
+            return providerEndpoint.getIpv4Address();
         }
     };
 
@@ -209,7 +222,8 @@ protected:
     void sendFind(SOA4CoRE::SomeIpSDHeader*, SOA4CoRE::SomeIpSDHeader* findSource);
     void sendOffer(SOA4CoRE::SomeIpSDHeader* offer, SOA4CoRE::SomeIpSDHeader* findSource, LayeredInformation* infoFind, LayeredInformation* infoOffer);
 
-    void installFlowForSubscription(Subscription& sub);
+    void installFlowForUnicastSubscription(Subscription& sub);
+    void installFlowForMulticastSubscription(Subscription& sub);
 
     std::list<SOA4CoRE::SomeIpSDOption*> getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
     void updateServiceTable(ServiceInstance& newInfo);

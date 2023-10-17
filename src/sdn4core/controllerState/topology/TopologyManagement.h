@@ -26,6 +26,8 @@
 #include <sdn4core/controllerState/devices/DeviceTable.h>
 // std
 #include <list>
+#include <map>
+#include <algorithm>
 // INET
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/networklayer/common/L3Address.h"
@@ -49,6 +51,34 @@ public:
     ~TopologyManagement();
 
     typedef std::list<SwitchPort> Route;
+
+    class McastRoute {
+    public:
+        std::map<std::string, std::list<int>> mcastRoute;
+
+        /**
+         * Insterts all switchports of the given route into the mcast route
+         * @param route the route to be added
+         */
+        void mergeRoute(const Route& route) {
+            // walk the route and add new switch ports to the map
+            for(const SwitchPort& switchPort : route) {
+                if(mcastRoute.find(switchPort.switchId) == mcastRoute.end())
+                {
+                    mcastRoute[switchPort.switchId] = std::list<int>();
+                    mcastRoute[switchPort.switchId].push_back(switchPort.port);
+                }
+                else {
+                    if(std::find(mcastRoute[switchPort.switchId].begin(),
+                            mcastRoute[switchPort.switchId].end(), switchPort.port)
+                                == mcastRoute[switchPort.switchId].end())
+                    {
+                        mcastRoute[switchPort.switchId].push_back(switchPort.port);
+                    }
+                }
+            }
+        }
+    };
 
     /**
      * Find the outport for a packet_in and a switch info
