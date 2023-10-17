@@ -23,7 +23,12 @@ module Node extends MiddlewareTSNHost
         hasQoSNP = default(false);
         middleware.sm.typename = "SomeIpManager";
         middleware.sd.typename = "SomeIpSD";
-		middleware.**.multicastInterface = "phy0";
+		middleware.**.multicastInterface = "eth0";
+		middleware.sm.initialDelayMin = 0ms;
+		middleware.sm.initialDelayMax = 10ms;
+		middleware.sm.repetitionsMax= 3;
+		middleware.sm.repetitionBaseDelay = 1s;
+		middleware.sm.cyclicOfferDelay = 7s;
 		
 	submodules:
 	connections:
