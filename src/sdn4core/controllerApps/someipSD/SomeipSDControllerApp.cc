@@ -330,6 +330,14 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
         subscription.consumerInformation = *(layeredInformation);
         subscription.consumerEndpoint = *(endpoint);
         subscription.waitingForAck = true;
+        for (auto option : entryOptions)
+        {
+            // check if endpoint
+            if (ConfigurationOption* config = dynamic_cast<ConfigurationOption*>(option))
+            {
+                subscription.configOptions.push_back(config);
+            }
+        }
         subscriptionTable[entry->getServiceID()][entry->getInstanceID()].push_back(subscription);
     }
     delete endpoint;

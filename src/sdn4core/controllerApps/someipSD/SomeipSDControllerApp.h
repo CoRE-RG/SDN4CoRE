@@ -121,6 +121,7 @@ public:
         // to consumer / subscriber
         LayeredInformation consumerInformation;
         SOA4CoRE::IPv4EndpointOption consumerEndpoint;
+        std::list<SOA4CoRE::ConfigurationOption*> configOptions;
         // control information
         bool active = false;
         bool waitingForAck = false;
@@ -164,6 +165,14 @@ public:
             }
             return providerEndpoint.getIpv4Address();
         }
+
+        void clear() {
+            for (auto elem: configOptions) {
+                if (elem) delete elem;
+                elem = nullptr;
+            }
+            configOptions.clear();
+        }
     };
 
     typedef std::list<Subscription> ServiceInstanceSubscriptionList;
@@ -189,6 +198,17 @@ public:
             idIter.second.clear();
         }
         requestTable.clear();
+
+        for (auto idIter : subscriptionTable){
+            for (auto instanceIter : idIter.second) {
+                for (auto sub : instanceIter.second) {
+                    sub.clear();
+                }
+                instanceIter.second.clear();
+            }
+            idIter.second.clear();
+        }
+        subscriptionTable.clear();
     };
 protected:
     ServiceInstanceMap serviceTable;
@@ -273,17 +293,13 @@ std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::ServiceI
     if(instance.layeredInformation) {
         os << " source=" << instance.layeredInformation->ip_src.str();
     }
-    os << " endpoints{ ";
+    os << " endpoints { ";
     for (auto iter = instance.optionList.begin(); iter != instance.optionList.end(); ++iter) {
         if(SOA4CoRE::IPv4EndpointOption* endpoint = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter)) {
-            os << "{";
-            os << " IP=" << endpoint->getIpv4Address().str();
-            os << ", port=" << endpoint->getPort();
-            os << ", protocol=" << (uint32) endpoint->getL4Protocol();
-            os << " } ";
+            os << (*endpoint);
         }
     }
-    os << "} }";
+    os << " } }";
     return os;
 }
 
@@ -298,18 +314,18 @@ std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::FindRequ
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::Subscription& sub)
 {
-    os << "provider {";
-    os << " IP=" << sub.providerEndpoint.getIpv4Address().str();
-    os << ", port=" << sub.providerEndpoint.getPort();
-    os << ", protocol=" << (uint32) sub.providerEndpoint.getL4Protocol();
-    os << "}";
-    os << ", consumer {";
-    os << " IP=" << sub.consumerEndpoint.getIpv4Address().str();
-    os << ", port=" << sub.consumerEndpoint.getPort();
-    os << ", protocol=" << (uint32) sub.consumerEndpoint.getL4Protocol();
-    os << "}";
+    os << "provider " << sub.providerEndpoint;
+    os << ", consumer " << sub.consumerEndpoint;
     os << ", active=" << sub.active;
     os << ", waitingForAck=" << sub.waitingForAck;
+    os << ", configurationOptions {";
+    for (auto config : sub.configOptions)
+    {
+        if(SOA4CoRE::RealTimeConfigurationOption* rtconfig = dynamic_cast<SOA4CoRE::RealTimeConfigurationOption*>(config)) {
+            os << (*rtconfig);
+        }
+    }
+    os << "}";
     return os;
 }
 
