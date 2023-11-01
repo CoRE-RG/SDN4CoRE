@@ -280,33 +280,50 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     }
 
     auto entryOptions = getEntryOptions(entry, someIpSDHeader);
-    if(entryOptions.size() != 1) {
-        throw cRuntimeError("Exactly one endpoint information must be present in subscribtion.");
+    IPv4EndpointOption* endpoint = nullptr;
+    for (auto option : entryOptions)
+    {
+        // check if endpoint
+        if (IPv4EndpointOption* ipEndpoint = dynamic_cast<IPv4EndpointOption*>(option))
+        {
+            if (endpoint) {
+                throw cRuntimeError("Exactly one endpoint information must be present in subscribtion.");
+            }
+            endpoint = ipEndpoint;
+        }
     }
-    IPv4EndpointOption* endpoint = dynamic_cast<IPv4EndpointOption*>(entryOptions.front());
     // update local subscription table
     bool subKnown = false;
-    if(subscriptionTable.find(entry->getServiceID()) != subscriptionTable.end()) {
-        if(subscriptionTable[entry->getServiceID()].find(entry->getInstanceID()) != subscriptionTable[entry->getServiceID()].end()) {
+    if (subscriptionTable.find(entry->getServiceID()) != subscriptionTable.end())
+    {
+        if (subscriptionTable[entry->getServiceID()].find(entry->getInstanceID()) != subscriptionTable[entry->getServiceID()].end())
+        {
             // we know a subscription for this service instance
             for (auto it = subscriptionTable[entry->getServiceID()][entry->getInstanceID()].begin();
                     it != subscriptionTable[entry->getServiceID()][entry->getInstanceID()].end();
-                    it++) {
-                if(it->isConsumer(*(layeredInformation), *(endpoint))) {
+                    it++)
+            {
+                if (it->isConsumer(*(layeredInformation), *(endpoint)))
+                {
                     // already known!
                     it->waitingForAck = true;
                     subKnown = true;
                     break;
                 }
             }
-        } else {
+        }
+        else
+        {
             subscriptionTable[entry->getServiceID()][entry->getInstanceID()] = ServiceInstanceSubscriptionList();
         }
-    } else {
+    }
+    else
+    {
         subscriptionTable[entry->getServiceID()] = IntanceSubscriptionMap();
         subscriptionTable[entry->getServiceID()][entry->getInstanceID()] = ServiceInstanceSubscriptionList();
     }
-    if(!subKnown) {
+    if (!subKnown)
+    {
         Subscription subscription;
         subscription.service = ServiceIdentifier(entry->getServiceID(),entry->getInstanceID());
         subscription.providerInformation = *(instance.layeredInformation);
