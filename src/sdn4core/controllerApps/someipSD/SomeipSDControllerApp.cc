@@ -60,38 +60,6 @@ void SomeipSDControllerApp::initialize() {
     forwardOfferMulticast = this->par("forwardOfferMulticast");
     someipMcastAddress = IPv4Address(par("someipMcastAddress").stringValue());
 
-
-    // 1. Create ServiceEntry - a static entry to answer the first incoming find-message
-//    ServiceEntry* entry = new ServiceEntry("ServiceEntry");
-//    entry->setType(SOA4CoRE::SomeIpSDEntryType::OFFER);
-//    entry->setIndex1stOptions(0);
-//    entry->setIndex2ndOptions(0);
-//    entry->setNum1stOptions(0);
-//    entry->setNum2ndOptions(0);
-//    entry->setServiceID(1);
-//    entry->setInstanceID(1);
-//    entry->setMajorVersion(MAJOR_VERSION);
-//    entry->setTTL(TTL);
-//    entry->setMinorVersion(MINOR_VERSION);
-    //Option UDP
-//    IPv4EndpointOption *ipv4EndpointOption = new IPv4EndpointOption("IPv4EndpointOption of Publisher");
-//    ipv4EndpointOption->setIpv4Address(IPv4Address("192.168.178.1"));
-//    ipv4EndpointOption->setL4Protocol(IPProtocolId::IP_PROT_UDP);
-//    ipv4EndpointOption->setPort(3171);
-    //Option TCP
-//    IPv4EndpointOption *ipv4EndpointOption2 = new IPv4EndpointOption("IPv4EndpointOption of Publisher");
-//    ipv4EndpointOption2->setIpv4Address(IPv4Address("192.168.178.1"));
-//    ipv4EndpointOption2->setL4Protocol(IPProtocolId::IP_PROT_TCP);
-//    ipv4EndpointOption2->setPort(3171);
-//    ServiceInstance instance;
-//    instance.entry = entry;
-//    instance.optionList.push_back(ipv4EndpointOption);
-//    instance.optionList.push_back(ipv4EndpointOption2);
-//    // 3. insert into map
-//    InstanceMap instances; // calls map constructor
-//    instances[entry->getInstanceID()] = instance;
-//    serviceTable[entry->getServiceID()] = instances;
-
     myLayeredInformation.eth_src.setAddress("C0:C0:C0:C0:C0:C0");
     myLayeredInformation.ip_src = L3Address("10.0.0.2");
     myLayeredInformation.transport_src = SOMEIPSD_PORT;
