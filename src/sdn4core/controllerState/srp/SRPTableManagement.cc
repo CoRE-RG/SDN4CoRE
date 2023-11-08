@@ -36,69 +36,82 @@ Define_Module(SRPTableManagement);
 
 bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
         TalkerAdvertise* talkerAdvertise) {
-    Enter_Method ("registerTalker");
-    //check if we need to create a table for this switch.
-    SRPTable* srpTable = getOrCreateManagedState(swinfo->getMacAddress());
-
-    //check if this talker is already known
-    PortModule* module =
-            dynamic_cast<PortModule*>(srpTable->getTalkerForStreamId(
-                    talkerAdvertise->getStreamID(),
-                    talkerAdvertise->getVlan_identifier()));
-    if (module && module->getPort() != arrivalPort) {
-        //talker is already known to us but with a different port.
-        throw std::invalid_argument("Talker already exists on another port");
-    } else {
-        module = getOrCreateSwitchPort(swinfo->getMacAddress(), arrivalPort);
-    }
-
-    SR_CLASS srClass;
-
-    if (talkerAdvertise->getPriorityAndRank() == PRIOANDRANK_SRCLASSA) {
-        srClass = SR_CLASS::A;
-    } else if (talkerAdvertise->getPriorityAndRank() == PRIOANDRANK_SRCLASSB) {
+    SR_CLASS srClass = SR_CLASS::A;
+    if (talkerAdvertise->getPriorityAndRank() == PRIOANDRANK_SRCLASSB) {
         srClass = SR_CLASS::B;
-    } else {
-        srClass = SR_CLASS::A;
     }
     //only take first 3 bit and shift them to fit the uint8_t
     uint8_t pcp = (talkerAdvertise->getPriorityAndRank() & 0xE0) >> 5;
+    return registerTalker(swinfo->getMacAddress(), arrivalPort,
+            talkerAdvertise->getStreamID(),
+            talkerAdvertise->getDestination_address(),
+            talkerAdvertise->getVlan_identifier(),
+            pcp, srClass, talkerAdvertise->getMaxFrameSize(),
+            talkerAdvertise->getMaxIntervalFrames());
+}
 
-    return srpTable->updateTalkerWithStreamId(talkerAdvertise->getStreamID(),
-            module, talkerAdvertise->getDestination_address(), srClass,
-            talkerAdvertise->getMaxFrameSize(),
-            talkerAdvertise->getMaxIntervalFrames(),
-            talkerAdvertise->getVlan_identifier(), pcp, false);
+
+bool SRPTableManagement::registerTalker(string swMacAddr, int talkerPort,
+        uint64_t streamId, inet::MACAddress destination, uint16_t vlanId, uint8_t pcp, SR_CLASS srClass,
+        uint16_t maxFrameSize, uint16_t maxIntervalFrames) {
+    Enter_Method ("registerTalker");
+    //check if we need to create a table for this switch.
+    SRPTable* srpTable = getOrCreateManagedState(swMacAddr);
+    //check if this talker is already known
+    PortModule* module = dynamic_cast<PortModule*>(srpTable->getTalkerForStreamId(streamId, vlanId));
+    if (module && module->getPort() != talkerPort) {
+        //talker is already known to us but with a different port.
+        throw std::invalid_argument("Talker already exists on another port");
+    } else {
+        module = getOrCreateSwitchPort(swMacAddr, talkerPort);
+    }
+    return srpTable->updateTalkerWithStreamId(streamId, module, destination, srClass,
+            maxFrameSize, maxIntervalFrames, vlanId, pcp, false);
 }
 
 bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo,
         int arrivalPort, CoRE4INET::ListenerReady* listenerReady) {
+    return registerListener(swinfo->getMacAddress(), arrivalPort,
+            listenerReady->getStreamID(), listenerReady->getVlan_identifier());
+}
+
+bool SRPTableManagement::registerListener(string swMacAddr, int listenerPort,
+        uint64_t streamId, uint16_t vlanId) {
     Enter_Method ("registerListener");
     //check if there is a table for this switch
-    SRPTable* srpTable = getManagedState(swinfo->getMacAddress());
+    SRPTable* srpTable = getManagedState(swMacAddr);
     if (!srpTable) {
         return false;
     }
     //check if this listener is already known
     PortModule* module = nullptr;
     std::list<cModule*> listeners = srpTable->getListenersForStreamId(
-            listenerReady->getStreamID(), listenerReady->getVlan_identifier());
+            streamId, vlanId);
     for (auto listener : listeners) {
         PortModule* port = dynamic_cast<PortModule*>(listener);
-        if (port->getPort() == arrivalPort) {
+        if (port->getPort() == listenerPort) {
             module = port;
             break;
         }
     }
     if (!module) {
-        module = getOrCreateSwitchPort(swinfo->getMacAddress(), arrivalPort);
+        module = getOrCreateSwitchPort(swMacAddr, listenerPort);
     }
-
-    srpTable->updateListenerWithStreamId(listenerReady->getStreamID(), module,
-            listenerReady->getVlan_identifier());
+    srpTable->updateListenerWithStreamId(streamId, module, vlanId);
     return true;
 }
 
+
+unsigned long SRPTableManagement::getReservedBandwidthForSwitchPort(
+        string swMacAddr, int listenerPort, SR_CLASS srClass) {
+    Enter_Method("calculateIdleSlopeForSwitchPortPcp()");
+    SRPTable* srpTable = getManagedState(swMacAddr);
+    if (!srpTable) {
+       throw cRuntimeError("There is no srp table for this switch!");
+    }
+    PortModule* module = getSwitchPort(swMacAddr, listenerPort);
+    return srpTable->getBandwidthForModuleAndSRClass(module, srClass);
+}
 
 int SRPTableManagement::getTalkerPort(openflow::Switch_Info* switchInfo, uint64_t streamId, uint16_t vid) {
     Enter_Method("getTalkerPort");

@@ -27,6 +27,7 @@
 #include "sdn4core/controllerState/devices/DeviceTable.h"
 #include "sdn4core/controllerState/hosts/HostTable.h"
 #include "sdn4core/controllerState/topology/TopologyManagement.h"
+#include "sdn4core/controllerState/srp/SRPTableManagement.h"
 #include <sdn4core/messages/openflow/OFP_TSN_Port_Mod_m.h>
 //AUTO-GENERATED MESSAGES
 #include "soa4core/messages/someip/SomeIpSDEntry_m.h"
@@ -323,7 +324,10 @@ protected:
      * @return true if ressource reservation is required
      */
     bool requiresRessourceReservation(Subscription& sub);
+    void reserveRessourcesForUnicastSubscription(Subscription& sub, TopologyManagement::Route route);
+    void reserveRessourcesForMulticastSubscription(Subscription& sub, TopologyManagement::McastRoute mcastRoute);
     OFP_TSN_Port_Mod_CBS* buildPortModCBS(uint32_t portno, uint8_t pcp, unsigned long idleSlope);
+
 
     SomeipOptionsList getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
     void updateServiceTable(ServiceInstance& newInfo);
@@ -365,6 +369,11 @@ protected:
     TopologyManagement* topology;
     bool forwardOfferMulticast;
     IPv4Address someipMcastAddress;
+    bool reserverRessources;
+    /**
+     * A management module handling all SRP operations.
+     */
+    SRPTableManagement* srpManager;
 };
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::ServiceInstance& instance)

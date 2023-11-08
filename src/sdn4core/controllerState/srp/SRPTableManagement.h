@@ -71,6 +71,23 @@ public:
             CoRE4INET::TalkerAdvertise* talkerAdvertise);
 
     /**
+     * Register a talker for a switch and inport.
+     * @param swMacAddr the openflow mac address of the switch to configure
+     * @param talkerPort the port of the talker at the switch
+     * @param streamId the stream id to register
+     * @param destination the destination MAC of the stream
+     * @param vlanId the vlan identifier of the stream
+     * @param pcp the vlan priority of the stream
+     * @param srClass the srClass of the stream
+     * @param maxFrameSize the maximum frame size the stream sends
+     * @param maxIntervalFrames the maximum frames per interval send by the stream
+     * @return true if the talker table has been updated.
+     */
+    virtual bool registerTalker(string swMacAddr, int talkerPort,
+            uint64_t streamId, inet::MACAddress destination, uint16_t vlanId, uint8_t pcp, SR_CLASS srClass,
+            uint16_t maxFrameSize, uint16_t maxIntervalFrames);
+
+    /**
      * Register a listener for a switch and inport.
      * @param swinfo            The switch recieving the listener ready.
      * @param arrivalPort       The ingress port at the receiving switch.
@@ -79,6 +96,17 @@ public:
      */
     virtual bool registerListener(openflow::Switch_Info* swinfo,
             int arrivalPort, CoRE4INET::ListenerReady* listenerReady);
+
+    /**
+     * Register a listener for a switch and inport.
+     * @param swMacAddr the switch to configure
+     * @param listenerPort the port of the listener at the switch
+     * @param streamId the stream id to listen to
+     * @param vlanId the vlan id of the stream
+     * @return
+     */
+    virtual bool registerListener(string swMacAddr, int listenerPort,
+            uint64_t streamId, uint16_t vlanId);
 
     /**
      * Get the out port for a certain talker at a switch.

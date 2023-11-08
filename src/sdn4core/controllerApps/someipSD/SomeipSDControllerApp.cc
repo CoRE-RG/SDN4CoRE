@@ -33,6 +33,7 @@
 #include "openflow/openflow/protocol/OFMatchFactory.h"
 //CoRE4INET
 #include "core4inet/utilities/customWatch.h"
+#include "core4inet/utilities/HelperFunctions.h"
 
 using namespace inet;
 using namespace std;
@@ -59,6 +60,20 @@ void SomeipSDControllerApp::initialize() {
             this->getModuleByPath(par("topologyManagementPath")));
     forwardOfferMulticast = this->par("forwardOfferMulticast");
     someipMcastAddress = IPv4Address(par("someipMcastAddress").stringValue());
+
+    reserverRessources = this->par("reserverRessources");
+    if(reserverRessources) {
+        srpManager = tryLocateStateManager<SRPTableManagement*>("srpTableManagement");
+        if(!srpManager) {
+                // create the mac manager
+            srpManager = dynamic_cast<SRPTableManagement*>(
+                    createFinalizeAndScheduleDynamicModule(SRPTABLEMANAGERMODULEPATH,
+                            "srpTableManagement", this->getParentModule()->getSubmodule("controllerState"), false));
+            if(!srpManager){
+                throw cRuntimeError("Could not create SRPTableManagement.");
+            }
+        }
+    }
 
     myLayeredInformation.eth_src.setAddress("C0:C0:C0:C0:C0:C0");
     myLayeredInformation.ip_src = L3Address("10.0.0.2");
@@ -524,14 +539,18 @@ void SomeipSDControllerApp::installFlowForUnicastSubscription(Subscription& sub)
     uint8_t ip_proto = sub.consumerEndpoint.getL4Protocol();
     IPv4Address ip_dst = sub.consumerEndpoint.getIpv4Address();
     uint16_t tp_dst = sub.consumerEndpoint.getPort();
-
     // find route from the switch were the subAck arrived to the consumer IP
     TopologyManagement::Route route = topology->findRoute(
             topology->findEdgePort(ip_src).switchId, ip_dst);
-    if(route.empty()){
+    if(route.empty())
+    {
         throw cRuntimeError("Could not find a route for acknowledged subscription");
     }
-
+    // reserve switch ressources if needed
+    if(reserverRessources && requiresRessourceReservation(sub))
+    {
+        reserveRessourcesForUnicastSubscription(sub, route);
+    }
     // create the match
     auto builder = OFMatchFactory::getBuilder();
     builder->setField(OFPXMT_OFB_IPV4_SRC, &(ip_src));
@@ -540,7 +559,8 @@ void SomeipSDControllerApp::installFlowForUnicastSubscription(Subscription& sub)
     builder->setField(OFPXMT_OFB_IPV4_DST, &(ip_dst));
     builder->setField(OFPXMT_OFB_UDP_DST, &(tp_dst));
     // follow the route and install flows
-    for(SwitchPort& switchPort : route) {
+    for(SwitchPort& switchPort : route)
+    {
         int inport = topology->findOutportAtSwitch(switchPort.switchId, ip_src);
         builder->setField(OFPXMT_OFB_IN_PORT, &(inport));
         oxm_basic_match match = builder->build();
@@ -563,7 +583,6 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
     builder->setField(OFPXMT_OFB_IP_PROTO, &(ip_proto));
     builder->setField(OFPXMT_OFB_IPV4_DST, &(ip_mcast_dst));
     builder->setField(OFPXMT_OFB_UDP_DST, &(tp_mcast_dst));
-
     // collect routes to all subscribers
     ServiceInstanceSubscriptionList& subscriptions = subscriptionTable[sub.service.getServiceId()][sub.service.getInstanceId()];
     TopologyManagement::McastRoute mcastRoute;
@@ -581,7 +600,11 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
             mcastRoute.mergeRoute(route);
         }
     }
-
+    // reserve switch ressources if needed
+    if(reserverRessources && requiresRessourceReservation(sub))
+    {
+        reserveRessourcesForMulticastSubscription(sub, mcastRoute);
+    }
     for(auto& hop : mcastRoute.mcastRoute) {
         // hop first is switchid, second is port list
         TCPSocket* socket = controller->findSocketForChassisId(hop.first);
@@ -601,6 +624,54 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
     }
 }
 
+bool SomeipSDControllerApp::requiresRessourceReservation(Subscription& sub) {
+    int serviceId = sub.service.getServiceId();
+    int instanceId = sub.service.getInstanceId();
+    auto& pubOptions = serviceTable[serviceId][instanceId].optionList;
+    return pubOptions.hasConfigType<IEEE8021QConfigurationOption*>()
+            && pubOptions.hasConfigType<RessourceConfigurationOption*>();
+}
+
+void SomeipSDControllerApp::reserveRessourcesForUnicastSubscription(
+        Subscription& sub, TopologyManagement::Route route) {
+    int serviceId = sub.service.getServiceId();
+    int instanceId = sub.service.getInstanceId();
+    IPv4Address ip_src = sub.providerEndpoint.getIpv4Address();
+    IPv4Address ip_dst = sub.consumerEndpoint.getIpv4Address();
+    MACAddress mac_dest = hostTable->getHostForIpAddress(ip_dst)->macAddress;
+    auto& publisher = serviceTable[serviceId][instanceId];
+    auto qOption = publisher.optionList.getFirstConfigOfType<IEEE8021QConfigurationOption*>();
+    auto ressourceConfig = publisher.optionList.getFirstConfigOfType<RessourceConfigurationOption*>();
+    //calculate framesize used per class measurement interval.
+    double interval_cmi_ratio = ressourceConfig->getMinInterval() / getIntervalForClass(SR_CLASS::A);
+    uint16_t frameSize = ressourceConfig->getMaxFrameSize() / interval_cmi_ratio;
+    for(SwitchPort& switchPort : route)
+    {// for each hop
+        // 1. update talker in sr table
+        int inport = topology->findOutportAtSwitch(switchPort.switchId, ip_src);
+        if(inport < 0) {
+            throw cRuntimeError("Could not determine talker port for switch %s and talker IP %s", switchPort.switchId.c_str(), ip_src.str().c_str());
+        }
+        srpManager->registerTalker(switchPort.switchId, inport,
+                (uint64_t) serviceId, mac_dest, qOption->getVlan_id(), qOption->getPcp(), SR_CLASS::A,
+                frameSize, 1);
+        // 2. register new subscriber as listener
+        srpManager->registerListener(switchPort.switchId, switchPort.port,
+                (uint64_t) serviceId, qOption->getVlan_id());
+        // 3. get new port + pcp bandwidth for the new listener
+        // 4. configure the device port accordingly
+    }
+
+
+
+    TCPSocket* socket = controller->findSocketForChassisId(switchPort.switchId);
+    socket->send(buildPortModCBS(switchPort.port, pcp, idleSlope));
+}
+
+void SomeipSDControllerApp::reserveRessourcesForMulticastSubscription(
+        Subscription& sub, TopologyManagement::McastRoute mcastRoute) {
+}
+
 OFP_TSN_Port_Mod_CBS* SomeipSDControllerApp::buildPortModCBS(uint32_t portno, uint8_t pcp,
         unsigned long idleSlope) {
     OFP_TSN_Port_Mod_CBS* msg = new OFP_TSN_Port_Mod_CBS("portModCBS");
@@ -610,14 +681,6 @@ OFP_TSN_Port_Mod_CBS* SomeipSDControllerApp::buildPortModCBS(uint32_t portno, ui
     msg->setPcp(pcp);
     msg->setIdleSlope(idleSlope);
     return msg;
-}
-
-bool SomeipSDControllerApp::requiresRessourceReservation(Subscription& sub) {
-    int serviceId = sub.service.getServiceId();
-    int instanceId = sub.service.getInstanceId();
-    auto& pubOptions = serviceTable[serviceId][instanceId].optionList;
-    return pubOptions.hasConfigType<IEEE8021QConfigurationOption*>()
-            && pubOptions.hasConfigType<RessourceConfigurationOption*>();
 }
 
 SomeipOptionsList SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {
