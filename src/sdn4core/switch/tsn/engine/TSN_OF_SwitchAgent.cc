@@ -15,8 +15,10 @@
 // c Tobias Haugg, for HAW Hamburg
 
 #include <sdn4core/switch/tsn/engine/TSN_OF_SwitchAgent.h>
+#include <sdn4core/messages/openflow/OFP_TSN_Port_Mod_m.h>
 #include "core4inet/linklayer/ethernet/avb/SRPFrame_m.h"
 #include "core4inet/linklayer/contract/ExtendedIeee802Ctrl_m.h"
+#include "core4inet/linklayer/shaper/IEEE8021Qbv/selectionAlgorithm/CreditBasedShaper.h"
 #include "openflow/openflow/protocol/OFMessageFactory.h"
 #include "openflow/messages/OFP_Packet_In_m.h"
 #include "openflow/messages/OFP_Packet_Out_m.h"
@@ -25,6 +27,7 @@ using namespace std;
 using namespace inet;
 using namespace openflow;
 using namespace omnetpp;
+using namespace CoRE4INET;
 
 namespace SDN4CoRE{
 
@@ -61,11 +64,45 @@ void TSN_OF_SwitchAgent::processControlPlanePacket(cMessage *msg){
             controlPlanePacket++;
             handleSRPFromController(of_msg);
             break;
+        case OFPT_PORT_MOD:
+            controlPlanePacket++;
+            handlePortMod(of_msg);
         default:
             //not a special OF message, forward to base class.
             OF_SwitchAgent::processControlPlanePacket(msg);
             break;
         }
+    }
+}
+
+void TSN_OF_SwitchAgent::handlePortMod(cMessage* msg) {
+    if(OFP_TSN_Port_Mod_CBS* portMod = dynamic_cast<OFP_TSN_Port_Mod_CBS*>(msg))
+    {
+        int numPorts = getParentModule()->getSubmodule(par("etherMacModule"),0)->getVectorSize();
+        if(numPorts<=portMod->getPort_no())
+        {
+            throw cRuntimeError("Port mod requested for non existend port");
+        }
+        cModule* shaperModule = getParentModule()->getSubmodule(par("etherMacModule"),portMod->getPort_no())->getSubmodule("shaper");
+        if(!shaperModule)
+        {
+            throw cRuntimeError("Port does not contain a shaper module");
+        }
+        if(shaperModule->par("numPCP").intValue()<=portMod->getPcp())
+        {
+            throw cRuntimeError("Port mod requested for non existend pcp");
+        }
+        CreditBasedShaper* cbs = dynamic_cast<CreditBasedShaper*>(shaperModule->getSubmodule("transmissionSelectionAlgorithm",portMod->getPcp()));
+        if(!cbs)
+        {
+            throw cRuntimeError("Could not find the cbs for port mod");
+        }
+        // all checked, set the idle slope for the port
+        cbs->setIdleSlope(portMod->getIdleSlope());
+        delete msg;
+    } else {
+        // maybe base impl wants to process this sometime?
+        OF_SwitchAgent::processControlPlanePacket(msg);
     }
 }
 

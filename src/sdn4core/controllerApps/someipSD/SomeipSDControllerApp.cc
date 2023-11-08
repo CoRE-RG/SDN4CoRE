@@ -157,7 +157,7 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
         saveFind.layeredInformation = findInfo->dup();
         saveFind.entry = dynamic_cast<ServiceEntry*>(findInquiry->dup());
         saveFind.entry->setIndex1stOptions(0);
-        std::list<SomeIpSDOption*> findOptions = getEntryOptions(findInquiry, someIpSDHeader);
+        SomeipOptionsList findOptions = getEntryOptions(findInquiry, someIpSDHeader);
         for (auto optIt = findOptions.begin(); optIt != findOptions.end(); optIt++) {
             saveFind.optionList.push_back((*optIt));
         }
@@ -246,7 +246,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     if (destination != layeredInformation->ip_dst && destination != myLayeredInformation.ip_src) {
         throw cRuntimeError("The subscription was sent to a different destination than known to the controller for the service instance!");
     }
-
+    // identify subscribed endpoint
     auto entryOptions = getEntryOptions(entry, someIpSDHeader);
     IPv4EndpointOption* endpoint = nullptr;
     for (auto option : entryOptions)
@@ -255,10 +255,13 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
         if (IPv4EndpointOption* ipEndpoint = dynamic_cast<IPv4EndpointOption*>(option))
         {
             if (endpoint) {
-                throw cRuntimeError("Exactly one endpoint information must be present in subscribtion.");
+                throw cRuntimeError("Exactly one endpoint information must be present in subscription.");
             }
             endpoint = ipEndpoint;
         }
+    }
+    if (!endpoint) {
+        throw cRuntimeError("One endpoint information must be present in subscription.");
     }
     // update local subscription table
     bool subKnown = false;
@@ -298,14 +301,8 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
         subscription.consumerInformation = *(layeredInformation);
         subscription.consumerEndpoint = *(endpoint);
         subscription.waitingForAck = true;
-        for (auto option : entryOptions)
-        {
-            // check if endpoint
-            if (ConfigurationOption* config = dynamic_cast<ConfigurationOption*>(option))
-            {
-                subscription.configOptions.push_back(config);
-            }
-        }
+        // add config options of consumer
+        subscription.addConfigOptions(entryOptions);
         subscriptionTable[entry->getServiceID()][entry->getInstanceID()].push_back(subscription);
     }
     delete endpoint;
@@ -393,7 +390,7 @@ SomeIpSDHeader* SomeipSDControllerApp::buildFind(SomeIpSDHeader* findSource, Som
     }
     header->encapEntry(newFind);
 
-    std::list<SomeIpSDOption*> oldOptionList = getEntryOptions(findInquiry, findSource);
+    SomeipOptionsList oldOptionList = getEntryOptions(findInquiry, findSource);
     for (auto it = oldOptionList.begin(); it != oldOptionList.end(); it++) {
         header->encapOption(*it);
     }
@@ -587,6 +584,7 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
 
     for(auto& hop : mcastRoute.mcastRoute) {
         // hop first is switchid, second is port list
+        TCPSocket* socket = controller->findSocketForChassisId(hop.first);
         int inport = topology->findOutportAtSwitch(hop.first, ip_host_src);
         builder->setField(OFPXMT_OFB_IN_PORT, &(inport));
         oxm_basic_match match = builder->build();
@@ -597,18 +595,36 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
         }
         auto flowMod = OFMessageFactory::instance()->createFlowModMessage(
                 ofp_flow_mod_command::OFPFC_ADD, match, this->priority, outports, hop.second.size(), _idleTimeout, _hardTimeout);
-        TCPSocket* socket = controller->findSocketForChassisId(hop.first);
         EV << "sendFlowModMessage" << '\n';
         numFlowMod++;
         socket->send(flowMod);
     }
 }
 
-list<SomeIpSDOption*> SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {
+OFP_TSN_Port_Mod_CBS* SomeipSDControllerApp::buildPortModCBS(uint32_t portno, uint8_t pcp,
+        unsigned long idleSlope) {
+    OFP_TSN_Port_Mod_CBS* msg = new OFP_TSN_Port_Mod_CBS("portModCBS");
+    msg->getHeader().version = OFP_VERSION;
+    msg->getHeader().type = OFPT_PORT_MOD;
+    msg->setPort_no(portno);
+    msg->setPcp(pcp);
+    msg->setIdleSlope(idleSlope);
+    return msg;
+}
+
+bool SomeipSDControllerApp::requiresRessourceReservation(Subscription& sub) {
+    int serviceId = sub.service.getServiceId();
+    int instanceId = sub.service.getInstanceId();
+    auto& pubOptions = serviceTable[serviceId][instanceId].optionList;
+    return pubOptions.hasConfigType<IEEE8021QConfigurationOption*>()
+            && pubOptions.hasConfigType<RessourceConfigurationOption*>();
+}
+
+SomeipOptionsList SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {
     int optionPosition = xEntry->getIndex1stOptions();
     int optionQuantity = xEntry->getNum1stOptions();
-    std::list<SomeIpSDOption*> optionList;
-    std::list<SomeIpSDOption*> optList = header->getEncapOptions();
+    SomeipOptionsList optionList;
+    list<SomeIpSDOption *> optList = header->getEncapOptions();
     std::_List_iterator<SomeIpSDOption*> optionListIterator = optList.begin();
     std::advance(optionListIterator, optionPosition);
     for (int firstOptionsIdx = 0; firstOptionsIdx < optionQuantity; firstOptionsIdx++) {

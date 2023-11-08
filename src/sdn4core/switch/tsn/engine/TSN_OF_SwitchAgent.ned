@@ -33,4 +33,6 @@ simple TSN_OF_SwitchAgent extends AVB_OF_SwitchAgent
 {
     parameters:
         @class(SDN4CoRE::TSN_OF_SwitchAgent);
+        // name of the ethernet Interface modules for the data plane ports
+        string etherMacModule = default("etherMAC");
 }

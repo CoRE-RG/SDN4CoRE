@@ -27,6 +27,7 @@
 #include "sdn4core/controllerState/devices/DeviceTable.h"
 #include "sdn4core/controllerState/hosts/HostTable.h"
 #include "sdn4core/controllerState/topology/TopologyManagement.h"
+#include <sdn4core/messages/openflow/OFP_TSN_Port_Mod_m.h>
 //AUTO-GENERATED MESSAGES
 #include "soa4core/messages/someip/SomeIpSDEntry_m.h"
 #include "soa4core/messages/someip/SomeIpSDOption_m.h"
@@ -43,6 +44,62 @@ using namespace omnetpp;
 
 
 namespace SDN4CoRE {
+/**
+ * Extended SomeIpSDOption list implementing comfort functions
+ */
+class SomeipOptionsList : public std::list<SOA4CoRE::SomeIpSDOption*>
+{
+public:
+    ~SomeipOptionsList() {
+        for (auto elem: *this) {
+            if (elem) delete elem;
+            elem = nullptr;
+        }
+    }
+
+    template<typename T>
+    bool hasConfigType () {
+        for (auto config : *this) {
+            if(dynamic_cast<T>(config)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    template<typename T>
+    T getFirstConfigOfType () {
+        for (auto config : *this) {
+            if(T castConfig = dynamic_cast<T>(config)) {
+                return castConfig;
+            }
+        }
+        return nullptr;
+    }
+
+    template<typename T>
+    std::list<T> getAllConfigsOfType () {
+        std::list<T> configs;
+        for (auto config : *this) {
+            if(T castConfig = dynamic_cast<T>(config)) {
+                configs.push_back(castConfig);
+            }
+        }
+        return configs;
+    }
+
+    /**
+     * Deep copy duplicating all config options contained in the list.
+     * @return a copy of this list with pointers to new duplicates of the configs.
+     */
+    SomeipOptionsList dup() {
+        SomeipOptionsList duplicate;
+        for (auto config : *this) {
+            duplicate.push_back(config->dup());
+        }
+        return duplicate;
+    }
+};
 
 /**
 // SomeipSDControllerApp is an SDN controller application that handles
@@ -58,13 +115,14 @@ namespace SDN4CoRE {
 class SomeipSDControllerApp: public PacketProcessorBase
 {
 public:
+
     /**
      * struct to save a single offer-message with the corresponding options
      */
     struct ServiceInstance {
         SOA4CoRE::ServiceEntry* entry = nullptr;
         LayeredInformation* layeredInformation = nullptr;
-        std::list<SOA4CoRE::SomeIpSDOption*> optionList;
+        SomeipOptionsList optionList;
         void clear() {
             if (entry) delete entry;
             entry = nullptr;
@@ -92,7 +150,7 @@ public:
         SOA4CoRE::SomeIpSDHeader* requestHeader;
         LayeredInformation* layeredInformation;
         SOA4CoRE::ServiceEntry* entry;
-        std::list<SOA4CoRE::SomeIpSDOption*> optionList;
+        SomeipOptionsList optionList;
         void clear() {
             if (requestHeader) delete requestHeader;
             requestHeader = nullptr;
@@ -164,6 +222,20 @@ public:
                 return providerInformation.ip_src.toIPv4();
             }
             return providerEndpoint.getIpv4Address();
+        }
+
+        void addConfigOption(SOA4CoRE::SomeIpSDOption* option) {
+            if (SOA4CoRE::ConfigurationOption* config = dynamic_cast<SOA4CoRE::ConfigurationOption*>(option)) {
+                configOptions.push_back(config);
+            }
+        }
+
+        void addConfigOptions(SomeipOptionsList options) {
+            for (auto option : options) {
+                if (SOA4CoRE::ConfigurationOption* config = dynamic_cast<SOA4CoRE::ConfigurationOption*>(option)) {
+                    configOptions.push_back(config);
+                }
+            }
         }
 
         void clear() {
@@ -245,7 +317,15 @@ protected:
     void installFlowForUnicastSubscription(Subscription& sub);
     void installFlowForMulticastSubscription(Subscription& sub);
 
-    std::list<SOA4CoRE::SomeIpSDOption*> getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
+    /**
+     * Checks if all necessary configurations have been set by the producer of the subscription
+     * @param sub The subscription to be checked
+     * @return true if ressource reservation is required
+     */
+    bool requiresRessourceReservation(Subscription& sub);
+    OFP_TSN_Port_Mod_CBS* buildPortModCBS(uint32_t portno, uint8_t pcp, unsigned long idleSlope);
+
+    SomeipOptionsList getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
     void updateServiceTable(ServiceInstance& newInfo);
 
      /**

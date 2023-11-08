@@ -27,11 +27,16 @@ protected:
     virtual void handleMessage(cMessage *msg) override;
     virtual void processControlPlanePacket(cMessage *msg) override;
     /**
-     * Handels srp messages arriving from the controller and forward them to the local
+     * Handles srp messages arriving from the controller and forward them to the local
      * SRProtocol module.
      * @param msg   incoming srp message
      */
     virtual void handleSRPFromController(cMessage* msg);
+    /**
+     * Handles openflow port mod messages, in particular @see OFP_TSN_Port_Mod_CBS.
+     * @param msg   incoming port mod message
+     */
+    virtual void handlePortMod(cMessage* msg);
 private:
     /**
      * Forward the response of the local SRProtocol module to the controller
