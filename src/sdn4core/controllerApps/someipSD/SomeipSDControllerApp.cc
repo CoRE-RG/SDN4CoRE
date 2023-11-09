@@ -67,7 +67,7 @@ void SomeipSDControllerApp::initialize() {
         if(!srpManager) {
                 // create the mac manager
             srpManager = dynamic_cast<SRPTableManagement*>(
-                    createFinalizeAndScheduleDynamicModule(SRPTABLEMANAGERMODULEPATH,
+                    createFinalizeAndScheduleDynamicModule("sdn4core.controllerState.srp.SRPTableManagement",
                             "srpTableManagement", this->getParentModule()->getSubmodule("controllerState"), false));
             if(!srpManager){
                 throw cRuntimeError("Could not create SRPTableManagement.");
@@ -659,13 +659,12 @@ void SomeipSDControllerApp::reserveRessourcesForUnicastSubscription(
         srpManager->registerListener(switchPort.switchId, switchPort.port,
                 (uint64_t) serviceId, qOption->getVlan_id());
         // 3. get new port + pcp bandwidth for the new listener
+        unsigned long portIdleSlope = srpManager->getReservedBandwidthForSwitchPortAndPcp(
+                switchPort.switchId, switchPort.port, qOption->getPcp());
         // 4. configure the device port accordingly
+        TCPSocket* socket = controller->findSocketForChassisId(switchPort.switchId);
+        socket->send(buildPortModCBS(switchPort.port, qOption->getPcp(), portIdleSlope));
     }
-
-
-
-    TCPSocket* socket = controller->findSocketForChassisId(switchPort.switchId);
-    socket->send(buildPortModCBS(switchPort.port, pcp, idleSlope));
 }
 
 void SomeipSDControllerApp::reserveRessourcesForMulticastSubscription(

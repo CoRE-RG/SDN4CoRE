@@ -83,8 +83,8 @@ public:
      * @param maxIntervalFrames the maximum frames per interval send by the stream
      * @return true if the talker table has been updated.
      */
-    virtual bool registerTalker(string swMacAddr, int talkerPort,
-            uint64_t streamId, inet::MACAddress destination, uint16_t vlanId, uint8_t pcp, SR_CLASS srClass,
+    virtual bool registerTalker(std::string swMacAddr, int talkerPort,
+            uint64_t streamId, inet::MACAddress destination, uint16_t vlanId, uint8_t pcp, CoRE4INET::SR_CLASS srClass,
             uint16_t maxFrameSize, uint16_t maxIntervalFrames);
 
     /**
@@ -105,8 +105,16 @@ public:
      * @param vlanId the vlan id of the stream
      * @return
      */
-    virtual bool registerListener(string swMacAddr, int listenerPort,
+    virtual bool registerListener(std::string swMacAddr, int listenerPort,
             uint64_t streamId, uint16_t vlanId);
+
+    /**
+     * Retrieve the reserved bandwidth from srp tables for the switch, port, and pcp
+     * @param swMacAddr The switch address
+     * @param port the port at the switch
+     * @param pcp the pcp of the queue
+     */
+    virtual unsigned long getReservedBandwidthForSwitchPortAndPcp(std::string swMacAddr, int port, uint8_t pcp);
 
     /**
      * Get the out port for a certain talker at a switch.

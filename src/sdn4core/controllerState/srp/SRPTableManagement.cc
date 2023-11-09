@@ -102,15 +102,15 @@ bool SRPTableManagement::registerListener(string swMacAddr, int listenerPort,
 }
 
 
-unsigned long SRPTableManagement::getReservedBandwidthForSwitchPort(
-        string swMacAddr, int listenerPort, SR_CLASS srClass) {
-    Enter_Method("calculateIdleSlopeForSwitchPortPcp()");
+unsigned long SRPTableManagement::getReservedBandwidthForSwitchPortAndPcp(
+        string swMacAddr, int port, uint8_t pcp) {
+    Enter_Method("getReservedBandwidthForSwitchPortAndPcp()");
     SRPTable* srpTable = getManagedState(swMacAddr);
     if (!srpTable) {
        throw cRuntimeError("There is no srp table for this switch!");
     }
-    PortModule* module = getSwitchPort(swMacAddr, listenerPort);
-    return srpTable->getBandwidthForModuleAndSRClass(module, srClass);
+    PortModule* module = getSwitchPort(swMacAddr, port);
+    return srpTable->getBandwidthForModuleAndPcp(module, pcp);
 }
 
 int SRPTableManagement::getTalkerPort(openflow::Switch_Info* switchInfo, uint64_t streamId, uint16_t vid) {

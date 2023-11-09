@@ -67,6 +67,7 @@ void TSN_OF_SwitchAgent::processControlPlanePacket(cMessage *msg){
         case OFPT_PORT_MOD:
             controlPlanePacket++;
             handlePortMod(of_msg);
+            break;
         default:
             //not a special OF message, forward to base class.
             OF_SwitchAgent::processControlPlanePacket(msg);

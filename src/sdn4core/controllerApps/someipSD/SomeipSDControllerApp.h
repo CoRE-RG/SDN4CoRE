@@ -51,12 +51,13 @@ namespace SDN4CoRE {
 class SomeipOptionsList : public std::list<SOA4CoRE::SomeIpSDOption*>
 {
 public:
-    ~SomeipOptionsList() {
-        for (auto elem: *this) {
-            if (elem) delete elem;
-            elem = nullptr;
-        }
-    }
+//    ~SomeipOptionsList() {
+//        for (auto elem: *this) {
+//            if (elem) delete elem;
+//            elem = nullptr;
+//        }
+//        this->clear();
+//    }
 
     template<typename T>
     bool hasConfigType () {
