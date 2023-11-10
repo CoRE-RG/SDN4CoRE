@@ -325,8 +325,7 @@ protected:
      * @return true if ressource reservation is required
      */
     bool requiresRessourceReservation(Subscription& sub);
-    void reserveRessourcesForUnicastSubscription(Subscription& sub, TopologyManagement::Route route);
-    void reserveRessourcesForMulticastSubscription(Subscription& sub, TopologyManagement::McastRoute mcastRoute);
+    void reserveRessourcesForSubscription(Subscription& sub, TopologyManagement::Route route);
     OFP_TSN_Port_Mod_CBS* buildPortModCBS(uint32_t portno, uint8_t pcp, unsigned long idleSlope);
 
 
