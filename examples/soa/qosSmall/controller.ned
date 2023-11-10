@@ -26,7 +26,7 @@ module Controller extends TSN_NC_OF_Controller
         OF_Controller.parallelProcessing = true;
         numControllerApps = 3;
         controllerApps[0].typename = "LearningControllerApp";
-        controllerApps[0].packetFilterBlacklist = "etherType=0x88CC;udpSrc=30490";
+        controllerApps[0].packetFilterBlacklist = "etherType=0x88CC;udpSrc=30490;ipProto=17";
         controllerApps[0].configXML = xmldoc("controllerconfig.xml");
         controllerApps[0].matchAll = true;
         controllerApps[1].typename = "LLDPControllerApp";
