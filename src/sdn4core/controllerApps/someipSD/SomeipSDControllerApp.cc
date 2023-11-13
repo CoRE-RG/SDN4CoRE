@@ -25,6 +25,7 @@
 #include "inet/transportlayer/udp/UDPPacket.h"
 #include <inet/networklayer/contract/ipv4/IPv4Address.h>
 #include <inet/networklayer/common/IPProtocolId_m.h>
+#include "inet/transportlayer/tcp_common/TCPSegment_m.h"
 
 //openflow
 #include "openflow/messages/OFP_Flow_Mod_m.h"
@@ -651,8 +652,9 @@ void SomeipSDControllerApp::reserveRessourcesForSubscription(
     auto qOption = publisher.optionList.getFirstConfigOfType<IEEE8021QConfigurationOption*>();
     auto ressourceConfig = publisher.optionList.getFirstConfigOfType<RessourceConfigurationOption*>();    
     //calculate framesize used per class measurement interval.
+    uint16_t l1frameSize = calculateL1Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxFrameSize());
     double interval_cmi_ratio = ressourceConfig->getMinInterval() / getIntervalForClass(SR_CLASS::A);
-    uint16_t frameSize = ressourceConfig->getMaxFrameSize() / interval_cmi_ratio;
+    uint16_t frameSize = l1frameSize / interval_cmi_ratio;
     for(SwitchPort& switchPort : route)
     {// for each hop
         // 1. update talker in sr table
@@ -673,6 +675,24 @@ void SomeipSDControllerApp::reserveRessourcesForSubscription(
         TCPSocket* socket = controller->findSocketForChassisId(switchPort.switchId);
         socket->send(buildPortModCBS(switchPort.port, qOption->getPcp(), portIdleSlope));
     }
+}
+
+uint16_t SomeipSDControllerApp::calculateL1Framesize(uint8_t ip_proto,
+        uint16_t payload) {
+    uint16_t transportBytes;
+    switch (ip_proto){
+    case IP_PROT_TCP:
+        transportBytes = TCP_HEADER_OCTETS;
+        break;
+    case IP_PROT_UDP:
+        transportBytes = UDP_HEADER_BYTES;
+        break;
+    default:
+        throw cRuntimeError("SOME/IP Transport must be either UDP or TCP.");
+        break;
+    }
+    return payload + ETHER_MAC_FRAME_BYTES + ETHER_8021Q_TAG_BYTES
+            + IP_HEADER_BYTES + transportBytes + SOMEIP_HEADER_BYTES;
 }
 
 OFP_TSN_Port_Mod_CBS* SomeipSDControllerApp::buildPortModCBS(uint32_t portno, uint8_t pcp,

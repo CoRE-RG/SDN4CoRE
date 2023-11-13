@@ -326,6 +326,13 @@ protected:
      */
     bool requiresRessourceReservation(Subscription& sub);
     void reserveRessourcesForSubscription(Subscription& sub, TopologyManagement::Route route);
+    /**
+     * Calculate the layer 1 framesize for the SOME/IP protocol stack with the given payload
+     * @param ip_proto
+     * @param payload
+     * @return the framesize including all headers and the payload
+     */
+    uint16_t calculateL1Framesize(uint8_t ip_proto, uint16_t payload);
     OFP_TSN_Port_Mod_CBS* buildPortModCBS(uint32_t portno, uint8_t pcp, unsigned long idleSlope);
 
 
