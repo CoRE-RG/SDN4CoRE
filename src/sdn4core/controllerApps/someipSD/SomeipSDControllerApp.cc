@@ -652,7 +652,7 @@ void SomeipSDControllerApp::reserveRessourcesForSubscription(
     auto qOption = publisher.optionList.getFirstConfigOfType<IEEE8021QConfigurationOption*>();
     auto ressourceConfig = publisher.optionList.getFirstConfigOfType<RessourceConfigurationOption*>();    
     //calculate framesize used per class measurement interval.
-    uint16_t l1frameSize = calculateL1Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxFrameSize());
+    uint16_t l1frameSize = calculateL1Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxPayload());
     double interval_cmi_ratio = ressourceConfig->getMinInterval() / getIntervalForClass(SR_CLASS::A);
     uint16_t frameSize = l1frameSize / interval_cmi_ratio;
     for(SwitchPort& switchPort : route)
