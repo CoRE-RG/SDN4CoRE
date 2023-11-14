@@ -635,7 +635,8 @@ bool SomeipSDControllerApp::requiresRessourceReservation(Subscription& sub) {
 
 void SomeipSDControllerApp::reserveRessourcesForSubscription(
         Subscription& sub, TopologyManagement::Route route) {
-    int serviceId = sub.service.getServiceId();
+    // the serviceId conversion is okay since the service ID is actually uint16_t in the messages
+    uint16_t serviceId = sub.service.getServiceId();
     int instanceId = sub.service.getInstanceId();
     IPv4Address ip_src = sub.getSrcHostIp();
     IPv4Address ip_dst = sub.consumerEndpoint.getIpv4Address();
@@ -655,6 +656,14 @@ void SomeipSDControllerApp::reserveRessourcesForSubscription(
     uint16_t l1frameSize = calculateL1Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxPayload());
     double interval_cmi_ratio = ressourceConfig->getMinInterval() / getIntervalForClass(SR_CLASS::A);
     uint16_t frameSize = l1frameSize / interval_cmi_ratio;
+    // we need a unique stream ID per flow which is not trivial for UNICAST
+    // using the service id is not enough when one service has multiple !UNICAST! destination nodes
+    // using the destination MAC is not enough when multiple services have the same !UNICAST! destination addresses
+    // the combination of the two, however, is unique
+    // we use a 64 bit value with 2 highest bytes occupied by serviceId and the lower 6 by the MAC address.
+    uint64 macDestAsInt = mac_dest.getInt(); // from INET::MACAddress: 6*8=48 bit address, lowest 6 bytes are used, highest 2 bytes are always zero
+    uint64_t shiftedServiceId = ((uint64_t) serviceId) << 48;// shift to occupy the two highest 2 bytes
+    uint64 streamId = macDestAsInt + shiftedServiceId;
     for(SwitchPort& switchPort : route)
     {// for each hop
         // 1. update talker in sr table
@@ -663,11 +672,11 @@ void SomeipSDControllerApp::reserveRessourcesForSubscription(
             throw cRuntimeError("Could not determine talker port for switch %s and talker IP %s", switchPort.switchId.c_str(), ip_src.str().c_str());
         }
         srpManager->registerTalker(switchPort.switchId, inport,
-                (uint64_t) serviceId, mac_dest, qOption->getVlan_id(), qOption->getPcp(), SR_CLASS::A,
+                streamId, mac_dest, qOption->getVlan_id(), qOption->getPcp(), SR_CLASS::A,
                 frameSize, 1);
         // 2. register new subscriber as listener
         srpManager->registerListener(switchPort.switchId, switchPort.port,
-                (uint64_t) serviceId, qOption->getVlan_id());
+                streamId, qOption->getVlan_id());
         // 3. get new port + pcp bandwidth for the new listener
         unsigned long portIdleSlope = srpManager->getReservedBandwidthForSwitchPortAndPcp(
                 switchPort.switchId, switchPort.port, qOption->getPcp());
