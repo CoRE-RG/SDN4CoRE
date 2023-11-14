@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
+  <inputs>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/Baseline_CT-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/Baseline_CT-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/Baseline-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/Baseline-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS_CT-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS_CT-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithConfigExtensions_CT-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithConfigExtensions_CT-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithConfigExtensions-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithConfigExtensions-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithPriorities_CT-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithPriorities_CT-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithPriorities-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithPriorities-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS_NoHostCBS-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS_NoHostCBS-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS_NoHostCBS_CT-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS_NoHostCBS_CT-#0.vec"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS_CT_Unicast-#0.sca"/>
+    <inputs name="/SDN4CoRE/examples/soa/qosSmall/results/WithCBS_CT_Unicast-#0.vec"/>
+  </inputs>
+  <datasets>
+    <datasets name="ReservedBandwidth">
+      <items xsi:type="scave:Add" filterPattern="module(**S[*]**transmissionSelectionAlgorithm**) AND name(*reservedBandwidth*)" type="VECTOR"/>
+    </datasets>
+    <datasets name="ServiceLatencies">
+      <items xsi:type="scave:Add" filterPattern="module(**services**) AND name(**Latency:**)" type="VECTOR"/>
+    </datasets>
+    <datasets name="AllQueueLengths">
+      <items xsi:type="scave:Add" filterPattern="module(**queue**) AND name(**length**)" type="VECTOR"/>
+    </datasets>
+  </datasets>
+  <chartSheets/>
+</scave:Analysis>
