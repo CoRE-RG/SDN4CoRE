@@ -655,9 +655,13 @@ void SomeipSDControllerApp::reserveRessourcesForSubscription(
     auto qOption = publisher.optionList.getFirstConfigOfType<IEEE8021QConfigurationOption*>();
     auto ressourceConfig = publisher.optionList.getFirstConfigOfType<RessourceConfigurationOption*>();    
     //calculate framesize used per class measurement interval.
-    uint16_t l1frameSize = calculateL1Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxPayload());
-    double interval_cmi_ratio = ressourceConfig->getMinInterval() / getIntervalForClass(SR_CLASS::A);
-    uint16_t frameSize = l1frameSize / interval_cmi_ratio;
+    uint16_t fullL2FrameSize = calculateL2Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxPayload());
+    SR_CLASS srclass = SR_CLASS::A;
+    int normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, ressourceConfig->getMinInterval(), srclass, false);
+    if(normalizedFramesize < 0) {
+        srclass = SR_CLASS::B;
+        normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, ressourceConfig->getMinInterval(), srclass, true);
+    }
     // -- not unique if multiple instances of a service exist and are subscribed by the same destination
     // uint64_t streamId = buildStreamIDForService(serviceId, mac_dest)
     uint64_t streamId = buildStreamIDForService(serviceId, instanceId, ip_dst);
@@ -669,8 +673,8 @@ void SomeipSDControllerApp::reserveRessourcesForSubscription(
             throw cRuntimeError("Could not determine talker port for switch %s and talker IP %s", switchPort.switchId.c_str(), ip_src.str().c_str());
         }
         srpManager->registerTalker(switchPort.switchId, inport,
-                streamId, mac_dest, qOption->getVlan_id(), qOption->getPcp(), SR_CLASS::A,
-                frameSize, 1);
+                streamId, mac_dest, qOption->getVlan_id(), qOption->getPcp(), srclass,
+                normalizedFramesize, 1);
         // 2. register new subscriber as listener
         srpManager->registerListener(switchPort.switchId, switchPort.port,
                 streamId, qOption->getVlan_id());
@@ -683,7 +687,7 @@ void SomeipSDControllerApp::reserveRessourcesForSubscription(
     }
 }
 
-uint16_t SomeipSDControllerApp::calculateL1Framesize(uint8_t ip_proto,
+uint16_t SomeipSDControllerApp::calculateL2Framesize(uint8_t ip_proto,
         uint16_t payload) {
     uint16_t transportBytes;
     switch (ip_proto){
