@@ -46,5 +46,5 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         // disable timeout for SOME/IP flows set up by this app
         flowModHardTimeOut = default(0);
         flowModIdleTimeOut = default(0);
-        bool reserverRessources = default(false);
+        bool reserveResources = default(false);
 }

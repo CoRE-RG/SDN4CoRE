@@ -324,8 +324,8 @@ protected:
      * @param sub The subscription to be checked
      * @return true if ressource reservation is required
      */
-    bool requiresRessourceReservation(Subscription& sub);
-    void reserveRessourcesForSubscription(Subscription& sub, TopologyManagement::Route route);
+    bool requiresResourceReservation(Subscription& sub);
+    void reserveResourcesForSubscription(Subscription& sub, TopologyManagement::Route route);
     /**
      * Calculate the layer 1 framesize for the SOME/IP protocol stack with the given payload
      * @param ip_proto
@@ -376,7 +376,7 @@ protected:
     TopologyManagement* topology;
     bool forwardOfferMulticast;
     IPv4Address someipMcastAddress;
-    bool reserverRessources;
+    bool reserveResources;
     /**
      * A management module handling all SRP operations.
      */

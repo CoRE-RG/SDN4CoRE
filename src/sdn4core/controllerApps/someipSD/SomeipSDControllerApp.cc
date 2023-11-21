@@ -64,8 +64,8 @@ void SomeipSDControllerApp::initialize() {
     forwardOfferMulticast = this->par("forwardOfferMulticast");
     someipMcastAddress = IPv4Address(par("someipMcastAddress").stringValue());
 
-    reserverRessources = this->par("reserverRessources");
-    if(reserverRessources) {
+    reserveResources = this->par("reserveResources");
+    if(reserveResources) {
         srpManager = tryLocateStateManager<SRPTableManagement*>("srpTableManagement");
         if(!srpManager) {
                 // create the mac manager
@@ -550,9 +550,9 @@ void SomeipSDControllerApp::installFlowForUnicastSubscription(Subscription& sub)
         throw cRuntimeError("Could not find a route for acknowledged subscription");
     }
     // reserve switch ressources if needed
-    if(reserverRessources && requiresRessourceReservation(sub))
+    if(reserveResources && requiresResourceReservation(sub))
     {
-        reserveRessourcesForSubscription(sub, route);
+        reserveResourcesForSubscription(sub, route);
     }
     // create the match
     auto builder = OFMatchFactory::getBuilder();
@@ -603,8 +603,8 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
             }
             mcastRoute.mergeRoute(route);
             // reserve switch ressources if needed
-            if(isNewSub && reserverRessources && requiresRessourceReservation(sub)) {
-                reserveRessourcesForSubscription(sub, route);
+            if(isNewSub && reserveResources && requiresResourceReservation(sub)) {
+                reserveResourcesForSubscription(sub, route);
             }
         }
     }    
@@ -627,7 +627,7 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
     }
 }
 
-bool SomeipSDControllerApp::requiresRessourceReservation(Subscription& sub) {
+bool SomeipSDControllerApp::requiresResourceReservation(Subscription& sub) {
     int serviceId = sub.service.getServiceId();
     int instanceId = sub.service.getInstanceId();
     auto& pubOptions = serviceTable[serviceId][instanceId].optionList;
@@ -635,7 +635,7 @@ bool SomeipSDControllerApp::requiresRessourceReservation(Subscription& sub) {
             && pubOptions.hasConfigType<RessourceConfigurationOption*>();
 }
 
-void SomeipSDControllerApp::reserveRessourcesForSubscription(
+void SomeipSDControllerApp::reserveResourcesForSubscription(
         Subscription& sub, TopologyManagement::Route route) {
     // the serviceId conversion is okay since the service ID is actually uint16_t in the messages
     uint16_t serviceId = sub.service.getServiceId();
