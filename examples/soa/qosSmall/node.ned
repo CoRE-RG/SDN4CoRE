@@ -28,6 +28,9 @@ module Node extends MiddlewareTSNHost
 		middleware.sm.repetitionsMax= 3;
 		middleware.sm.repetitionBaseDelay = 1s;
 		middleware.sm.cyclicOfferDelay = 7s;
+		eth[*].shaper.queueing.defaultPCP = default(0);
+		eth[*].shaper.queueing.defaultPcpOnly = default(true);
+		eth[*].shaper.numPCP = default(1);
 	submodules:
 	connections:
 
