@@ -253,6 +253,15 @@ public:
     typedef std::map<int, ServiceInstanceSubscriptionList> IntanceSubscriptionMap;
     typedef std::map<int, IntanceSubscriptionMap> SubscriptionMap;
 
+    struct SwitchPortIdleSlope {
+        SwitchPort switchPort;
+        uint8_t pcp;
+        unsigned long idleSlope;
+    };
+
+    typedef std::list<SwitchPortIdleSlope> ResourceReservationList;
+    typedef std::map<int,ResourceReservationList> ResourceReservationTable;
+
     /**
      *  Cleans the serviceTable for finishing the simulation
      */
@@ -285,11 +294,6 @@ public:
         subscriptionTable.clear();
     };
 protected:
-    ServiceInstanceMap serviceTable;
-    RequestMap requestTable;
-    SubscriptionMap subscriptionTable;
-    LayeredInformation myLayeredInformation;
-    uint16_t controllerRequestID;
     virtual void initialize() override;
 
     /**
@@ -326,6 +330,7 @@ protected:
      */
     bool requiresResourceReservation(Subscription& sub);
     void reserveResourcesForSubscription(Subscription& sub, TopologyManagement::Route route);
+    void reserverResourcesForNextConfig();
     /**
      * Calculate the layer 1 framesize for the SOME/IP protocol stack with the given payload
      * @param ip_proto
@@ -333,8 +338,10 @@ protected:
      * @return the framesize including all headers and the payload
      */
     uint16_t calculateL2Framesize(uint8_t ip_proto, uint16_t payload);
+    void sendPortModCBS(SwitchPort& switchPort, uint8_t pcp, unsigned long idleSlope);
     OFP_TSN_Port_Mod_CBS* buildPortModCBS(uint32_t portno, uint8_t pcp, unsigned long idleSlope);
 
+    bool loadXMLReservationList();
 
     SomeipOptionsList getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
     void updateServiceTable(ServiceInstance& newInfo);
@@ -362,6 +369,11 @@ private:
 
 
 protected:
+    ServiceInstanceMap serviceTable;
+    RequestMap requestTable;
+    SubscriptionMap subscriptionTable;
+    LayeredInformation myLayeredInformation;
+    uint16_t controllerRequestID;
     /**
      * A management module handling all MAC operations.
      */
@@ -377,6 +389,9 @@ protected:
     bool forwardOfferMulticast;
     IPv4Address someipMcastAddress;
     bool reserveResources;
+    bool useXMLReservationList;
+    ResourceReservationTable resourceReservationTable;
+    int nextReservationIndex = 0;
     /**
      * A management module handling all SRP operations.
      */
@@ -421,6 +436,17 @@ std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::Subscrip
             os << (*rtconfig);
         }
     }
+    os << "}";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::SwitchPortIdleSlope& config)
+{
+    os << "SwitchPortIdleSlope {";
+    os << " switch_id=" << config.switchPort.switchId;
+    os << " switch_port=" << config.switchPort.port;
+    os << " pcp=" << config.pcp;
+    os << " idle_slope_bps=" << config.idleSlope;
     os << "}";
     return os;
 }

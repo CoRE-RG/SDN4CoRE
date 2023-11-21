@@ -47,4 +47,5 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         flowModHardTimeOut = default(0);
         flowModIdleTimeOut = default(0);
         bool reserveResources = default(false);
+        bool useXMLReservationList = default(false); //set xml config in PacketProcessorBase::confixXML 
 }

@@ -64,8 +64,7 @@ void SomeipSDControllerApp::initialize() {
     forwardOfferMulticast = this->par("forwardOfferMulticast");
     someipMcastAddress = IPv4Address(par("someipMcastAddress").stringValue());
 
-    reserveResources = this->par("reserveResources");
-    if(reserveResources) {
+    if((reserveResources = this->par("reserveResources"))) {
         srpManager = tryLocateStateManager<SRPTableManagement*>("srpTableManagement");
         if(!srpManager) {
                 // create the mac manager
@@ -76,6 +75,14 @@ void SomeipSDControllerApp::initialize() {
                 throw cRuntimeError("Could not create SRPTableManagement.");
             }
         }
+    }
+
+    if((useXMLReservationList = this->par("useXMLReservationList"))) {
+        if(!loadXMLReservationList()) {
+            throw cRuntimeError("useXMLReservationList is set, but no valid configXML");
+        }
+        nextReservationIndex = 1;
+        WATCH_LISTMAP(resourceReservationTable);
     }
 
     myLayeredInformation.eth_src.setAddress("C0:C0:C0:C0:C0:C0");
@@ -552,7 +559,11 @@ void SomeipSDControllerApp::installFlowForUnicastSubscription(Subscription& sub)
     // reserve switch ressources if needed
     if(reserveResources && requiresResourceReservation(sub))
     {
-        reserveResourcesForSubscription(sub, route);
+        if(useXMLReservationList) {
+            reserverResourcesForNextConfig();
+        } else {
+            reserveResourcesForSubscription(sub, route);
+        }
     }
     // create the match
     auto builder = OFMatchFactory::getBuilder();
@@ -604,7 +615,11 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
             mcastRoute.mergeRoute(route);
             // reserve switch ressources if needed
             if(isNewSub && reserveResources && requiresResourceReservation(sub)) {
-                reserveResourcesForSubscription(sub, route);
+                if(useXMLReservationList) {
+                    reserverResourcesForNextConfig();
+                } else {
+                    reserveResourcesForSubscription(sub, route);
+                }
             }
         }
     }    
@@ -682,9 +697,19 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
         unsigned long portIdleSlope = srpManager->getReservedBandwidthForSwitchPortAndPcp(
                 switchPort.switchId, switchPort.port, qOption->getPcp());
         // 4. configure the device port accordingly
-        TCPSocket* socket = controller->findSocketForChassisId(switchPort.switchId);
-        socket->send(buildPortModCBS(switchPort.port, qOption->getPcp(), portIdleSlope));
+        sendPortModCBS(switchPort, qOption->getPcp(), portIdleSlope);
     }
+}
+
+void SomeipSDControllerApp::reserverResourcesForNextConfig() {
+    auto reservationList = resourceReservationTable.find(nextReservationIndex);
+    if(reservationList == resourceReservationTable.end()) {
+        throw cRuntimeError("nextReservationIndex %s not in resourceReservationTable", nextReservationIndex);
+    }
+    for (auto reservation : reservationList->second) {
+        sendPortModCBS(reservation.switchPort, reservation.pcp, reservation.idleSlope);
+    }
+    nextReservationIndex++;
 }
 
 uint16_t SomeipSDControllerApp::calculateL2Framesize(uint8_t ip_proto,
@@ -705,6 +730,11 @@ uint16_t SomeipSDControllerApp::calculateL2Framesize(uint8_t ip_proto,
             + IP_HEADER_BYTES + transportBytes + SOMEIP_HEADER_BYTES;
 }
 
+void SomeipSDControllerApp::sendPortModCBS(SwitchPort& switchPort, uint8_t pcp, unsigned long idleSlope) {
+    TCPSocket* socket = controller->findSocketForChassisId(switchPort.switchId);
+    socket->send(buildPortModCBS(switchPort.port, pcp, idleSlope));
+}
+
 OFP_TSN_Port_Mod_CBS* SomeipSDControllerApp::buildPortModCBS(uint32_t portno, uint8_t pcp,
         unsigned long idleSlope) {
     OFP_TSN_Port_Mod_CBS* msg = new OFP_TSN_Port_Mod_CBS("portModCBS");
@@ -714,6 +744,44 @@ OFP_TSN_Port_Mod_CBS* SomeipSDControllerApp::buildPortModCBS(uint32_t portno, ui
     msg->setPcp(pcp);
     msg->setIdleSlope(idleSlope);
     return msg;
+}
+
+bool SomeipSDControllerApp::loadXMLReservationList() {
+    if (!resourceReservationTable.empty())
+        return true; // already loaded a valid config
+    bool changed = false;
+    if (cXMLElement* xmlDoc = par("configXML").xmlValue()) {
+        if (!xmlDoc->isName("resourceReservationTable")) {
+            xmlDoc = xmlDoc->getFirstChildWithTag("resourceReservationTable");
+        }
+        if (!xmlDoc) {
+            throw cRuntimeError("Could not find resourceReservationTable in configXML");
+        }
+        for (auto reservationXML: xmlDoc->getChildrenByTagName("resourceReservation")) {
+            if(auto idXML = reservationXML->getAttribute("id")) {
+                int id = atoi(idXML);
+                resourceReservationTable[id] = ResourceReservationList();
+                for (auto switchPortIdleSlopeXML: reservationXML->getChildrenByTagName("switchPortIdleSlope")) {
+                    if(auto switchIdXML = switchPortIdleSlopeXML->getAttribute("switch_id")) {
+                        if(auto portXML = switchPortIdleSlopeXML->getAttribute("switch_port")) {
+                            if(auto pcpXML = switchPortIdleSlopeXML->getAttribute("queue_pcp")) {
+                                if(auto idleSlopeXML = switchPortIdleSlopeXML->getAttribute("idle_slope_bps")) {
+                                    SwitchPortIdleSlope entry;
+                                    entry.idleSlope = strtoul(idleSlopeXML,0,10);
+                                    entry.pcp = static_cast<uint8_t>(atoi(pcpXML));
+                                    entry.switchPort.port = atoi(portXML);
+                                    entry.switchPort.switchId = switchIdXML;
+                                    resourceReservationTable[id].push_back(entry);
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return changed;
 }
 
 SomeipOptionsList SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {
