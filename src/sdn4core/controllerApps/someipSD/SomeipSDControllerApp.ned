@@ -43,7 +43,7 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         string someipMcastAddress = default("224.0.2.254");
         bool forwardOfferMulticast = default(true);
         packetFilterWhitelist = default("udpSrc=30490");
-        // disable timeout for SOME/IP flows set up by this app
+        // timeout for SOME/IP flows set up by this app, 0 means no timeout
         flowModHardTimeOut = default(0);
         flowModIdleTimeOut = default(0);
         bool reserveResources = default(false);

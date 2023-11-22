@@ -23,19 +23,19 @@
 #include <omnetpp.h>
 #include "sdn4core/utility/layeredInformation/LayeredInformation.h"
 #include "sdn4core/controllerApps/base/PacketProcessorBase.h"
-#include "soa4core/messages/someip/SomeIpSDHeader.h"
+#include "sdn4core/controllerState/services/SomeIPServiceTable.h"
 #include "sdn4core/controllerState/devices/DeviceTable.h"
 #include "sdn4core/controllerState/hosts/HostTable.h"
 #include "sdn4core/controllerState/topology/TopologyManagement.h"
 #include "sdn4core/controllerState/srp/SRPTableManagement.h"
 #include <sdn4core/messages/openflow/OFP_TSN_Port_Mod_m.h>
-//AUTO-GENERATED MESSAGES
-#include "soa4core/messages/someip/SomeIpSDEntry_m.h"
-#include "soa4core/messages/someip/SomeIpSDOption_m.h"
 //CoRE4INET
 #include "core4inet/linklayer/ethernet/base/EtherFrameWithQTag_m.h"
 //SOA4CoRE
+#include "soa4core/messages/someip/SomeIpSDHeader.h"
 #include "soa4core/serviceidentifier/ServiceIdentifier.h"
+#include "soa4core/messages/someip/SomeIpSDEntry_m.h"
+#include "soa4core/messages/someip/SomeIpSDOption_m.h"
 
 // STD
 #include <map>
@@ -45,63 +45,6 @@ using namespace omnetpp;
 
 
 namespace SDN4CoRE {
-/**
- * Extended SomeIpSDOption list implementing comfort functions
- */
-class SomeipOptionsList : public std::list<SOA4CoRE::SomeIpSDOption*>
-{
-public:
-//    ~SomeipOptionsList() {
-//        for (auto elem: *this) {
-//            if (elem) delete elem;
-//            elem = nullptr;
-//        }
-//        this->clear();
-//    }
-
-    template<typename T>
-    bool hasConfigType () {
-        for (auto config : *this) {
-            if(dynamic_cast<T>(config)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    template<typename T>
-    T getFirstConfigOfType () {
-        for (auto config : *this) {
-            if(T castConfig = dynamic_cast<T>(config)) {
-                return castConfig;
-            }
-        }
-        return nullptr;
-    }
-
-    template<typename T>
-    std::list<T> getAllConfigsOfType () {
-        std::list<T> configs;
-        for (auto config : *this) {
-            if(T castConfig = dynamic_cast<T>(config)) {
-                configs.push_back(castConfig);
-            }
-        }
-        return configs;
-    }
-
-    /**
-     * Deep copy duplicating all config options contained in the list.
-     * @return a copy of this list with pointers to new duplicates of the configs.
-     */
-    SomeipOptionsList dup() {
-        SomeipOptionsList duplicate;
-        for (auto config : *this) {
-            duplicate.push_back(config->dup());
-        }
-        return duplicate;
-    }
-};
 
 /**
 // SomeipSDControllerApp is an SDN controller application that handles
@@ -118,140 +61,11 @@ class SomeipSDControllerApp: public PacketProcessorBase
 {
 public:
 
-    /**
-     * struct to save a single offer-message with the corresponding options
-     */
-    struct ServiceInstance {
-        SOA4CoRE::ServiceEntry* entry = nullptr;
-        LayeredInformation* layeredInformation = nullptr;
-        SomeipOptionsList optionList;
-        void clear() {
-            if (entry) delete entry;
-            entry = nullptr;
-            if (layeredInformation) delete layeredInformation;
-            layeredInformation = nullptr;
-            for (auto elem: optionList) {
-                if (elem) delete elem;
-                elem = nullptr;
-            }
-            optionList.clear();
-        }
-    };
 
-    /**
-     *  InstanceMap includes all available instances sorted by InstanceIDs as key
-     *  used to insert the instances into the ServiceInstanceMap
-     */
-    typedef std::map<int, ServiceInstance> InstanceMap;
-    /**
-     *  Map includes all available services sorted by ServiceIDs as key
-     */
-    typedef std::map<int, InstanceMap> ServiceInstanceMap;
 
-    struct FindRequest {
-        SOA4CoRE::SomeIpSDHeader* requestHeader;
-        LayeredInformation* layeredInformation;
-        SOA4CoRE::ServiceEntry* entry;
-        SomeipOptionsList optionList;
-        void clear() {
-            if (requestHeader) delete requestHeader;
-            requestHeader = nullptr;
-            if (layeredInformation) delete layeredInformation;
-            layeredInformation = nullptr;
-            if (entry) delete entry;
-            entry= nullptr;
-            for (auto elem: optionList) {
-                if (elem) delete elem;
-                elem = nullptr;
-            }
-            optionList.clear();
-        }
-    };
 
-    /**
-    * RequestMap:Contains all Find-Messages that are not answered
-    */
-    typedef std::map<int, std::list<FindRequest>> RequestMap;
 
-    struct Subscription {
-        SOA4CoRE::ServiceIdentifier service;
-        // from provider / publisher
-        LayeredInformation providerInformation;
-        SOA4CoRE::IPv4EndpointOption providerEndpoint;
-        // to consumer / subscriber
-        LayeredInformation consumerInformation;
-        SOA4CoRE::IPv4EndpointOption consumerEndpoint;
-        std::list<SOA4CoRE::ConfigurationOption*> configOptions;
-        // control information
-        bool active = false;
-        bool waitingForAck = false;
 
-        inline bool operator==(const Subscription& other) {
-            return isConsumer(other.consumerInformation, other.consumerEndpoint)
-                    && isProvider(other.providerInformation, other.providerEndpoint);
-        }
-        inline bool operator!=(const Subscription& other) { return !(*this == other); }
-
-        bool isConsumer(LayeredInformation otherInformation, SOA4CoRE::IPv4EndpointOption otherEndpoint) {
-            return otherInformation.eth_src == consumerInformation.eth_src
-                    && otherInformation.ip_src == consumerInformation.ip_src
-                    && otherInformation.transport_src == consumerInformation.transport_src
-                    && otherEndpoint.getIpv4Address() == consumerEndpoint.getIpv4Address()
-                    && otherEndpoint.getPort() == consumerEndpoint.getPort();
-        }
-
-        bool isProvider(LayeredInformation otherInformation, SOA4CoRE::IPv4EndpointOption otherEndpoint) {
-            return otherInformation.eth_src == providerInformation.eth_src
-                    && otherInformation.ip_src == providerInformation.ip_src
-                    && otherInformation.transport_src == providerInformation.transport_src
-                    && otherEndpoint.getIpv4Address() == providerEndpoint.getIpv4Address()
-                    && otherEndpoint.getPort() == providerEndpoint.getPort();
-        }
-
-        bool isMcast() {
-            return consumerEndpoint.getType() == SOA4CoRE::SomeIpSDOptionType::IPV4MULTICAST;
-        }
-
-        IPv4Address getDstHostIp() {
-            if(isMcast()) {
-                return consumerInformation.ip_src.toIPv4();
-            }
-            return consumerEndpoint.getIpv4Address();
-        }
-
-        IPv4Address getSrcHostIp() {
-            if(isMcast()) {
-                return providerInformation.ip_src.toIPv4();
-            }
-            return providerEndpoint.getIpv4Address();
-        }
-
-        void addConfigOption(SOA4CoRE::SomeIpSDOption* option) {
-            if (SOA4CoRE::ConfigurationOption* config = dynamic_cast<SOA4CoRE::ConfigurationOption*>(option)) {
-                configOptions.push_back(config);
-            }
-        }
-
-        void addConfigOptions(SomeipOptionsList options) {
-            for (auto option : options) {
-                if (SOA4CoRE::ConfigurationOption* config = dynamic_cast<SOA4CoRE::ConfigurationOption*>(option)) {
-                    configOptions.push_back(config);
-                }
-            }
-        }
-
-        void clear() {
-            for (auto elem: configOptions) {
-                if (elem) delete elem;
-                elem = nullptr;
-            }
-            configOptions.clear();
-        }
-    };
-
-    typedef std::list<Subscription> ServiceInstanceSubscriptionList;
-    typedef std::map<int, ServiceInstanceSubscriptionList> IntanceSubscriptionMap;
-    typedef std::map<int, IntanceSubscriptionMap> SubscriptionMap;
 
     struct SwitchPortIdleSlope {
         SwitchPort switchPort;
@@ -369,76 +183,60 @@ private:
 
 
 protected:
-    ServiceInstanceMap serviceTable;
-    RequestMap requestTable;
-    SubscriptionMap subscriptionTable;
-    LayeredInformation myLayeredInformation;
-    uint16_t controllerRequestID;
-    /**
-     * A management module handling all MAC operations.
-     */
-    HostTable* hostTable;
-    /**
-     * A management module handling all MAC operations.
-     */
-    DeviceTable* deviceTable;
-    /**
-     * A management module handling all MAC operations.
-     */
-    TopologyManagement* topology;
-    bool forwardOfferMulticast;
-    IPv4Address someipMcastAddress;
-    bool reserveResources;
-    bool useXMLReservationList;
-    ResourceReservationTable resourceReservationTable;
-    int nextReservationIndex = 0;
-    /**
-     * A management module handling all SRP operations.
-     */
-    SRPTableManagement* srpManager;
+     /**
+      * Referenz to the SOME/IP service table.
+      */
+     SomeipServiceTable* serviceTable;
+     /**
+      * Reference to the topology management.
+      */
+     TopologyManagement* topology;
+     /**
+      * Reference to the host table.
+      */
+     HostTable* hostTable;
+     /**
+      * A refernce to the device table.
+      */
+     DeviceTable* deviceTable;
+     /**
+      * A management module handling all SRP operations.
+      */
+     SRPTableManagement* srpManager;
+
+     /**
+      * Controller connection information (MAC,IP,usw.).
+      */
+     LayeredInformation myLayeredInformation;
+     /**
+      * Request ID counter for controller forwarded find messages.
+      */
+     uint16_t controllerRequestID;
+     /**
+      * Cached parameter if multicasts should be forwarded after beeing handled in the controller.
+      */
+     bool forwardOfferMulticast;
+     /**
+      * Cached multicast address parameter for SOME/IP SD.
+      */
+     IPv4Address someipMcastAddress;
+     /**
+      * Cached parameter if resources should be reserved for services with QoS options.
+      */
+     bool reserveResources;
+     /**
+      * Cached parameter if the xml configuration (resourceReservationTable) should be used for resource reservation instead of SRTables.
+      */
+     bool useXMLReservationList;
+     /**
+      * Resource reservation steps to be executed one after another.
+      */
+     ResourceReservationTable resourceReservationTable;
+     /**
+      * The next entry in the reservation table to be executed.
+      */
+     int nextReservationIndex = 0;
 };
-
-std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::ServiceInstance& instance)
-{
-    os << "offer{";
-    if(instance.layeredInformation) {
-        os << " source=" << instance.layeredInformation->ip_src.str();
-    }
-    os << " endpoints { ";
-    for (auto iter = instance.optionList.begin(); iter != instance.optionList.end(); ++iter) {
-        if(SOA4CoRE::IPv4EndpointOption* endpoint = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter)) {
-            os << (*endpoint);
-        }
-    }
-    os << " } }";
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::FindRequest& request)
-{
-    os << "find{";
-    os << " source=" << request.layeredInformation->ip_src.str();
-    os << " service=" << request.entry->getServiceID() << " instance=" << request.entry->getInstanceID();
-    os << " }";
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::Subscription& sub)
-{
-    os << "provider " << sub.providerEndpoint;
-    os << ", consumer " << sub.consumerEndpoint;
-    os << ", active=" << sub.active;
-    os << ", waitingForAck=" << sub.waitingForAck;
-    os << ", configurationOptions {";
-    for (auto config : sub.configOptions)
-    {
-        if(SOA4CoRE::RealTimeConfigurationOption* rtconfig = dynamic_cast<SOA4CoRE::RealTimeConfigurationOption*>(config)) {
-            os << (*rtconfig);
-        }
-    }
-    os << "}";
-    return os;
-}
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::SwitchPortIdleSlope& config)
 {
