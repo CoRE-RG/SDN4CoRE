@@ -95,10 +95,6 @@ void SomeipSDControllerApp::initialize() {
     //be 1 even after wrapping.c(RS_SOMEIPSD_00001)
     // important for the finds the controller sends
     controllerRequestID = 0x0001;
-
-    WATCH_MAPMAP(serviceTable);
-    WATCH_LISTMAP(requestTable);
-    WATCH_LISTMAPMAP(subscriptionTable);
 }
 
 void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
@@ -163,7 +159,7 @@ void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader
 void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader) {
 
     LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
-    std::list<ServiceInstance> entries = lookUpServiceInMap(findInquiry->getServiceID(), findInquiry->getInstanceID());
+    std::list<ServiceInstance> entries = serviceTable->findLookup(findInquiry->getServiceID(), findInquiry->getInstanceID());
 
     if(findInfo->ip_src == myLayeredInformation.ip_src) {
         // this is a find forwarded by the controller
@@ -173,36 +169,12 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
         }
         // still unknown so forward
         sendFind(someIpSDHeader->dup(), someIpSDHeader);
-    } else if(entries.empty()) {
+    }
+    else if(entries.empty())
+    {
         SomeIpSDHeader* myFind = buildFind(someIpSDHeader, findInquiry);
         sendFind(myFind, someIpSDHeader);
-
-        FindRequest saveFind;
-        saveFind.requestHeader = someIpSDHeader->dup();
-        saveFind.layeredInformation = findInfo->dup();
-        saveFind.entry = dynamic_cast<ServiceEntry*>(findInquiry->dup());
-        saveFind.entry->setIndex1stOptions(0);
-        SomeipOptionsList findOptions = getEntryOptions(findInquiry, someIpSDHeader);
-        for (auto optIt = findOptions.begin(); optIt != findOptions.end(); optIt++) {
-            saveFind.optionList.push_back((*optIt));
-        }
-        // insert into map
-        uint16_t requestedServiceId = findInquiry->getServiceID();
-        auto found = requestTable.find(requestedServiceId);
-        if (found != requestTable.end()) {
-            for (auto findIt = found->second.begin(); findIt !=found->second.end(); findIt++){
-                if (findIt->entry->getInstanceID() == saveFind.entry->getInstanceID()){
-                    if (findIt->layeredInformation->eth_src == saveFind.layeredInformation->eth_src) {
-                        findIt->clear();
-                        found->second.erase(findIt--);
-                    }
-                }
-            }
-            requestTable[requestedServiceId].push_back(saveFind);
-        } else {
-            std::list<FindRequest> newFind = {saveFind};
-            requestTable[requestedServiceId] = newFind;
-        }
+        updateRequestTable(findInquiry, someIpSDHeader);
     } else {
         SomeIpSDHeader* foundOffer = buildOffer(someIpSDHeader, findInquiry, entries);
         sendOffer(foundOffer, someIpSDHeader, findInfo, entries.front().layeredInformation);
@@ -212,82 +184,52 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
 
 void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSDHeader* someIpSDHeader) {
     LayeredInformation* info =  dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
-    //toDo &&broadcastMulticast true
-    if (info->ip_dst.isMulticast() && forwardOfferMulticast) {
-        // broadcast offer, function is implemented in sendFind
+    auto serviceId = offerEntry->getServiceID();
+    auto instanceId = offerEntry->getInstanceID();
+    if (info->ip_dst.isMulticast() && forwardOfferMulticast)
+    {
         SomeIpSDHeader* dupHeader = someIpSDHeader->dup();
         dupHeader->removeControlInfo();
         sendFind(dupHeader, someIpSDHeader);
     }
-
-    if(info->ip_src == myLayeredInformation.ip_src) {
-        // this is an offer forwarded by the controller
+    if(info->ip_src == myLayeredInformation.ip_src)
+    {// this is an offer forwarded by the controller
         return;
     }
-
     // update ServiceTable with offer
-    ServiceInstance instance;
-    instance.entry = dynamic_cast<ServiceEntry*>(offerEntry->dup());
-    instance.entry->setIndex1stOptions(0);
-    instance.layeredInformation = info->dup();
-    instance.optionList = getEntryOptions(offerEntry, someIpSDHeader);
-    updateServiceTable(instance);
-
+    serviceTable->updateServiceTable(offerEntry, someIpSDHeader);
     // look for requested offer in requestTable
-    auto foundX = requestTable.find(offerEntry->getServiceID());
-    if(foundX != requestTable.end()) {
-        // to build an offer we need a list of ServiceInstances although we only have one offer
-        std::list<ServiceInstance> entries;
-        entries.push_back(instance);
-        // Iteration of the InstanceMap
-        std::list<FindRequest>& findInstances = foundX->second;
-        for (auto it = findInstances.begin(); it != findInstances.end(); it++) {
-            if ((it->entry->getInstanceID() == 0xFFFF) || (it->entry->getInstanceID() == instance.entry->getInstanceID())) {
-                SomeIpSDHeader* foundRequest = buildOffer(it->requestHeader, it->entry, entries);
-                sendOffer(foundRequest, it->requestHeader, it->layeredInformation, instance.layeredInformation);
-                it->clear();
-                findInstances.erase(it--);
-            }
-        }
-        if (findInstances.empty()){
-            requestTable.erase(foundX);
-        }
+    auto pendingRequests = serviceTable->getPendingRequests(serviceId, instanceId, true, true);
+    for (auto it = pendingRequests.begin(); it != pendingRequests.end(); it++)
+    {
+        auto entries = serviceTable->findLookup(serviceId, instanceId);
+        SomeIpSDHeader* response = buildOffer(it->requestHeader, it->entry, entries);
+        sendOffer(response, it->requestHeader, it->layeredInformation, info);
+        it->clear();
     }
 }
 
-void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry,SomeIpSDHeader* someIpSDHeader) {
+void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry,SomeIpSDHeader* someIpSDHeader)
+{
     LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
-    // find service to subscribe to is in our service table
-    std::list<ServiceInstance> instances = lookUpServiceInMap(entry->getServiceID(), entry->getInstanceID());
-    // TODO send NACK or throw error
-    if(instances.size() <= 0) {
-        throw cRuntimeError("The requested service instance to subscribe to could not be found!");
-    } else if(instances.size() > 1) {
-        throw cRuntimeError("Multiple instances known for subscription, but it should be unambiguous");
-    }
-    ServiceInstance& instance = instances.front(); // for readability and comfort
+    auto instance = serviceTable->getServiceInstance(entry->getServiceID(), entry->getInstanceID(), true);
     // get dest ip of the service and compare to the dest id in layered information
-    L3Address& destination = instance.layeredInformation->ip_src;
+    L3Address& destination = instance->layeredInformation->ip_src;
     if (destination != layeredInformation->ip_dst && destination != myLayeredInformation.ip_src) {
         throw cRuntimeError("The subscription was sent to a different destination than known to the controller for the service instance!");
     }
     // identify subscribed endpoint
-    auto entryOptions = getEntryOptions(entry, someIpSDHeader);
-    IPv4EndpointOption* endpoint = nullptr;
-    for (auto option : entryOptions)
+    SomeipOptionsList entryOptions (entry, someIpSDHeader);
+    auto endpoints = entryOptions->getAllConfigsOfType<IPv4EndpointOption*>();
+    if (endpoints.empty())
     {
-        // check if endpoint
-        if (IPv4EndpointOption* ipEndpoint = dynamic_cast<IPv4EndpointOption*>(option))
-        {
-            if (endpoint) {
-                throw cRuntimeError("Exactly one endpoint information must be present in subscription.");
-            }
-            endpoint = ipEndpoint;
-        }
-    }
-    if (!endpoint) {
         throw cRuntimeError("One endpoint information must be present in subscription.");
     }
+    else if (endpoints.size() > 1)
+    {
+        throw cRuntimeError("Exactly one endpoint information must be present in subscription.");
+    }
+    IPv4EndpointOption* endpoint = endpoints[0];
     // update local subscription table
     bool subKnown = false;
     if (subscriptionTable.find(entry->getServiceID()) != subscriptionTable.end())
@@ -322,7 +264,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     {
         Subscription subscription;
         subscription.service = ServiceIdentifier(entry->getServiceID(),entry->getInstanceID());
-        subscription.providerInformation = *(instance.layeredInformation);
+        subscription.providerInformation = *(instance->layeredInformation);
         subscription.consumerInformation = *(layeredInformation);
         subscription.consumerEndpoint = *(endpoint);
         subscription.waitingForAck = true;
@@ -335,12 +277,12 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     // build subscribe eventgroup
     SomeIpSDHeader* header = buildSubscribeEventGroup(someIpSDHeader, entry);
     // build packet out
-    EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation, instance.layeredInformation);
-    uint32_t outports [] = {(uint32_t)instance.layeredInformation->in_port};
+    EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation, instance->layeredInformation);
+    uint32_t outports [] = {(uint32_t)instance->layeredInformation->in_port};
     OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
             outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
     packetOut->setKind(TCP_C_SEND);
-    controller->sendPacketOut(packetOut, instance.layeredInformation->sw_info->getSocket());
+    controller->sendPacketOut(packetOut, instance->layeredInformation->sw_info->getSocket());
     delete eth2Frame;
 }
 
@@ -348,12 +290,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
     LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     uint16_t serviceId = entry->getServiceID();
     uint16_t instanceId = entry->getInstanceID();
-    // find subscription in subscription table
-    if(subscriptionTable.find(serviceId) == subscriptionTable.end()
-            || subscriptionTable[serviceId].find(instanceId) == subscriptionTable[serviceId].end()) {
-        throw cRuntimeError("No subscription for service instance to be acknowledged.");
-    }
-    ServiceInstanceSubscriptionList& subscriptions = subscriptionTable[serviceId][instanceId];
+    auto subscriptions = serviceTable->getSubscriptions(serviceId, instanceId, true);
     bool requested = false;
     for (auto iter = subscriptions.begin(); iter != subscriptions.end(); iter++) {
         if(iter->waitingForAck && iter->consumerInformation.ip_src == layeredInformation->ip_dst) {
@@ -362,7 +299,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
             iter->waitingForAck = false;
             if(!iter->active) {
                 // set provider information from subscribe ack in subscription
-                auto options = getEntryOptions(entry, someIpSDHeader);
+                SomeipOptionsList options (entry, someIpSDHeader);
                 if (options.size() != 1) {
                     throw cRuntimeError("Subscription acknowledgement must have exactly one endpoint option");
                 }
@@ -415,7 +352,7 @@ SomeIpSDHeader* SomeipSDControllerApp::buildFind(SomeIpSDHeader* findSource, Som
     }
     header->encapEntry(newFind);
 
-    SomeipOptionsList oldOptionList = getEntryOptions(findInquiry, findSource);
+    SomeipOptionsList oldOptionList (findInquiry, findSource);
     for (auto it = oldOptionList.begin(); it != oldOptionList.end(); it++) {
         header->encapOption(*it);
     }
@@ -454,7 +391,7 @@ SOA4CoRE::SomeIpSDHeader* SomeipSDControllerApp::buildSubscribeEventGroup(
         SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry) {
     SomeIpSDHeader* header = new SomeIpSDHeader("SOME/IP SD - SUBSCRIBEEVENTGROUP");
     header->setRequestID(source->getRequestID());
-    auto entryOptions = getEntryOptions(entry, source);
+    SomeipOptionsList entryOptions (entry, source);
     auto entryDup = entry->dup();
     entryDup->setNum1stOptions(entryOptions.size());
     entryDup->setIndex1stOptions(0);
@@ -471,7 +408,7 @@ SOA4CoRE::SomeIpSDHeader* SomeipSDControllerApp::buildSubscribeEventGroupAck(
         SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry) {
     SomeIpSDHeader* header = new SomeIpSDHeader("SOME/IP SD - SUBSCRIBEEVENTGROUPACK");
     header->setRequestID(source->getRequestID());
-    auto entryOptions = getEntryOptions(entry, source);
+    SomeipOptionsList entryOptions (entry, source);
     auto entryDup = entry->dup();
     entryDup->setNum1stOptions(entryOptions.size());
     entryDup->setIndex1stOptions(0);
@@ -645,7 +582,7 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
 bool SomeipSDControllerApp::requiresResourceReservation(Subscription& sub) {
     int serviceId = sub.service.getServiceId();
     int instanceId = sub.service.getInstanceId();
-    auto& pubOptions = serviceTable[serviceId][instanceId].optionList;
+    auto& pubOptions = serviceTable->getServiceInstance(serviceId, instanceId, true)->optionList;
     return pubOptions.hasConfigType<IEEE8021QConfigurationOption*>()
             && pubOptions.hasConfigType<RessourceConfigurationOption*>();
 }
@@ -666,9 +603,10 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
     {
         mac_dest = hostTable->getHostForIpAddress(ip_dst)->macAddress;
     }
-    auto& publisher = serviceTable[serviceId][instanceId];
-    auto qOption = publisher.optionList.getFirstConfigOfType<IEEE8021QConfigurationOption*>();
-    auto ressourceConfig = publisher.optionList.getFirstConfigOfType<RessourceConfigurationOption*>();    
+    auto publisher = serviceTable->getServiceInstance(serviceId, instanceId, true);
+
+    auto qOption = publisher->optionList.getFirstConfigOfType<IEEE8021QConfigurationOption*>();
+    auto ressourceConfig = publisher->optionList.getFirstConfigOfType<RessourceConfigurationOption*>();
     //calculate framesize used per class measurement interval.
     uint16_t fullL2FrameSize = calculateL2Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxPayload());
     SR_CLASS srclass = SR_CLASS::A;
@@ -782,93 +720,6 @@ bool SomeipSDControllerApp::loadXMLReservationList() {
         }
     }
     return changed;
-}
-
-SomeipOptionsList SomeipSDControllerApp::getEntryOptions(SomeIpSDEntry* xEntry, SomeIpSDHeader* header) {
-    int optionPosition = xEntry->getIndex1stOptions();
-    int optionQuantity = xEntry->getNum1stOptions();
-    SomeipOptionsList optionList;
-    list<SomeIpSDOption *> optList = header->getEncapOptions();
-    std::_List_iterator<SomeIpSDOption*> optionListIterator = optList.begin();
-    std::advance(optionListIterator, optionPosition);
-    for (int firstOptionsIdx = 0; firstOptionsIdx < optionQuantity; firstOptionsIdx++) {
-        SomeIpSDOption* option = *optionListIterator;
-        optionList.push_back(option->dup());
-        std::advance(optionListIterator, 1);
-    }
-    return optionList;
-}
-
-void SomeipSDControllerApp::updateServiceTable(ServiceInstance& newInfo) {
-    uint16_t serviceId = newInfo.entry->getServiceID();
-    uint16_t instanceId = newInfo.entry->getInstanceID(); //Which Instance is offered
-    //ServiceID exists in ServiceTable?
-    auto found = serviceTable.find(serviceId);
-    if (found != serviceTable.end()) {
-        //InstanceID exists in Table?
-        auto foundInstance = found->second.find(instanceId);
-        if (foundInstance != found->second.end()) {
-            // Case 1: ServiceID and InstanceID exist -> update value of InstanceMap -> entry
-            ServiceInstance& serviceInstance = foundInstance->second;//
-            for (auto oldOptionIter = serviceInstance.optionList.begin(); oldOptionIter != serviceInstance.optionList.end(); ++oldOptionIter) {
-                bool update = false;
-                //check if there is already an option of the same type
-                for (auto newOptionIter = newInfo.optionList.begin(); newOptionIter != newInfo.optionList.end(); newOptionIter++) {
-                    if((*newOptionIter)->getType() == (*oldOptionIter)->getType()) {
-                        // option of same type exists
-                        // there can be multiple ipv4 options for different protocols
-                        if(IPv4EndpointOption* newOption = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*newOptionIter)) {
-                            if(IPv4EndpointOption* oldOption = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*oldOptionIter)) {
-                                if (newOption->getL4Protocol() == oldOption->getL4Protocol()) {
-                                    // mark for replacement
-                                    update = true;
-                                }
-                            }
-                        } else {
-                            // both should not be IPv4 so mark for replacement
-                            update = true;
-                        }
-                    }
-                    if(update) {
-                        //already found
-                        break;
-                    }
-                }
-                if(!update) {
-                    // insert old option
-                    newInfo.optionList.push_back((*oldOptionIter)->dup());
-                }
-            }
-            // now newInfo is complete
-            // cleanup old instance
-            serviceInstance.clear();
-        } else {
-            // Case 2: ServiceID exists but instance unknown -> update InstanceMap new key value
-        }
-    } else {
-        // Case 3: neither service nor instance known -> update serviceTable key key value
-        serviceTable[serviceId] = InstanceMap();
-    }
-    serviceTable[serviceId][instanceId] = newInfo;
-}
-
-list<SomeipSDControllerApp::ServiceInstance> SomeipSDControllerApp::lookUpServiceInMap(uint16_t requestedServiceId, uint16_t requestedInstanceId){
-    list<ServiceInstance> returnList;
-    auto found = serviceTable.find(requestedServiceId);
-    if (found != serviceTable.end()) {
-        if (requestedInstanceId == 0xFFFF){
-            //all InstanceIDs shall be returned [PRS_SOMEIPSD_00351]
-            for (auto iter = found->second.begin(); iter != found->second.end(); iter++) {
-                returnList.push_back(iter->second);
-            }
-        } else {
-            auto foundInstance = found->second.find(requestedInstanceId);
-            if (foundInstance != found->second.end()) {
-                returnList.push_back(foundInstance->second);
-            }
-        }
-    }
-    return returnList;
 }
 
 inet::EthernetIIFrame* SomeipSDControllerApp::encapSDHeader(

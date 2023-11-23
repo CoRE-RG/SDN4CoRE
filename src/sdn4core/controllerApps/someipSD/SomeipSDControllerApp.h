@@ -61,12 +61,6 @@ class SomeipSDControllerApp: public PacketProcessorBase
 {
 public:
 
-
-
-
-
-
-
     struct SwitchPortIdleSlope {
         SwitchPort switchPort;
         uint8_t pcp;
@@ -159,17 +153,6 @@ protected:
 
     SomeipOptionsList getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
     void updateServiceTable(ServiceInstance& newInfo);
-
-     /**
-       * looks for the service requested in the controllers list of known offers
-       * @param requestedServiceId the service id to look for
-       * @param requestedInstanceId the instance id to look for (can be 0xFFFF for any)
-       * @return List of requested instance entries
-       *     containing zero elements if no service was found
-       *     containing one element if a specific instance was requested
-       *     containing all known instances if no specific instanceId was requested
-       */
-     std::list<ServiceInstance> lookUpServiceInMap(uint16_t requestedServiceId, uint16_t requestedInstanceId);
 
 private:
      inet::EthernetIIFrame * encapSDHeader(SOA4CoRE::SomeIpSDHeader* header,

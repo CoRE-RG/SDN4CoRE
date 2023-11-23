@@ -20,6 +20,7 @@
 
 #include <omnetpp.h>
 #include <sdn4core/controllerState/base/ControllerStateManagementBase.h>
+#include <sdn4core/controllerState/services/SomeipOptionsList.h>
 // STD
 #include <list>
 #include <map>
@@ -36,52 +37,6 @@
 using namespace omnetpp;
 
 namespace SDN4CoRE {
-/**
- * Extended list for SomeIpSDOptions implementing comfort functions
- */
-class SomeipOptionsList : public std::list<SOA4CoRE::SomeIpSDOption*>
-{
-public:
-    template<typename T>
-    bool hasConfigType () {
-        for (auto config : *this) {
-            if(dynamic_cast<T>(config)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    template<typename T>
-    T getFirstConfigOfType () {
-        for (auto config : *this) {
-            if(T castConfig = dynamic_cast<T>(config)) {
-                return castConfig;
-            }
-        }
-        return nullptr;
-    }
-    template<typename T>
-    std::list<T> getAllConfigsOfType () {
-        std::list<T> configs;
-        for (auto config : *this) {
-            if(T castConfig = dynamic_cast<T>(config)) {
-                configs.push_back(castConfig);
-            }
-        }
-        return configs;
-    }
-    /**
-     * Deep copy duplicating all config options contained in the list.
-     * @return a copy of this list with pointers to new duplicates of the configs.
-     */
-    SomeipOptionsList dup() {
-        SomeipOptionsList duplicate;
-        for (auto config : *this) {
-            duplicate.push_back(config->dup());
-        }
-        return duplicate;
-    }
-};
 
 /**
  * 
@@ -107,16 +62,21 @@ public: //type definitions and nested classes
         SOA4CoRE::ServiceEntry* entry = nullptr;
         LayeredInformation* layeredInformation = nullptr;
         SomeipOptionsList optionList;
+        ServiceInstance(){};
+        ServiceInstance(SOA4CoRE::SomeIpSDEntry* offerEntry,
+                SOA4CoRE::SomeIpSDHeader* someIpSDHeader){
+            entry = dynamic_cast<SOA4CoRE::ServiceEntry*>(offerEntry->dup());
+            entry->setIndex1stOptions(0);
+            LayeredInformation* info =  dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
+            layeredInformation = info->dup();
+            optionList = SomeipOptionsList(offerEntry, someIpSDHeader);
+        }
         void clear() {
             if (entry) delete entry;
             entry = nullptr;
             if (layeredInformation) delete layeredInformation;
             layeredInformation = nullptr;
-            for (auto elem: optionList) {
-                if (elem) delete elem;
-                elem = nullptr;
-            }
-            optionList.clear();
+            optionList.cleanUp();
         }
     };
     /**
@@ -254,13 +214,65 @@ public:
     SomeipServiceTable();
     ~SomeipServiceTable();
 
-    virtual bool loadConfig(cXMLElement* configuration) override;
+    /**
+     * Get a pointer to the service instance stored in the service table.
+     * @param serviceId Requested service id.
+     * @param instanceId Requested instance id.
+     * @param required If set to true, the function will throw a runtime error when the service is not found.
+     * @return A pointer to the service instance. Nullptr if not found.
+     */
+    ServiceInstance* getServiceInstance(ServiceID serviceId, InstanceID instanceId, bool required=false);
 
-    virtual bool loadConfigForSwitch(const std::string& swMacAddr,
-            cXMLElement* configuration) override;
+    /**
+     * Get all known instances for a service id.
+     * @param serviceId Requested service id.
+     * @return All known instances, empty list if none are known.
+     */
+    std::list<SomeipServiceTable::ServiceInstance> getAllServiceInstances(ServiceID requestedServiceId);
 
-    virtual void dumpConfigToStream(std::ostream& stream, int indentTabs = 0)
-            override;
+    /**
+     * Lookup service instances that match the find information. If Instance ID is 0xFFFF all known instances are returned.
+     * @param serviceId Requested service id.
+     * @param instanceId Requested instance id.
+     * @return List of requested instance entries
+     *     containing zero elements if no service was found
+     *     containing one element if a specific instance was requested
+     *     containing all known instances if no specific instanceId was requested
+     */
+    std::list<SomeipServiceTable::ServiceInstance> SomeipServiceTable::findLookup(uint16_t serviceId, uint16_t instanceId);
+
+    /**
+     * Update the table from the SOME/IP offer message.
+     * @param offerEntry The offer entry.
+     * @param someIpSDHeader The corresponding header containing the options and the control info.
+     */
+    void updateServiceTable(SomeIpSDEntry* offerEntry, SomeIpSDHeader* someIpSDHeader);
+
+    /**
+     * Get all open pending requests for the given service id and instance id.
+     * @param serviceId Requested service id.
+     * @param instanceId Requested instance id.
+     * @param includeWildcards True, if wildcarded instanceIds (0xFFFF) should be included.
+     * @param removeFromCache True, entries that are returned will be removed from the cache
+     * @return List of open service requests
+     *     containing zero elements if no request was found.
+     *     containing all open request for this specific service instance if includeWildcards is set to false.
+     *     containing all open request for any instance of the service if includeWildcards is set to true.
+     */
+    ServiceRequestList getPendingRequests(uint16_t serviceId, uint16_t instanceId, bool includeWildcards=true, bool removeFromCache = false);
+
+    /**
+     * Update the table from the SOME/IP find message.
+     * @param findInquiry The find entry.
+     * @param someIpSDHeader The corresponding header containing the options and the control info.
+     */
+    void updateRequestTable(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader);
+
+    bool hasSubscriptions(ServiceID serviceId, InstanceID instanceId);
+
+    ServiceInstanceSubscriptionList& getSubscriptions(ServiceID serviceId, InstanceID instanceId, bool required=false);
+
+    Subscription& updateSubscriptionTable(SomeIpSDEntry* entry, SomeIpSDHeader* someIpSDHeader);
 
     /**
      * For lifecycle: clears all managed tables.
@@ -273,7 +285,7 @@ protected:
     virtual void handleMessage(cMessage *msg) override;
 
     /**
-     * Updates the displaystring for services, subscriptions and open requests
+     * Updates the displaystring for services, subscriptions and open requests.
      */
     virtual void refreshDisplay() const override;
 
