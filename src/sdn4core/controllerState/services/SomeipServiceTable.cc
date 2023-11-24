@@ -250,7 +250,7 @@ SomeipServiceTable::Subscription&  SomeipServiceTable::updateSubscriptionTable(
     // identify subscribed endpoint
     SomeipOptionsList entryOptions = SomeipOptionsList(entry, someIpSDHeader);
     auto endpoints = entryOptions.getAllConfigsOfType<IPv4EndpointOption*>();
-    if (endpoints.size() == 1)
+    if (endpoints.size() != 1)
     {
         throw cRuntimeError("Exactly one endpoint information must be present in subscription.");
     }
