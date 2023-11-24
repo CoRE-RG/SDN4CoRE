@@ -21,6 +21,7 @@
 #include <omnetpp.h>
 #include <sdn4core/controllerState/base/ControllerStateManagementBase.h>
 #include <sdn4core/controllerState/services/SomeipOptionsList.h>
+#include <sdn4core/utility/layeredInformation/LayeredInformation.h>
 // STD
 #include <list>
 #include <map>
@@ -79,6 +80,10 @@ public: //type definitions and nested classes
             optionList.cleanUp();
         }
     };
+    /**
+     * List type for multiple service instances of the same service id
+     */
+    typedef std::list<ServiceInstance> ServiceInstanceList;
     /**
      *  Contains all available services with the same service id mapped to their instance id
      */
@@ -228,7 +233,7 @@ public:
      * @param serviceId Requested service id.
      * @return All known instances, empty list if none are known.
      */
-    std::list<SomeipServiceTable::ServiceInstance> getAllServiceInstances(ServiceID requestedServiceId);
+    ServiceInstanceList getAllServiceInstances(ServiceID requestedServiceId);
 
     /**
      * Lookup service instances that match the find information. If Instance ID is 0xFFFF all known instances are returned.
@@ -239,14 +244,14 @@ public:
      *     containing one element if a specific instance was requested
      *     containing all known instances if no specific instanceId was requested
      */
-    std::list<SomeipServiceTable::ServiceInstance> SomeipServiceTable::findLookup(uint16_t serviceId, uint16_t instanceId);
+    ServiceInstanceList findLookup(uint16_t serviceId, uint16_t instanceId);
 
     /**
      * Update the table from the SOME/IP offer message.
      * @param offerEntry The offer entry.
      * @param someIpSDHeader The corresponding header containing the options and the control info.
      */
-    void updateServiceTable(SomeIpSDEntry* offerEntry, SomeIpSDHeader* someIpSDHeader);
+    void updateServiceTable(SOA4CoRE::SomeIpSDEntry* offerEntry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
 
     /**
      * Get all open pending requests for the given service id and instance id.
@@ -266,13 +271,34 @@ public:
      * @param findInquiry The find entry.
      * @param someIpSDHeader The corresponding header containing the options and the control info.
      */
-    void updateRequestTable(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader);
+    void updateRequestTable(SOA4CoRE::SomeIpSDEntry* findInquiry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
 
     bool hasSubscriptions(ServiceID serviceId, InstanceID instanceId);
 
-    ServiceInstanceSubscriptionList& getSubscriptions(ServiceID serviceId, InstanceID instanceId, bool required=false);
+    /**
+     * Get all subscriptions for a service instance.
+     * @param serviceId Requested service id.
+     * @param instanceId Requested instance id.
+     * @param required If set to true, the function will throw a runtime error when the service is not found.
+     * @return A list of subscriptions. Empty list if none are found.
+     */
+    ServiceInstanceSubscriptionList getSubscriptions(ServiceID serviceId, InstanceID instanceId, bool required);
 
-    Subscription& updateSubscriptionTable(SomeIpSDEntry* entry, SomeIpSDHeader* someIpSDHeader);
+    /**
+     * Get a reference to the actual subscription list for a service instance.
+     * @param serviceId Requested service id.
+     * @param instanceId Requested instance id.
+     * @return A reference to the subscription list.
+     */
+    ServiceInstanceSubscriptionList& getSubscriptionsReference(ServiceID serviceId, InstanceID instanceId);
+
+    /**
+     * Update the subscription table from the SOME/IP subscribe event group message.
+     * @param entry The subscribe event group entry.
+     * @param someIpSDHeader The corresponding header containing the options and the control info.
+     * @return The updated subscription as a reference to the actual table entry.
+     */
+    Subscription& updateSubscriptionTable(SOA4CoRE::SomeIpSDEntry* entry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
 
     /**
      * For lifecycle: clears all managed tables.
@@ -288,6 +314,21 @@ protected:
      * Updates the displaystring for services, subscriptions and open requests.
      */
     virtual void refreshDisplay() const override;
+
+    /**
+     * Get the number of known publisher services.
+     */
+    int getPublisherCount() const;
+
+    /**
+     * Get the number of known subscriber services.
+     */
+    int getSubscriberCount() const;
+
+    /**
+     * Get the number of known open find requests.
+     */
+    int getOpenRequestCount() const;
 
 protected:
     /**
@@ -305,48 +346,11 @@ protected:
 
 };
 
+std::ostream& operator<<(std::ostream& os, const SomeipServiceTable::ServiceInstance& instance);
+std::ostream& operator<<(std::ostream& os, const SomeipServiceTable::FindRequest& request);
+std::ostream& operator<<(std::ostream& os, const SomeipServiceTable::Subscription& sub);
+
 } /*end namespace SDN4CoRE*/
 
-std::ostream& operator<<(std::ostream& os, const SomeipOptionsList::ServiceInstance& instance)
-{
-    os << "offer{";
-    if(instance.layeredInformation) {
-        os << " source=" << instance.layeredInformation->ip_src.str();
-    }
-    os << " endpoints { ";
-    for (auto iter = instance.optionList.begin(); iter != instance.optionList.end(); ++iter) {
-        if(SOA4CoRE::IPv4EndpointOption* endpoint = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter)) {
-            os << (*endpoint);
-        }
-    }
-    os << " } }";
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const SomeipOptionsList::FindRequest& request)
-{
-    os << "find{";
-    os << " source=" << request.layeredInformation->ip_src.str();
-    os << " service=" << request.entry->getServiceID() << " instance=" << request.entry->getInstanceID();
-    os << " }";
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const SomeipOptionsList::Subscription& sub)
-{
-    os << "provider " << sub.providerEndpoint;
-    os << ", consumer " << sub.consumerEndpoint;
-    os << ", active=" << sub.active;
-    os << ", waitingForAck=" << sub.waitingForAck;
-    os << ", configurationOptions {";
-    for (auto config : sub.configOptions)
-    {
-        if(SOA4CoRE::RealTimeConfigurationOption* rtconfig = dynamic_cast<SOA4CoRE::RealTimeConfigurationOption*>(config)) {
-            os << (*rtconfig);
-        }
-    }
-    os << "}";
-    return os;
-}
 
 #endif // __SDN4CORE_SOMEIPSERVICETABLE_H_

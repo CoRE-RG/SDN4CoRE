@@ -15,7 +15,7 @@
 // c Timo Haeckel, Jan Schmitt-Solbrig, for HAW Hamburg
 // 
 
-#include "SomeipSDControllerApp.h"
+#include "sdn4core/controllerApps/someipSD/SomeipSDControllerApp.h"
 
 //STD
 #include <sstream>
@@ -63,6 +63,16 @@ void SomeipSDControllerApp::initialize() {
             this->getModuleByPath(par("topologyManagementPath")));
     forwardOfferMulticast = this->par("forwardOfferMulticast");
     someipMcastAddress = IPv4Address(par("someipMcastAddress").stringValue());
+
+    if(!(serviceTable = tryLocateStateManager<SomeipServiceTable*>("serviceTable"))) {
+        // create the service manager
+        serviceTable = dynamic_cast<SomeipServiceTable*>(
+                createFinalizeAndScheduleDynamicModule("sdn4core.controllerState.services.SomeipServiceTable",
+                        "serviceTable", this->getParentModule()->getSubmodule("controllerState"), false));
+        if(!serviceTable){
+            throw cRuntimeError("Could not find or create SomeipServiceTable.");
+        }
+    }
 
     if((reserveResources = this->par("reserveResources"))) {
         srpManager = tryLocateStateManager<SRPTableManagement*>("srpTableManagement");
@@ -159,7 +169,7 @@ void SomeipSDControllerApp::processSomeIpSDHeader(SomeIpSDHeader* someIpSDHeader
 void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpSDHeader* someIpSDHeader) {
 
     LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
-    std::list<ServiceInstance> entries = serviceTable->findLookup(findInquiry->getServiceID(), findInquiry->getInstanceID());
+    auto entries = serviceTable->findLookup(findInquiry->getServiceID(), findInquiry->getInstanceID());
 
     if(findInfo->ip_src == myLayeredInformation.ip_src) {
         // this is a find forwarded by the controller
@@ -174,7 +184,7 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
     {
         SomeIpSDHeader* myFind = buildFind(someIpSDHeader, findInquiry);
         sendFind(myFind, someIpSDHeader);
-        updateRequestTable(findInquiry, someIpSDHeader);
+        serviceTable->updateRequestTable(findInquiry, someIpSDHeader);
     } else {
         SomeIpSDHeader* foundOffer = buildOffer(someIpSDHeader, findInquiry, entries);
         sendOffer(foundOffer, someIpSDHeader, findInfo, entries.front().layeredInformation);
@@ -218,61 +228,9 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     if (destination != layeredInformation->ip_dst && destination != myLayeredInformation.ip_src) {
         throw cRuntimeError("The subscription was sent to a different destination than known to the controller for the service instance!");
     }
-    // identify subscribed endpoint
-    SomeipOptionsList entryOptions (entry, someIpSDHeader);
-    auto endpoints = entryOptions->getAllConfigsOfType<IPv4EndpointOption*>();
-    if (endpoints.empty())
-    {
-        throw cRuntimeError("One endpoint information must be present in subscription.");
-    }
-    else if (endpoints.size() > 1)
-    {
-        throw cRuntimeError("Exactly one endpoint information must be present in subscription.");
-    }
-    IPv4EndpointOption* endpoint = endpoints[0];
-    // update local subscription table
-    bool subKnown = false;
-    if (subscriptionTable.find(entry->getServiceID()) != subscriptionTable.end())
-    {
-        if (subscriptionTable[entry->getServiceID()].find(entry->getInstanceID()) != subscriptionTable[entry->getServiceID()].end())
-        {
-            // we know a subscription for this service instance
-            for (auto it = subscriptionTable[entry->getServiceID()][entry->getInstanceID()].begin();
-                    it != subscriptionTable[entry->getServiceID()][entry->getInstanceID()].end();
-                    it++)
-            {
-                if (it->isConsumer(*(layeredInformation), *(endpoint)))
-                {
-                    // already known!
-                    it->waitingForAck = true;
-                    subKnown = true;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            subscriptionTable[entry->getServiceID()][entry->getInstanceID()] = ServiceInstanceSubscriptionList();
-        }
-    }
-    else
-    {
-        subscriptionTable[entry->getServiceID()] = IntanceSubscriptionMap();
-        subscriptionTable[entry->getServiceID()][entry->getInstanceID()] = ServiceInstanceSubscriptionList();
-    }
-    if (!subKnown)
-    {
-        Subscription subscription;
-        subscription.service = ServiceIdentifier(entry->getServiceID(),entry->getInstanceID());
-        subscription.providerInformation = *(instance->layeredInformation);
-        subscription.consumerInformation = *(layeredInformation);
-        subscription.consumerEndpoint = *(endpoint);
-        subscription.waitingForAck = true;
-        // add config options of consumer
-        subscription.addConfigOptions(entryOptions);
-        subscriptionTable[entry->getServiceID()][entry->getInstanceID()].push_back(subscription);
-    }
-    delete endpoint;
+
+    auto& subscription = serviceTable->updateSubscriptionTable(entry, someIpSDHeader);
+    subscription.waitingForAck = true;
 
     // build subscribe eventgroup
     SomeIpSDHeader* header = buildSubscribeEventGroup(someIpSDHeader, entry);
@@ -290,7 +248,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
     LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     uint16_t serviceId = entry->getServiceID();
     uint16_t instanceId = entry->getInstanceID();
-    auto subscriptions = serviceTable->getSubscriptions(serviceId, instanceId, true);
+    auto& subscriptions = serviceTable->getSubscriptionsReference(serviceId, instanceId);
     bool requested = false;
     for (auto iter = subscriptions.begin(); iter != subscriptions.end(); iter++) {
         if(iter->waitingForAck && iter->consumerInformation.ip_src == layeredInformation->ip_dst) {
@@ -359,18 +317,13 @@ SomeIpSDHeader* SomeipSDControllerApp::buildFind(SomeIpSDHeader* findSource, Som
     return header;
 }
 
-SomeIpSDHeader* SomeipSDControllerApp::buildOffer(SomeIpSDHeader* findSource, SomeIpSDEntry* findEntry, list<ServiceInstance>& foundInstances){
-    // findSource --> information about requester in the layered information
-    // findEntry --> information what is requested
-    // list foundEntries --> struct with found entries and list of options
-
+SomeIpSDHeader* SomeipSDControllerApp::buildOffer(SomeIpSDHeader* findSource, SomeIpSDEntry* findEntry, 
+                                        SomeipServiceTable::ServiceInstanceList& foundInstances){
     SomeIpSDHeader* header = new SomeIpSDHeader("SOME/IP SD - OFFER");
     header->setRequestID(findSource->getRequestID());
-
-    // create offer - encap each found entry with corresponding options
     int optionsIndex = 0;
     for (auto it = foundInstances.begin(); it != foundInstances.end(); it++) {
-        SomeipSDControllerApp::ServiceInstance& instance = *it;
+        SomeipServiceTable::ServiceInstance& instance = *it;
         int numOptions = instance.optionList.size();
         ServiceEntry* entry = instance.entry->dup();
         entry->setNum1stOptions(numOptions);
@@ -479,7 +432,7 @@ void SomeipSDControllerApp::sendOffer(SomeIpSDHeader* offer, SomeIpSDHeader* fin
     delete eth2Frame;
 }
 
-void SomeipSDControllerApp::installFlowForUnicastSubscription(Subscription& sub) {
+void SomeipSDControllerApp::installFlowForUnicastSubscription(SomeipServiceTable::Subscription& sub) {
     // flow specification
     IPv4Address ip_src = sub.providerEndpoint.getIpv4Address();
     uint16_t tp_src = sub.providerEndpoint.getPort();
@@ -520,7 +473,7 @@ void SomeipSDControllerApp::installFlowForUnicastSubscription(Subscription& sub)
     }
 }
 
-void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& sub) {
+void SomeipSDControllerApp::installFlowForMulticastSubscription(SomeipServiceTable::Subscription& sub) {
     // flow specification valid for all subscriptions of this provider
     IPv4Address ip_host_src = sub.getSrcHostIp();
     uint8_t ip_proto = sub.consumerEndpoint.getL4Protocol();
@@ -535,7 +488,7 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
     builder->setField(OFPXMT_OFB_IPV4_DST, &(ip_mcast_dst));
     builder->setField(OFPXMT_OFB_UDP_DST, &(tp_mcast_dst));
     // collect routes to all subscribers
-    ServiceInstanceSubscriptionList& subscriptions = subscriptionTable[sub.service.getServiceId()][sub.service.getInstanceId()];
+    auto & subscriptions = serviceTable->getSubscriptionsReference(sub.service.getServiceId(), sub.service.getInstanceId());
     TopologyManagement::McastRoute mcastRoute;
     for (auto iter = subscriptions.begin(); iter != subscriptions.end(); iter++) {
         // is active sub or the one that just has been added
@@ -579,7 +532,7 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(Subscription& su
     }
 }
 
-bool SomeipSDControllerApp::requiresResourceReservation(Subscription& sub) {
+bool SomeipSDControllerApp::requiresResourceReservation(SomeipServiceTable::Subscription& sub) {
     int serviceId = sub.service.getServiceId();
     int instanceId = sub.service.getInstanceId();
     auto& pubOptions = serviceTable->getServiceInstance(serviceId, instanceId, true)->optionList;
@@ -588,7 +541,7 @@ bool SomeipSDControllerApp::requiresResourceReservation(Subscription& sub) {
 }
 
 void SomeipSDControllerApp::reserveResourcesForSubscription(
-        Subscription& sub, TopologyManagement::Route route) {
+        SomeipServiceTable::Subscription& sub, TopologyManagement::Route route) {
     // the serviceId conversion is okay since the service ID is actually uint16_t in the messages
     uint16_t serviceId = sub.service.getServiceId();
     uint16_t instanceId = sub.service.getInstanceId();

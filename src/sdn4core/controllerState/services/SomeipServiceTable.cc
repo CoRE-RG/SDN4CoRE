@@ -16,16 +16,59 @@
 // 
 
 #include "sdn4core/controllerState/services/SomeipServiceTable.h"
-#include <sdn4core/utility/layeredInformation/LayeredInformation.h>
+
+#include "core4inet/utilities/customWatch.h"
 
 #include <algorithm>
 
 using namespace std;
 using namespace inet;
-using namespace openflow;
-using namespace CoRE4INET;
+using namespace SOA4CoRE;
+// using namespace CoRE4INET;
 
 namespace SDN4CoRE {
+
+ostream& operator<<(ostream& os, const SomeipServiceTable::ServiceInstance& instance)
+{
+    os << "offer{";
+    if(instance.layeredInformation) {
+        os << " source=" << instance.layeredInformation->ip_src.str();
+    }
+    os << " endpoints { ";
+    for (auto iter = instance.optionList.begin(); iter != instance.optionList.end(); ++iter) {
+        if(SOA4CoRE::IPv4EndpointOption* endpoint = dynamic_cast<SOA4CoRE::IPv4EndpointOption*>(*iter)) {
+            os << (*endpoint);
+        }
+    }
+    os << " } }";
+    return os;
+}
+
+ostream& operator<<(ostream& os, const SomeipServiceTable::FindRequest& request)
+{
+    os << "find{";
+    os << " source=" << request.layeredInformation->ip_src.str();
+    os << " service=" << request.entry->getServiceID() << " instance=" << request.entry->getInstanceID();
+    os << " }";
+    return os;
+}
+
+ostream& operator<<(ostream& os, const SomeipServiceTable::Subscription& sub)
+{
+    os << "provider " << sub.providerEndpoint;
+    os << ", consumer " << sub.consumerEndpoint;
+    os << ", active=" << sub.active;
+    os << ", waitingForAck=" << sub.waitingForAck;
+    os << ", configurationOptions {";
+    for (auto config : sub.configOptions)
+    {
+        if(SOA4CoRE::RealTimeConfigurationOption* rtconfig = dynamic_cast<SOA4CoRE::RealTimeConfigurationOption*>(config)) {
+            os << (*rtconfig);
+        }
+    }
+    os << "}";
+    return os;
+}
 
 Define_Module(SomeipServiceTable);
 
@@ -45,8 +88,8 @@ SomeipServiceTable::ServiceInstance* SomeipServiceTable::getServiceInstance(Serv
     auto instances = serviceTable.find(serviceId);
     if (instances != serviceTable.end())
     {
-        auto instance = instances.find(instanceId);
-        if (instance != instances.end())
+        auto instance = instances->second.find(instanceId);
+        if (instance != instances->second.end())
         {
             return &(instance->second);
         }
@@ -58,7 +101,7 @@ SomeipServiceTable::ServiceInstance* SomeipServiceTable::getServiceInstance(Serv
     return nullptr;
 }
 
-list<SomeipServiceTable::ServiceInstance> SomeipServiceTable::getAllServiceInstances(ServiceID serviceId)
+SomeipServiceTable::ServiceInstanceList SomeipServiceTable::getAllServiceInstances(ServiceID serviceId)
 {
     list<ServiceInstance> returnList;
     auto found = serviceTable.find(serviceId);
@@ -72,7 +115,7 @@ list<SomeipServiceTable::ServiceInstance> SomeipServiceTable::getAllServiceInsta
     return returnList;
 }
 
-list<SomeipServiceTable::ServiceInstance> SomeipServiceTable::findLookup(uint16_t serviceId, uint16_t instanceId)
+SomeipServiceTable::ServiceInstanceList SomeipServiceTable::findLookup(uint16_t serviceId, uint16_t instanceId)
 {
     if (instanceId == 0xFFFF)
     {
@@ -81,7 +124,7 @@ list<SomeipServiceTable::ServiceInstance> SomeipServiceTable::findLookup(uint16_
     }
     list<ServiceInstance> returnList;
     auto serviceInstance = getServiceInstance(static_cast<ServiceID>(serviceId),
-            static_cast<InstanceId>(instanceId),false);
+            static_cast<InstanceID>(instanceId),false);
     if(serviceInstance != nullptr)
     {
         returnList.push_back(*serviceInstance);
@@ -92,9 +135,10 @@ list<SomeipServiceTable::ServiceInstance> SomeipServiceTable::findLookup(uint16_
 void SomeipServiceTable::updateServiceTable(SomeIpSDEntry* offerEntry, SomeIpSDHeader* someIpSDHeader)
 {
     ServiceInstance newInstance(offerEntry, someIpSDHeader);
-    uint16_t serviceId = newInfo.entry->getServiceID();
-    uint16_t instanceId = newInfo.entry->getInstanceID();
-    if((ServiceInstance* oldInstance = getServiceInstance(serviceId, instanceId)))
+    uint16_t serviceId = offerEntry->getServiceID();
+    uint16_t instanceId = offerEntry->getInstanceID();
+    ServiceInstance* oldInstance = getServiceInstance(serviceId, instanceId);
+    if(oldInstance != nullptr)
     {
         // cleanup old instance, will be replaced later
         oldInstance->clear();
@@ -104,7 +148,7 @@ void SomeipServiceTable::updateServiceTable(SomeIpSDEntry* offerEntry, SomeIpSDH
         // neither service nor instance known
         serviceTable[serviceId] = InstanceMap();
     }
-    serviceTable[serviceId][instanceId] = newInfo;
+    serviceTable[serviceId][instanceId] = newInstance;
 }
 
 SomeipServiceTable::ServiceRequestList SomeipServiceTable::getPendingRequests(uint16_t serviceId,
@@ -120,7 +164,7 @@ SomeipServiceTable::ServiceRequestList SomeipServiceTable::getPendingRequests(ui
             if ((includeWildcards && (it->entry->getInstanceID() == 0xFFFF))
                     || (it->entry->getInstanceID() == instanceId))
             {
-                requests.push_back(it->second);
+                requests.push_back(*it);
                 if (removeFromCache)
                 {
                     findInstances.erase(it--);
@@ -173,9 +217,9 @@ bool SomeipServiceTable::hasSubscriptions(ServiceID serviceId, InstanceID instan
 }
 
 SomeipServiceTable::ServiceInstanceSubscriptionList SomeipServiceTable::getSubscriptions(
-        ServiceID serviceId, InstanceID instanceId, bool required=false)
+        ServiceID serviceId, InstanceID instanceId, bool required)
 {
-    if(!hasSubscriptionsFor(serviceId, instanceId))
+    if(!hasSubscriptions(serviceId, instanceId))
     {
         if(required)
         {
@@ -186,42 +230,44 @@ SomeipServiceTable::ServiceInstanceSubscriptionList SomeipServiceTable::getSubsc
     return subscriptionTable[serviceId][instanceId];
 }
 
+SomeipServiceTable::ServiceInstanceSubscriptionList& SomeipServiceTable::getSubscriptionsReference(
+        ServiceID serviceId, InstanceID instanceId)
+{
+    if(!hasSubscriptions(serviceId, instanceId))
+    {
+        throw cRuntimeError("No subscription for service instance available but required.");
+    }
+    return subscriptionTable[serviceId][instanceId];
+}
+
 SomeipServiceTable::Subscription&  SomeipServiceTable::updateSubscriptionTable(
         SomeIpSDEntry* entry, SomeIpSDHeader* someIpSDHeader)
 {
-    Subscription& sub;
     LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     ServiceInstance* instance = getServiceInstance(entry->getServiceID(), entry->getInstanceID(), true);
     auto serviceId = entry->getServiceID();
     auto instanceId = entry->getInstanceID();
     // identify subscribed endpoint
     SomeipOptionsList entryOptions = SomeipOptionsList(entry, someIpSDHeader);
-    auto endpoints = entryOptions->getAllConfigsOfType<IPv4EndpointOption*>();
-    if (endpoints.empty())
-    {
-        throw cRuntimeError("One endpoint information must be present in subscription.");
-    }
-    else if (endpoints.size() > 1)
+    auto endpoints = entryOptions.getAllConfigsOfType<IPv4EndpointOption*>();
+    if (endpoints.size() == 1)
     {
         throw cRuntimeError("Exactly one endpoint information must be present in subscription.");
     }
-    IPv4EndpointOption* endpoint = endpoints[0];
+    IPv4EndpointOption* endpoint = endpoints.front();
     // update local subscription table
-    bool subKnown = false;
     if (subscriptionTable.find(serviceId) != subscriptionTable.end())
     {
         if (subscriptionTable[serviceId].find(instanceId) != subscriptionTable[serviceId].end())
         {
             for (auto it = subscriptionTable[serviceId][instanceId].begin();
-                    it != subscriptionTable[serviceId][instanceId].end();
-                    it++)
+                    it != subscriptionTable[serviceId][instanceId].end(); it++)
             {
                 if (it->isConsumer(*(layeredInformation), *(endpoint)))
                 {
                     // already known!
-                    subKnown = true;
-                    sub = it->second;
-                    break;
+                    delete endpoint;
+                    return *it;
                 }
             }
         }
@@ -235,31 +281,52 @@ SomeipServiceTable::Subscription&  SomeipServiceTable::updateSubscriptionTable(
         subscriptionTable[serviceId] = IntanceSubscriptionMap();
         subscriptionTable[serviceId][instanceId] = ServiceInstanceSubscriptionList();
     }
-    if (!subKnown)
-    {
-        Subscription subscription;
-        subscription.service = ServiceIdentifier(serviceId, instanceId);
-        subscription.providerInformation = *(instance->layeredInformation);
-        subscription.consumerInformation = *(layeredInformation);
-        subscription.consumerEndpoint = *(endpoint);
-        subscription.waitingForAck = true;
-        // add config options of consumer
-        subscription.addConfigOptions(entryOptions);
-        subscriptionTable[entry->getServiceID()][entry->getInstanceID()].push_back(subscription);
-    }
+    Subscription subscription;
+    subscription.service = ServiceIdentifier(serviceId, instanceId);
+    subscription.providerInformation = *(instance->layeredInformation);
+    subscription.consumerInformation = *(layeredInformation);
+    subscription.consumerEndpoint = *(endpoint);
+    subscription.waitingForAck = true;
+    // add config options of consumer
+    subscription.addConfigOptions(entryOptions);
+    subscriptionTable[serviceId][instanceId].push_back(subscription);
     delete endpoint;
+    return subscriptionTable[serviceId][instanceId].back();
 }
 
-
-
 void SomeipServiceTable::clearTable() {
-    
+    for (auto idIter : serviceTable){
+        for (auto instanceIter : idIter.second) {
+            instanceIter.second.clear();
+        }
+        idIter.second.clear();
+    }
+    serviceTable.clear();
+
+    for (auto idIter : requestTable){
+        for (auto request : idIter.second) {
+            request.clear();
+        }
+        idIter.second.clear();
+    }
+    requestTable.clear();
+
+    for (auto idIter : subscriptionTable){
+        for (auto instanceIter : idIter.second) {
+            for (auto sub : instanceIter.second) {
+                sub.clear();
+            }
+            instanceIter.second.clear();
+        }
+        idIter.second.clear();
+    }
+    subscriptionTable.clear();
 }
 
 void SomeipServiceTable::initialize() {
-    agingTime = par("agingTime");
-    lastPurge = SIMTIME_ZERO;
-    WATCH_PTRMAP(hostsByMac);
+    WATCH_MAPMAP(serviceTable);
+    WATCH_LISTMAP(requestTable);
+    WATCH_LISTMAPMAP(subscriptionTable);
 }
 
 void SomeipServiceTable::handleMessage(cMessage* msg) {
@@ -267,9 +334,36 @@ void SomeipServiceTable::handleMessage(cMessage* msg) {
 }
 
 void SomeipServiceTable::refreshDisplay() const {
-    char buf[50];
-    sprintf(buf, "Hosts: %d", getHostCount());
+    char buf[60];
+    sprintf(buf, "Publishers: %d\nOpen Requests: %d\nSubscribers: %d", 
+            getPublisherCount(), getOpenRequestCount(), getSubscriberCount());
     getDisplayString().setTagArg("t", 0, buf);
+}
+
+int SomeipServiceTable::getPublisherCount() const {
+    int count = 0;
+    for (auto service : serviceTable) {
+        count += service.second.size();
+    }
+    return count;
+}
+
+int SomeipServiceTable::getOpenRequestCount() const {
+    int count = 0;
+    for (auto request : requestTable) {
+        count += request.second.size();
+    }
+    return count;
+}
+
+int SomeipServiceTable::getSubscriberCount() const {
+    int count = 0;
+    for (auto service : subscriptionTable) {
+        for (auto instance : service.second) {
+            count += instance.second.size();
+        }
+    }
+    return count;
 }
 
 } /*end namespace SDN4CoRE*/

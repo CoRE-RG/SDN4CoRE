@@ -30,11 +30,16 @@ class SomeipOptionsList : public std::list<SOA4CoRE::SomeIpSDOption*>
 {
 public:
     /**
+     * Default constructor.
+     */
+    SomeipOptionsList() {};
+
+    /**
      * Constructor from the some ip sd entries and header options.
      * @param xEntry The sd entry.
      * @param header The corresponding header containing the options.
      */
-    SomeipOptionsList(SomeIpSDEntry* xEntry, SomeIpSDHeader* header);
+    SomeipOptionsList(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
 
     /**
      * Check if the list containes an option element of a certain pointer type.
@@ -95,7 +100,7 @@ public:
      * Delete all elements stored behin pointers.
      */
     void cleanUp() {
-        for (auto elem: this) {
+        for (auto elem: *this) {
             if (elem) delete elem;
             elem = nullptr;
         }

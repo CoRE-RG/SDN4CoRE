@@ -23,7 +23,7 @@
 #include <omnetpp.h>
 #include "sdn4core/utility/layeredInformation/LayeredInformation.h"
 #include "sdn4core/controllerApps/base/PacketProcessorBase.h"
-#include "sdn4core/controllerState/services/SomeIPServiceTable.h"
+#include "sdn4core/controllerState/services/SomeipServiceTable.h"
 #include "sdn4core/controllerState/devices/DeviceTable.h"
 #include "sdn4core/controllerState/hosts/HostTable.h"
 #include "sdn4core/controllerState/topology/TopologyManagement.h"
@@ -74,32 +74,6 @@ public:
      *  Cleans the serviceTable for finishing the simulation
      */
     ~SomeipSDControllerApp(){
-        for (auto idIter : serviceTable){
-            for (auto instanceIter : idIter.second) {
-                instanceIter.second.clear();
-            }
-            idIter.second.clear();
-        }
-        serviceTable.clear();
-
-        for (auto idIter : requestTable){
-            for (auto request : idIter.second) {
-                request.clear();
-            }
-            idIter.second.clear();
-        }
-        requestTable.clear();
-
-        for (auto idIter : subscriptionTable){
-            for (auto instanceIter : idIter.second) {
-                for (auto sub : instanceIter.second) {
-                    sub.clear();
-                }
-                instanceIter.second.clear();
-            }
-            idIter.second.clear();
-        }
-        subscriptionTable.clear();
     };
 protected:
     virtual void initialize() override;
@@ -121,23 +95,23 @@ protected:
     void processSubscribeEventGroupAckEntry(SOA4CoRE::SomeIpSDEntry* entry, SOA4CoRE::SomeIpSDHeader* someIpSDHeader);
 
     SOA4CoRE::SomeIpSDHeader* buildFind(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry);
-    SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, std::list<ServiceInstance>& foundInstances);
+    SOA4CoRE::SomeIpSDHeader* buildOffer(SOA4CoRE::SomeIpSDHeader* findSource, SOA4CoRE::SomeIpSDEntry* findEntry, SomeipServiceTable::ServiceInstanceList& foundInstances);
     SOA4CoRE::SomeIpSDHeader* buildSubscribeEventGroup(SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry);
     SOA4CoRE::SomeIpSDHeader* buildSubscribeEventGroupAck(SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry);
 
     void sendFind(SOA4CoRE::SomeIpSDHeader*, SOA4CoRE::SomeIpSDHeader* findSource);
     void sendOffer(SOA4CoRE::SomeIpSDHeader* offer, SOA4CoRE::SomeIpSDHeader* findSource, LayeredInformation* infoFind, LayeredInformation* infoOffer);
 
-    void installFlowForUnicastSubscription(Subscription& sub);
-    void installFlowForMulticastSubscription(Subscription& sub);
+    void installFlowForUnicastSubscription(SomeipServiceTable::Subscription& sub);
+    void installFlowForMulticastSubscription(SomeipServiceTable::Subscription& sub);
 
     /**
      * Checks if all necessary configurations have been set by the producer of the subscription
      * @param sub The subscription to be checked
      * @return true if ressource reservation is required
      */
-    bool requiresResourceReservation(Subscription& sub);
-    void reserveResourcesForSubscription(Subscription& sub, TopologyManagement::Route route);
+    bool requiresResourceReservation(SomeipServiceTable::Subscription& sub);
+    void reserveResourcesForSubscription(SomeipServiceTable::Subscription& sub, TopologyManagement::Route route);
     void reserverResourcesForNextConfig();
     /**
      * Calculate the layer 1 framesize for the SOME/IP protocol stack with the given payload
@@ -152,7 +126,7 @@ protected:
     bool loadXMLReservationList();
 
     SomeipOptionsList getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
-    void updateServiceTable(ServiceInstance& newInfo);
+    void updateServiceTable(SomeipServiceTable::ServiceInstance& newInfo);
 
 private:
      inet::EthernetIIFrame * encapSDHeader(SOA4CoRE::SomeIpSDHeader* header,
