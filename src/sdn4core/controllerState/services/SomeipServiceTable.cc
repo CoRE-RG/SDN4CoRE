@@ -85,6 +85,7 @@ SomeipServiceTable::~SomeipServiceTable()
 SomeipServiceTable::ServiceInstance* SomeipServiceTable::getServiceInstance(ServiceID serviceId,
         InstanceID instanceId, bool required)
 {
+    Enter_Method("getServiceInstance()");
     auto instances = serviceTable.find(serviceId);
     if (instances != serviceTable.end())
     {
@@ -103,6 +104,7 @@ SomeipServiceTable::ServiceInstance* SomeipServiceTable::getServiceInstance(Serv
 
 SomeipServiceTable::ServiceInstanceList SomeipServiceTable::getAllServiceInstances(ServiceID serviceId)
 {
+    Enter_Method("getAllServiceInstances()");
     list<ServiceInstance> returnList;
     auto found = serviceTable.find(serviceId);
     if (found != serviceTable.end())
@@ -117,6 +119,7 @@ SomeipServiceTable::ServiceInstanceList SomeipServiceTable::getAllServiceInstanc
 
 SomeipServiceTable::ServiceInstanceList SomeipServiceTable::findLookup(uint16_t serviceId, uint16_t instanceId)
 {
+    Enter_Method("findLookup()");
     if (instanceId == 0xFFFF)
     {
         //all InstanceIDs shall be returned [PRS_SOMEIPSD_00351]
@@ -134,6 +137,7 @@ SomeipServiceTable::ServiceInstanceList SomeipServiceTable::findLookup(uint16_t 
 
 void SomeipServiceTable::updateServiceTable(SomeIpSDEntry* offerEntry, SomeIpSDHeader* someIpSDHeader)
 {
+    Enter_Method("updateServiceTable()");
     ServiceInstance newInstance(offerEntry, someIpSDHeader);
     uint16_t serviceId = offerEntry->getServiceID();
     uint16_t instanceId = offerEntry->getInstanceID();
@@ -154,6 +158,7 @@ void SomeipServiceTable::updateServiceTable(SomeIpSDEntry* offerEntry, SomeIpSDH
 SomeipServiceTable::ServiceRequestList SomeipServiceTable::getPendingRequests(uint16_t serviceId,
         uint16_t instanceId, bool includeWildcards, bool removeFromCache)
 {
+    Enter_Method("getPendingRequests()");
     ServiceRequestList requests;
     auto foundX = requestTable.find(static_cast<ServiceID>(serviceId));
     if (foundX != requestTable.end())
@@ -183,6 +188,7 @@ SomeipServiceTable::ServiceRequestList SomeipServiceTable::getPendingRequests(ui
 void SomeipServiceTable::updateRequestTable(SomeIpSDEntry* findInquiry,
         SomeIpSDHeader* someIpSDHeader)
 {
+    Enter_Method("updateRequestTable()");
     LayeredInformation* findInfo = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     FindRequest saveFind;
     saveFind.requestHeader = someIpSDHeader->dup();
@@ -212,6 +218,7 @@ void SomeipServiceTable::updateRequestTable(SomeIpSDEntry* findInquiry,
 
 bool SomeipServiceTable::hasSubscriptions(ServiceID serviceId, InstanceID instanceId)
 {
+    Enter_Method("hasSubscriptions()");
     return ((subscriptionTable.count(serviceId) > 0)
             && (subscriptionTable[serviceId].count(instanceId) > 0));
 }
@@ -219,6 +226,7 @@ bool SomeipServiceTable::hasSubscriptions(ServiceID serviceId, InstanceID instan
 SomeipServiceTable::ServiceInstanceSubscriptionList SomeipServiceTable::getSubscriptions(
         ServiceID serviceId, InstanceID instanceId, bool required)
 {
+    Enter_Method("getSubscriptions()");
     if(!hasSubscriptions(serviceId, instanceId))
     {
         if(required)
@@ -233,6 +241,7 @@ SomeipServiceTable::ServiceInstanceSubscriptionList SomeipServiceTable::getSubsc
 SomeipServiceTable::ServiceInstanceSubscriptionList& SomeipServiceTable::getSubscriptionsReference(
         ServiceID serviceId, InstanceID instanceId)
 {
+    Enter_Method("getSubscriptionsReference()");
     if(!hasSubscriptions(serviceId, instanceId))
     {
         throw cRuntimeError("No subscription for service instance available but required.");
@@ -243,6 +252,7 @@ SomeipServiceTable::ServiceInstanceSubscriptionList& SomeipServiceTable::getSubs
 SomeipServiceTable::Subscription&  SomeipServiceTable::updateSubscriptionTable(
         SomeIpSDEntry* entry, SomeIpSDHeader* someIpSDHeader)
 {
+    Enter_Method("updateSubscriptionTable()");
     LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     ServiceInstance* instance = getServiceInstance(entry->getServiceID(), entry->getInstanceID(), true);
     auto serviceId = entry->getServiceID();

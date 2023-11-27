@@ -13,3 +13,29 @@ After the service discovery publishers send messages to their subscribers.
 - node3 provides one publisher service and one subscriber.
   The subscriber on node3 subscribes the publisher service on node3.
   
+- the network implements various testcases which are numbered according to the table in "testcases.png"
+1.	Case: The service request was repeated by the ECU - the offering node was not ready/has not responded yet.
+	Controller's Response: The service request will be rebroadcasted.
+2.	Case: A request entry is deleted when answered. Therefore, this case cannot occur.
+	Controller's Response: Service offering would be rebroadcasted.
+3.	Case: See Case 1, service request was repeated - the offering node of this specific InstanceID was not ready/has not responded yet.
+	Controller's Response: The service request will be rebroadcasted.
+4.	Case: The service request was initially sent by the ECU - the offering node has not yet offered its services.
+	Controller's Response: Service request will be broadcasted, and the service request will be saved as a request.
+5. 	Case: The service request was initially sent by the ECU - the offering node has already offered its services.
+	Controller's Response: Service offering will be sent, and the service request will be discarded.
+6.	Case: The service request was initially sent by the ECU - the offering node of the specific InstanceID has not yet offered its services.
+	Controller's Response: Service request will be broadcasted, and the service request will be saved as a request.
+7. 	Case: A service offering was sent in response to a service request.
+	Controller's Response: Service offering will be stored in the ServiceTable, and requests will be answered and then deleted.
+8.	Case: See Cases 2 and 7 - A service offering is entered in the ServiceTable, requests are answered and deleted, so there should be no requests for known services.
+	Controller's Response: Service offering would be stored in the ServiceTable, and requests would be answered and then deleted.
+9.	Case: A service offering with a specific InstanceID was sent in response to a service request.
+	Controller's Response: Service offering will be stored in the ServiceTable, and requests will be answered and then deleted.
+10.	Case: A service offering was initially broadcasted.
+	Controller's Response: Service offering will be stored in the ServiceTable and broadcasted.
+11.	Case: A service offering was repeatedly sent.
+	Controller's Response: Service offering will be updated in the ServiceTable and broadcasted.
+12.	Case: A service offering of a previously unknown InstanceID was initially broadcasted.
+	Controller's Response: Service offering will be stored in the ServiceTable and broadcasted.
+	

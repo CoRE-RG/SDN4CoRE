@@ -31,8 +31,22 @@
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy -r 0,                                           5s,             8562-7786
 /examples/papers/omnetsummit2019/configanalysis,                -f omnetpp.ini -c CaseStudy_WithCT -r 0,                                    5s,             c40e-6c72
 /examples/soa/someip,                                           -f omnetpp.ini -c General -r 0,                                           0.2s,             525e-d969
-/examples/soa/someipLarge,                                      -f omnetpp.ini -c General -r 0,                                           0.2s,             6df5-9938
-/examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c SDN -r 0,                                                 1s,             d45f-2a34
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c General -r 0,                                           0.2s,             5d3c-3536
+/examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c SDN -r 0,                                                 1s,             1c6c-8acd
 /examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c SDNVanilla -r 0,                                          1s,             a978-2af0
 /examples/papers/vtc2023spring/scaling,                         -f omnetpp.ini -c Switch -r 0,                                              1s,             7791-222c
+
+# testcases
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case1 -r 0,                                             0.1s,             f325-95b7
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case2 -r 0,                                             0.1s,             08a7-dc96
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case3 -r 0,                                             0.1s,             f6a3-b188
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case4 -r 0,                                             0.1s,             1949-6b23
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case5 -r 0,                                             0.1s,             493d-892d
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case6 -r 0,                                             0.1s,             6793-cfa5
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case7 -r 0,                                             0.1s,             1949-6b23
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case8 -r 0,                                             0.1s,             0d5e-1835
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case9 -r 0,                                             0.1s,             8447-2905
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case10 -r 0,                                            0.1s,             d2fa-76a7
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case11 -r 0,                                            0.1s,             ef9d-a3ee
+/examples/soa/someipLarge,                                      -f omnetpp.ini -c Case12 -r 0,                                            0.1s,             6ae7-37bb
 

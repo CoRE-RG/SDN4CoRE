@@ -196,11 +196,13 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
     LayeredInformation* info =  dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     auto serviceId = offerEntry->getServiceID();
     auto instanceId = offerEntry->getInstanceID();
+    bool forwarded = false;
     if (info->ip_dst.isMulticast() && forwardOfferMulticast)
     {
         SomeIpSDHeader* dupHeader = someIpSDHeader->dup();
         dupHeader->removeControlInfo();
-        sendFind(dupHeader, someIpSDHeader);
+        sendFind(dupHeader, someIpSDHeader); //todo rename as this actually sends an offer...
+        forwarded = true;
     }
     if(info->ip_src == myLayeredInformation.ip_src)
     {// this is an offer forwarded by the controller
@@ -213,8 +215,11 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
     for (auto it = pendingRequests.begin(); it != pendingRequests.end(); it++)
     {
         auto entries = serviceTable->findLookup(serviceId, instanceId);
-        SomeIpSDHeader* response = buildOffer(it->requestHeader, it->entry, entries);
-        sendOffer(response, it->requestHeader, it->layeredInformation, info);
+        if(!forwarded)
+        {
+            SomeIpSDHeader* response = buildOffer(it->requestHeader, it->entry, entries);
+            sendOffer(response, it->requestHeader, it->layeredInformation, info);
+        }
         it->clear();
     }
 }
