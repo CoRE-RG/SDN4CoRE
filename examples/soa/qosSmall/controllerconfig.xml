@@ -2,6 +2,10 @@
 	<hostTable>
 		<host nodeName="CT[0]" macAddress="0A-0B-0C-02-00-00" vids="0" switch_id="0A-00-00-00-00-C0" port="2" />
 		<host nodeName="CT[1]" macAddress="0A-0B-0C-02-10-00" vids="0" switch_id="0A-00-00-00-00-C2" port="2" />
+		<host nodeName="N[0]" macAddress="0A-0B-0C-01-00-00" vids="0" switch_id="0A-00-00-00-00-C0" port="1" />
+		<host nodeName="N[1]" macAddress="0A-0B-0C-01-00-10" vids="0" switch_id="0A-00-00-00-00-C1" port="2" />
+		<host nodeName="N[2]" macAddress="0A-0B-0C-01-00-20" vids="0" switch_id="0A-00-00-00-00-C2" port="1" />
+		<host nodeName="N[3]" macAddress="0A-0B-0C-01-00-30" vids="0" switch_id="0A-00-00-00-00-C1" port="3" />
 	</hostTable>		
 	<resourceReservationTable>
 	    <resourceReservation id="1" name="From N[1] to N[3] with PCP 6 and 232 bytes in 2.500ms with deadline 1.000ms">

@@ -1,0 +1,68 @@
+<config>
+	<switch id="0A-00-00-00-00-C0">
+		<flowTable index="0" >
+			<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+			    <match  in_port="1" dl_dst="0A-0B-0C-01-00-20" dl_src="0A-0B-0C-01-00-00" dl_type="0" wildcards="4194274" />
+			    <instructions>
+			        <action_output port="0"/>
+			    </instructions>
+			</flowEntry>
+			<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+			    <match  in_port="2" dl_dst="0A-0B-0C-01-00-20" dl_src="0A-0B-0C-02-00-00" dl_type="0" wildcards="4194274" />
+			    <instructions>
+			        <action_output port="0"/>
+			    </instructions>
+			</flowEntry>
+		</flowTable>
+	</switch>
+	<switch id="0A-00-00-00-00-C1">
+		<flowTable index="0" >
+			<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+			    <match  in_port="0" dl_dst="0A-0B-0C-01-00-20" dl_src="0A-0B-0C-01-00-00" dl_type="0" wildcards="4194274" />
+			    <instructions>
+			        <action_output port="1"/>
+			    </instructions>
+			</flowEntry>
+			<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+			    <match  in_port="0" dl_dst="0A-0B-0C-01-00-20" dl_src="0A-0B-0C-02-00-00" dl_type="0" wildcards="4194274" />
+			    <instructions>
+			        <action_output port="1"/>
+			    </instructions>
+			</flowEntry>
+			<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+			    <match  in_port="2" dl_dst="0A-0B-0C-01-00-20" dl_src="0A-0B-0C-01-00-10" dl_type="0" wildcards="4194274" />
+			    <instructions>
+			        <action_output port="1"/>
+			    </instructions>
+			</flowEntry>
+		</flowTable>
+	</switch>
+	<switch id="0A-00-00-00-00-C2">
+		<flowTable index="0" >
+			<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+			    <match  in_port="0" dl_dst="0A-0B-0C-01-00-20" dl_src="0A-0B-0C-02-00-00" dl_type="0" wildcards="4194274" />
+			    <instructions>
+			        <action_output port="1"/>
+			    </instructions>
+			</flowEntry>
+			<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+			    <match  in_port="0" dl_dst="0A-0B-0C-01-00-20" dl_src="0A-0B-0C-01-00-10" dl_type="0" wildcards="4194274" />
+			    <instructions>
+			        <action_output port="1"/>
+			    </instructions>
+			</flowEntry>
+			<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+			    <match  in_port="2" dl_dst="0A-0B-0C-01-00-20" dl_src="0A-0B-0C-02-10-00" dl_type="0" wildcards="4194274" />
+			    <instructions>
+			        <action_output port="1"/>
+			    </instructions>
+			</flowEntry>
+			<flowEntry hardTimeout="0" idleTimeout="10" cookie="0" priority="1" flags="0" >
+			    <match  in_port="0" dl_dst="0A-0B-0C-01-00-20" dl_src="0A-0B-0C-01-00-00" dl_type="0" wildcards="4194274" />
+			    <instructions>
+			        <action_output port="1"/>
+			    </instructions>
+			</flowEntry>
+		</flowTable>
+	</switch>
+</config>
