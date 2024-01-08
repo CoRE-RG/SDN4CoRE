@@ -48,7 +48,7 @@ void NetConfDataStoreManagerBase::initialize() {
     if (!_netConfServer) {
         string msg = "No NetConf server found in ";
         msg += par("pathToNetConfServer").stdstringValue();
-        throw cRuntimeError(msg.c_str());
+        throw cRuntimeError("%s",msg.c_str());
     }
     _runningStore = dynamic_cast<NetConfRunningDataStore*>(this->getParentModule()->getSubmodule("running"));
     if (!_runningStore) {
@@ -428,12 +428,12 @@ NetConf_RPCReplyElement* NetConfDataStoreManagerBase::handleLock(
             if(configStoreToLock->checkAndLock(controlInfo->getSession_id())){
                 reply = createRPCReplyElement_Ok();
             }else{
-                const char* errorInfo = to_string(configStoreToLock->getLockOwner()).c_str();
+                auto owner = to_string(configStoreToLock->getLockOwner());
                 reply = createRPCReplyElement_Error(
                         NETCONF_REPLY_ERROR_TYPE_APPLICATION,
                         "lock-denied",// error-tag is "lock-denied"
                         NETCONF_REPLY_ERROR_SEVIRITY_ERROR,
-                        errorInfo//error-info is the session-id of the lock-owner, if the lock is held by a non-netconf entity it is 0
+                        owner.c_str()//error-info is the session-id of the lock-owner, if the lock is held by a non-netconf entity it is 0
                 );
             }
         }
