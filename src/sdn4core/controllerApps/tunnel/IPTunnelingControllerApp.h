@@ -67,9 +67,9 @@ protected:
      * @param addr The address to compare
      * @return True if it is on of localIps, else false
      */
-    virtual bool isLocalIp(IPv4Address& addr);
+    virtual bool isLocalIp(const IPv4Address& addr);
 
-    virtual IPv4Address findBestFittingSrcIp(IPv4Address& dest);
+    virtual IPv4Address findBestFittingSrcIp(const IPv4Address& dest);
 
     /**
      * Processing of IPv4 datagrams. Called when a datagram reaches the front

@@ -133,11 +133,11 @@ void IPTunnelingControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
     }
 }
 
-bool IPTunnelingControllerApp::isLocalIp(IPv4Address& addr) {
+bool IPTunnelingControllerApp::isLocalIp(const IPv4Address& addr) {
     return find(localIps.begin(), localIps.end(), addr.str()) != localIps.end();
 }
 
-IPv4Address IPTunnelingControllerApp::findBestFittingSrcIp(IPv4Address& dest) {
+IPv4Address IPTunnelingControllerApp::findBestFittingSrcIp(const IPv4Address& dest) {
     if(localIps.empty()) {
         return IPv4Address::UNSPECIFIED_ADDRESS;
     }
@@ -170,7 +170,7 @@ void IPTunnelingControllerApp::handleIncomingDatagram(IPv4Datagram *datagram) {
     // remove control info
     delete datagram->removeControlInfo();
     //route packet
-    IPv4Address& destAddr = datagram->getDestAddress();
+    const IPv4Address& destAddr = datagram->getDestAddress();
     EV_DETAIL << "Received datagram `" << datagram->getName() << "' with dest="
                      << destAddr << "\n";
     if (destAddr.isMulticast() && !receiveMulticast) {
@@ -270,7 +270,7 @@ void IPTunnelingControllerApp::handlePacketFromHL(cPacket *packet) {
 }
 
 void IPTunnelingControllerApp::datagramLocalOut(IPv4Datagram* datagram) {
-    IPv4Address& destAddr = datagram->getDestAddress();
+    const IPv4Address& destAddr = datagram->getDestAddress();
     EV_DETAIL << "Sending datagram " << datagram << " with destination = "
                      << destAddr << "\n";
     if (destAddr.isMulticast()) {

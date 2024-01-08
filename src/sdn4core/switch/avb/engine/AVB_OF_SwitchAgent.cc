@@ -46,8 +46,10 @@ AVB_OF_SwitchAgent::~AVB_OF_SwitchAgent() {}
 void AVB_OF_SwitchAgent::forwardSRPtoController(cPacket* msg) {
     //TODO use experimenter Message for srp forwarding. Maybe add a custom reason.
     OFP_Packet_In *packetIn = new OFP_Packet_In("packetIn");
-    packetIn->getHeader().version = OFP_VERSION;
-    packetIn->getHeader().type = OFPT_PACKET_IN;
+    ofp_header header = packetIn->getHeader();
+    header.version = OFP_VERSION;
+    header.type = OFPT_PACKET_IN;
+    packetIn->setHeader(header);
 #if OFP_VERSION_IN_USE == OFP_100
     packetIn->setReason(OFPR_NO_MATCH);//TODO maybe add another reason for realtime streams.
 #elif OFP_VERSION_IN_USE == OFP_151

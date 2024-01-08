@@ -29,7 +29,7 @@ void NetConfCandidateDataStore::initialize(){
     }
 }
 
-NetConfConfig* NetConfCandidateDataStore::getConfig(NetConfFilter& filter){
+NetConfConfig* NetConfCandidateDataStore::getConfig(const NetConfFilter& filter){
     Enter_Method("getConfig()");
     throw cRuntimeError("Not yet implemented");
     return new NetConfConfig();

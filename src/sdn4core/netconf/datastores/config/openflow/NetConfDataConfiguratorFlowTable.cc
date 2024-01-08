@@ -42,7 +42,7 @@ void NetConfDataConfiguratorFlowTable::initialize(){
     }
 }
 
-NetConfConfig *NetConfDataConfiguratorFlowTable::getConfig(NetConfFilter& filter){
+NetConfConfig *NetConfDataConfiguratorFlowTable::getConfig(const NetConfFilter& filter){
 
     OF_NetConfConfigFlowMod* config = new OF_NetConfConfigFlowMod();
     for(int i = 0; i< _flowTables.size(); i++){

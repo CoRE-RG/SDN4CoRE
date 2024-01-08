@@ -300,7 +300,8 @@ void OF_SwitchAgent::handlePacketOutMessage(Open_Flow_Message *of_msg){
 
     //execute
     for (unsigned int i = 0; i < actions_size; ++i){
-        relayUnit->executePacketOutAction(&(packet_out_msg->getActions(i)), frame, inPort);
+        auto action = packet_out_msg->getActions(i);
+        relayUnit->executePacketOutAction(&(action), frame, inPort);
     }
     delete frame;
 }

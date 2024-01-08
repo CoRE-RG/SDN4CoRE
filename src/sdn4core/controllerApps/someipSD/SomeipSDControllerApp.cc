@@ -493,8 +493,10 @@ void SomeipSDControllerApp::sendFind(SomeIpSDHeader* find, SomeIpSDHeader* findS
 
     // Openflow
     OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-        packetOut->getHeader().version = OFP_VERSION;
-        packetOut->getHeader().type = OFPT_PACKET_OUT;
+    ofp_header header = packetOut->getHeader();
+    header.version = OFP_VERSION;
+    header.type = OFPT_PACKET_OUT;
+    packetOut->setHeader(header);
         packetOut->setBuffer_id(OFP_NO_BUFFER);
         packetOut->setByteLength(24);
         packetOut->encapsulate(eth2Frame);

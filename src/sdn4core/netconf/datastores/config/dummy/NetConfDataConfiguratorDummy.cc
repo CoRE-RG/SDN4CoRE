@@ -22,7 +22,7 @@ namespace SDN4CoRE {
 Define_Module(NetConfDataConfiguratorDummy);
 
 NetConfConfig* NetConfDataConfiguratorDummy::getConfig(
-        NetConfFilter& filter) {
+        const NetConfFilter& filter) {
     Enter_Method("getConfig()");
     return new NetConfConfig();
 }
