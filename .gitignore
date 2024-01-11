@@ -59,3 +59,4 @@ tests/fingerprint/test.out
 
 tests/smoke/results/
 /.computed/
+*.def
