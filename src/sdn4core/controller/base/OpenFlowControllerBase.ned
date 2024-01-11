@@ -73,7 +73,7 @@ module OpenFlowControllerBase extends NetworkControllerBase
 
         OF_Controller: <openflowControllerType> like IOpenFlowController {
             @display("p=149,281");
-            serviceTime = serviceTime;
+            serviceTime = parent.serviceTime;
         }
     connections allowunconnected:
 
