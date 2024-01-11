@@ -80,15 +80,6 @@ void OF_SwitchAgent::initialize(int stage){
         }
         break;
     }
-//    case INITSTAGE_PHYSICAL_ENVIRONMENT:
-//    case INITSTAGE_PHYSICAL_ENVIRONMENT_2:
-//    case INITSTAGE_PHYSICAL_LAYER:
-//    case INITSTAGE_LINK_LAYER:
-//    case INITSTAGE_LINK_LAYER_2:
-
-
-//    case INITSTAGE_NETWORK_LAYER_2:
-//    case INITSTAGE_NETWORK_LAYER_3:
     case INITSTAGE_TRANSPORT_LAYER: {
         //init socket to controller
         const char *localAddress = par("localAddress");
@@ -99,9 +90,6 @@ void OF_SwitchAgent::initialize(int stage){
         socket.setDataTransferMode(TCP_TRANSFER_OBJECT);
         break;
     }
-//    case INITSTAGE_TRANSPORT_LAYER_2:
-//    case INITSTAGE_ROUTING_PROTOCOLS:
-
     case INITSTAGE_LAST: {
         //schedule connection setup
        cMessage *initiateConnection = new cMessage("initiateConnection");
@@ -266,7 +254,6 @@ void OF_SwitchAgent::handleMissMatchedPacket(EthernetIIFrame *frame){
 #endif
 
     } else {
-
         auto buffer_id = buffer.storeMessage(frame->dup());
 #if OFP_VERSION_IN_USE == OFP_100
         packetIn = OFMessageFactory::instance()->createPacketIn(OFPR_NO_MATCH,
@@ -277,32 +264,30 @@ void OF_SwitchAgent::handleMissMatchedPacket(EthernetIIFrame *frame){
 #endif
     }
     socket.send(packetIn);
-    delete frame;
 }
 
 
-void OF_SwitchAgent::handlePacketOutMessage(Open_Flow_Message *of_msg){
-    //cast message
+void OF_SwitchAgent::handlePacketOutMessage(Open_Flow_Message *of_msg)
+{
     OFP_Packet_Out *packet_out_msg = (OFP_Packet_Out *) of_msg;
-
-    //return variables
     uint32_t bufferId = packet_out_msg->getBuffer_id();
     uint32_t inPort = packet_out_msg->getIn_port();
     unsigned int actions_size = packet_out_msg->getActionsArraySize();
-
-    //get the frame
     EthernetIIFrame *frame;
-    if(bufferId != OFP_NO_BUFFER){
+    if (bufferId != OFP_NO_BUFFER)
+    {
         frame = buffer.returnMessage(bufferId);
-    } else {
+    }
+    else
+    {
         frame = dynamic_cast<EthernetIIFrame *>(packet_out_msg->decapsulate());
     }
-
-    //execute
-    for (unsigned int i = 0; i < actions_size; ++i){
+    for (unsigned int i = 0; i < actions_size; ++i)
+    {
         auto action = packet_out_msg->getActions(i);
         relayUnit->executePacketOutAction(&(action), frame, inPort);
     }
+    take(frame);
     delete frame;
 }
 
@@ -315,8 +300,6 @@ void OF_SwitchAgent::receiveSignal(cComponent *src, simsignal_t id, cObject *val
         }else if(tableMissSign == id){
             handleMissMatchedPacket(tmp);
         }
-    } else {
-        delete value;
     }
 }
 
@@ -353,7 +336,6 @@ void OF_SwitchAgent::forwardFrameToController(EthernetIIFrame* frame){
 #endif
 
     socket.send(packetIn);
-    delete frame;
 }
 
 } /*end namespace SDN4CoRE*/

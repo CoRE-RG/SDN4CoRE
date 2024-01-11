@@ -43,34 +43,37 @@ Define_Module(AVB_OF_RelayUnit);
 AVB_OF_RelayUnit::AVB_OF_RelayUnit() {}
 AVB_OF_RelayUnit::~AVB_OF_RelayUnit() {}
 
-void AVB_OF_RelayUnit::initialize(int stage){
+void AVB_OF_RelayUnit::initialize(int stage)
+{
     OF_RelayUnit::initialize(stage);
-
     switch(stage){
-        case INITSTAGE_LOCAL: {
-
+        case INITSTAGE_LOCAL:
+        {
             //register siganls
             forwardSRPtoConSig = registerSignal("forwardSRPtoConSig");
-
             //load srp table module
             _srpTable = dynamic_cast<CoRE4INET::SRPTable*> (getModuleByPath(par("srpTable")));
-            if(!_srpTable){
-                throw cRuntimeError(("AVB_OF_SwitchAgent: Could not init as no SRP Table could be found at " + par("srpTable").str()).c_str());
+            if (!_srpTable)
+            {
+                throw cRuntimeError("AVB_OF_SwitchAgent: Could not init as no SRP Table could be found at %s", par("srpTable").stringValue());
             }
-
             break;
         }
-        case INITSTAGE_APPLICATION_LAYER: {
+        case INITSTAGE_APPLICATION_LAYER:
+        {
             //load XML config if specified.
             cXMLElement* xmlDoc = par("configXML").xmlValue();
-            if(xmlDoc){
-                if(strcmp(xmlDoc->getName(), "config") == 0){
+            if (xmlDoc)
+            {
+                if (strcmp(xmlDoc->getName(), "config") == 0)
+                {
                     string switchName = getParentModule()->getSubmodule("eth", 0)->getSubmodule("mac")->par("address").stringValue();
-                    if(cXMLElement* switchConfigXML = xmlDoc->getFirstChildWithAttribute("switch", "id", switchName.c_str()))
+                    if (cXMLElement* switchConfigXML = xmlDoc->getFirstChildWithAttribute("switch", "id", switchName.c_str()))
                     {//there is a config for this switch.
-                        if(cXMLElement* srpTableXML = switchConfigXML->getFirstChildWithTag("srpTable"))
+                        if (cXMLElement* srpTableXML = switchConfigXML->getFirstChildWithTag("srpTable"))
                         {//the config contains an srp table so set it.
-                            if(_srpTable){
+                            if (_srpTable)
+                            {
                                 _srpTable->importFromXML(srpTableXML);
                             }
                         }
@@ -79,54 +82,56 @@ void AVB_OF_RelayUnit::initialize(int stage){
             }
             break;
         }
-         default:
-             break;
-         }
+        default:
+            break;
+    }
 }
 
-void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg){
-    if (isSRPMessage(msg)) {
+void AVB_OF_RelayUnit::processDataPlanePacket(cMessage *msg)
+{
+    if (isSRPMessage(msg))
+    {
         dataPlanePacket++;
-
         //forward to controller
         CoRE4INET::SRPFrame* toController = dynamic_cast<CoRE4INET::SRPFrame *>(msg->dup());
         inet::Ieee802Ctrl * controlInfo = new inet::Ieee802Ctrl();
         controlInfo->setSwitchPort(msg->getArrivalGate()->getIndex());
         toController->setControlInfo(controlInfo);
-
         emit(forwardSRPtoConSig,toController);
-        delete msg;
-    } else {
+        delete toController;
+    }
+    else
+    {
        OF_RelayUnit::processDataPlanePacket(msg);
     }
 }
 
 openflow::oxm_basic_match AVB_OF_RelayUnit::extractMatch(
-        inet::EthernetIIFrame* frame) {
-
+        inet::EthernetIIFrame* frame)
+{
     oxm_basic_match match = OF_RelayUnit::extractMatch(frame);
-    //extract AVB/VLAN specific information ifpresent
-    //if(frame->getEtherType()==AVB_ETHERTYPE) {
-    if(match.OFB_ETH_TYPE == 0x8100){ //we have a q frame!
+    if(match.OFB_ETH_TYPE == 0x8100)
+    { //we have a q frame!
         CoRE4INET::EthernetIIFrameWithQTag* qFrame =
             dynamic_cast<CoRE4INET::EthernetIIFrameWithQTag*>(frame);
         match.OFB_VLAN_VID = qFrame->getVID();
         match.OFB_VLAN_PCP = qFrame->getPcp();
-        //}
     }
     return match;
 }
 
 
-void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
+void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg)
+{
     Enter_Method("handleSRPFromProtocol");
     cObject* ctrlInfo = msg->removeControlInfo();
     //check the control info and change it for the of-switch module.
     if (CoRE4INET::ExtendedIeee802Ctrl *etherctrl =
-            dynamic_cast<CoRE4INET::ExtendedIeee802Ctrl *>(ctrlInfo)) {
-
+            dynamic_cast<CoRE4INET::ExtendedIeee802Ctrl *>(ctrlInfo))
+    {
         //check for srp message type
-        if (dynamic_cast<CoRE4INET::TalkerAdvertise *>(msg)) { //TalkerAdvertise
+        if (dynamic_cast<CoRE4INET::TalkerAdvertise *>(msg))
+        { //TalkerAdvertise
             for (size_t i = 0; i < portVector.size(); ++i) {
                 if(i != etherctrl->getNotSwitchPort()) {
                     //pack message
@@ -135,47 +140,45 @@ void AVB_OF_RelayUnit::handleSRPFromProtocol(cMessage* msg) {
                     send(copy, "dataPlaneOut", i);
                 }
             }
-        } else //check for srp message type
-        if (dynamic_cast<CoRE4INET::ListenerReady *>(msg)) {
-
+        }
+        else if (dynamic_cast<CoRE4INET::ListenerReady *>(msg))
+        { //check for srp message type
             //pack message
             cMessage* copy = msg->dup();
             copy->setControlInfo(etherctrl->dup());
             send(copy, "dataPlaneOut", etherctrl->getSwitchPort());
         }
-
-    } else {
+    } else
+    {
         throw cRuntimeError("Packet from SRP received without ExtendedIeee802Ctrl");
     }
-
     delete ctrlInfo;
-    delete msg;
 }
 
-bool AVB_OF_RelayUnit::isSRPMessage(cMessage* msg) {
+bool AVB_OF_RelayUnit::isSRPMessage(cMessage* msg)
+{
     return msg->arrivedOn("srpIn") || dynamic_cast<CoRE4INET::SRPFrame *>(msg);
 }
 
-void AVB_OF_RelayUnit::finish() {
+void AVB_OF_RelayUnit::finish()
+{
     // record statistics
-        recordScalar("packetsDataPlane", dataPlanePacket);
-        recordScalar("flowTableHit", flowTableHit);
-        recordScalar("flowTableMiss", flowTableMiss);
-
-        //print flow table
-
-
-        //xml head
-        std::ostringstream oss;
-        oss << "<config>" << endl;
-        oss << "<switch id=\"" << getParentModule()->getSubmodule("eth", 0)->getSubmodule("mac")->par("address").stringValue() << "\">" << endl;
-        for (size_t i = 0; i < _flowTables.size() ; i++){
-            oss << _flowTables[i]->exportToXML();
-        }
-        oss << _srpTable->exportToXML();
-        oss << "</switch>" << endl;
-        oss << "</config>" << endl;
-        cout << oss.str();
+    recordScalar("packetsDataPlane", dataPlanePacket);
+    recordScalar("flowTableHit", flowTableHit);
+    recordScalar("flowTableMiss", flowTableMiss);
+    //print flow table
+    //xml head
+    std::ostringstream oss;
+    oss << "<config>" << endl;
+    oss << "<switch id=\"" << getParentModule()->getSubmodule("eth", 0)->getSubmodule("mac")->par("address").stringValue() << "\">" << endl;
+    for (size_t i = 0; i < _flowTables.size() ; i++)
+    {
+        oss << _flowTables[i]->exportToXML();
+    }
+    oss << _srpTable->exportToXML();
+    oss << "</switch>" << endl;
+    oss << "</config>" << endl;
+    cout << oss.str();
 }
 
 } /*end namespace SDN4CoRE*/
