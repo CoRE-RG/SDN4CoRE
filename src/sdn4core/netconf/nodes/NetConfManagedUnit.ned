@@ -39,7 +39,7 @@ module NetConfManagedUnit
         string runningConfigType = default("NetConfRunningDataStore");
         string candidateConfigType = default("NetConfCandidateDataStore");
        	double processingTime @unit(s) = default(0s);
-        *.processingTime = processingTime;
+        *.processingTime = this.processingTime;
 
     gates:
         input transportIn;
@@ -72,7 +72,7 @@ module NetConfManagedUnit
         }
         
         // Netconf running config store module
-        configurators [numConfigurators]: <> like INetConfDataConfigurator {
+        configurators [this.numConfigurators]: <> like INetConfDataConfigurator {
             @display("p=430,70,c,70");
         }
 

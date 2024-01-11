@@ -59,14 +59,14 @@ module IEEE8021Qbv_OpenFlowDomain
         etherSwitch: EtherSwitch {
             @display("p=240,186");
             gates:
-                ethg[sizeof(gateCPlane)];
+                ethg[sizeof(parent.gateCPlane)];
         }
 
         client[numClients]: StandardHost {
             @display("p=120,50,row,90");
         }
     connections allowunconnected:
-        for i=0..sizeof(this.gateDPlane)-1 {
+        for i=0..sizeof(gateDPlane)-1 {
             gateDPlane[i] <--> open_flow_switch.gateDataPlane[i];
         }
 

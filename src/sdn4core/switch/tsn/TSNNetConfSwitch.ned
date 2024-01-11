@@ -47,8 +47,8 @@ module TSNNetConfSwitch extends TSNEtherSwitch
         
         bool routingforwarding = default(false);
         bool multicastForwarding = default(false);
-        routingTable.forwarding = routingforwarding;
-        routingTable.multicastForwarding = multicastForwarding;   // for IPv4, IPv6, Generic
+        routingTable.forwarding = this.routingforwarding;
+        routingTable.multicastForwarding = this.multicastForwarding;   // for IPv4, IPv6, Generic
         *.routingTableModule = default(absPath(".routingTable"));
         networkLayer.proxyARP = false;
         
@@ -97,13 +97,13 @@ module TSNNetConfSwitch extends TSNEtherSwitch
 
         // Netconf Server module
         netconf: NetConfManagedUnit {
-            processingTime = nc_service_time;
-            netConfServerType = netConfServerType;
-            numConfigurators = numConfigurators;
-            configurators[0].typename = qbv_configuratorType;
+            processingTime = parent.nc_service_time;
+            netConfServerType = parent.netConfServerType;
+            numConfigurators = parent.numConfigurators;
+            configurators[0].typename = parent.qbv_configuratorType;
             configurators[0].etherMacModule = default("phy");
-            configurators[1].typename = srp_configuratorType;
-            configurators[1].ofSrpTableModule = srpTableModule;
+            configurators[1].typename = parent.srp_configuratorType;
+            configurators[1].ofSrpTableModule = parent.srpTableModule;
             @display("p=420,135");
         }
 

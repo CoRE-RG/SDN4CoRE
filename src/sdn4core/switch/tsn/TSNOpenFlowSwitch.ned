@@ -49,11 +49,11 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
         string pathSwitchAgent = default(absPath(".switchAgent"));
         string pathEth = default(absPath(".eth[0]"));
 
-        eth[0].**.srpTable = srpTableModule;
-        etherMAC[*].**.srpTable = ofSrpTableModule;
-        switchAgent.srpProtocolModule = ofSrpProtocolModule;
-        switchAgent.srpTable = ofSrpTableModule;
-        relayUnit.srpTable = ofSrpTableModule;
+        eth[0].**.srpTable = this.srpTableModule;
+        etherMAC[*].**.srpTable = this.ofSrpTableModule;
+        switchAgent.srpProtocolModule = this.ofSrpProtocolModule;
+        switchAgent.srpTable = this.ofSrpTableModule;
+        relayUnit.srpTable = this.ofSrpTableModule;
 
 
     submodules:
@@ -77,16 +77,16 @@ module TSNOpenFlowSwitch extends OpenFlowSwitch
 
 		// Dataplane Stream Reservation Protocol implementation tunneled via openflow
         ofSrpProtocol: SRProtocol {
-            srpTable = ofSrpTableModule;
+            srpTable = parent.ofSrpTableModule;
             portModule = "etherMAC";
-            srpEncap = pathSwitchAgent;
+            srpEncap = parent.pathSwitchAgent;
             @display("p=324.9,240.34999");
         }
 
 		// Control Plane Stream Reservation Protocol implementation
         srpProtocol: SRProtocol {
-            srpTable = srpTableModule;
-            srpEncap = pathEth;
+            srpTable = parent.srpTableModule;
+            srpEncap = parent.pathEth;
             @display("p=34.199997,240.34999");
         }
 

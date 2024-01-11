@@ -54,7 +54,7 @@ module TSN_NC_OF_Controller extends NetConfOpenFlowController
 		// Stream Reservation Protocol implementation
         srpProtocol: SRProtocol {
             @display("p=423,287");
-            srpEncap = pathEth;
+            srpEncap = parent.pathEth;
         }
 
     connections allowunconnected:

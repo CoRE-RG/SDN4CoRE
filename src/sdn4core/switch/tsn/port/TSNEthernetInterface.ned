@@ -67,8 +67,8 @@ module TSNEthernetInterface like IWiredNic
         //Module for the organisation of outbound traffic
         shaper: IEEE8021Qbv_Shaper {
             @display("p=48,45");
-            untaggedVID = untaggedVID;
-            taggedVIDs = taggedVIDs;
+            untaggedVID = parent.untaggedVID;
+            taggedVIDs = parent.taggedVIDs;
         }
         
         //Module for the organisation of inbound traffic
