@@ -69,28 +69,28 @@ cModule* createDynamicModule(const char* nedModulePath,
         throw createErrorMessage(name, nedModulePath, "Can't find module type at given path.");
     }
     // check whether the module exists already
-    int size = getDynamicModuleVectorSize(name, parentModule);
-    if(size<0)
+    bool existsAsVector = parentModule->hasSubmoduleVector(name);
+    bool existsAsModule = parentModule->hasSubmodule(name);
+    if (existsAsModule && isVector)
     {
-        if(isVector)
-        {
-            throw createErrorMessage(name, nedModulePath, "Should be vector but already exists as non vector type.");
-        } else
-        {
-            throw createErrorMessage(name, nedModulePath, "SubModule already exists in ParentModule.");
-        }
+        throw createErrorMessage(name, nedModulePath, "Should be vector but already exists as non vector type.");
     }
-    else if(size > 0 && !isVector)
+    else if (existsAsModule && !isVector)
+    {
+        throw createErrorMessage(name, nedModulePath, "SubModule already exists in ParentModule.");
+    }
+    else if(existsAsVector && !isVector)
     {
         throw createErrorMessage(name, nedModulePath, "Should be non vector but already exists as vector type.");
     }
     // 2. Create the module;
     cModule* module = nullptr;
     if(isVector){
-        if(size > 0)
+        if(existsAsVector)
         {
+            int size = getDynamicModuleVectorSize(name, parentModule);
             parentModule->setSubmoduleVectorSize(name, size + 1);
-            module = moduleType->create(name, parentModule, size + 1);
+            module = moduleType->create(name, parentModule, size);
         }
         else
         {
@@ -107,9 +107,10 @@ cModule* createDynamicModule(const char* nedModulePath,
 
 int getDynamicModuleVectorSize(const char* name,
         cModule* parentModule) {
-    if(parentModule->getSubmodule(name)){
-        return -1;
-    }
+//    no longer required as this is checked beforehand
+//    if(parentModule->getSubmodule(name)){
+//        return -1;
+//    }
     int size = 0;
     for (; parentModule->getSubmodule(name,size); size++){};
     return size;
