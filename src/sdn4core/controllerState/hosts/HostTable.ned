@@ -27,5 +27,5 @@ simple HostTable extends ControllerStateManagementBase
     parameters:
         @class(SDN4CoRE::HostTable);
         @display("i=block/table2,green");
-        double agingTime @unit("s") = default(0s); // default never forget entries
+        double agingTime @mutable @unit("s") = default(0s); // default never forget entries
 }
