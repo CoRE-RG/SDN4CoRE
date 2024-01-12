@@ -39,6 +39,7 @@ namespace SDN4CoRE {
  */
 class NetConfCandidateDataStore: public NetConfDataStoreBase {
 public:
+    virtual ~NetConfCandidateDataStore();
 
     /**
      * clear the configurations in this candidate data store

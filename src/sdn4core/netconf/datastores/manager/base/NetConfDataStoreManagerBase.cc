@@ -39,6 +39,14 @@ const char NetConfDataStoreManagerBase::RESPONSE_OUT_GATE_NAME[] = "responseIn";
 simsignal_t NetConfDataStoreManagerBase::commitExecutionSignal = registerSignal("commitExecution");
 simsignal_t NetConfDataStoreManagerBase::editConfigSignal = registerSignal("editConfig");
 
+NetConfDataStoreManagerBase::~NetConfDataStoreManagerBase()
+{
+    if (_commitOperation != nullptr)
+    {
+        delete _commitOperation;
+    }
+}
+
 void NetConfDataStoreManagerBase::initialize() {
     handleParameterChange(nullptr);
 
