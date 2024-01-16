@@ -207,7 +207,7 @@ void IPTunnelingControllerApp::handleIncomingARPPacket(OFP_Packet_In* packet_in_
         numPacketOut++;
         TCPSocket *socket = controller->findSocketForChassisId(switchPort.switchId);
         if(!socket) {
-            throw cRuntimeError(("Could not find socket for switch id" + switchPort.switchId).c_str());
+            throw cRuntimeError("Could not find socket for switch id %s", switchPort.switchId.c_str());
         }
         packetOut->setKind(TCP_C_SEND);
         controller->sendPacketOut(packetOut, socket);
@@ -457,7 +457,7 @@ void IPTunnelingControllerApp::sendDatagramToHost(IPv4Datagram *datagram, HostTa
     numPacketOut++;
     TCPSocket *socket = controller->findSocketForChassisId(switchPort.switchId);
     if(!socket) {
-        throw cRuntimeError(("Could not find socket for switch id" + switchPort.switchId).c_str());
+        throw cRuntimeError("Could not find socket for switch id %s", switchPort.switchId.c_str());
     }
     packetOut->setKind(TCP_C_SEND);
     controller->sendPacketOut(packetOut, socket);
