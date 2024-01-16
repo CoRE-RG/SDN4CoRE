@@ -205,6 +205,9 @@ oxm_basic_match OF_RelayUnit::extractMatch(EthernetIIFrame* frame)
         //we have a q frame!
         match.OFB_VLAN_VID = qFrame->getVID();
         match.OFB_VLAN_PCP = qFrame->getPcp();
+    } else {
+        match.OFB_VLAN_VID = 0;
+        match.OFB_VLAN_PCP = 0;
     }
     //extract ARP specific match fields if present
     if (frame->getEtherType() == ETHERTYPE_ARP)
