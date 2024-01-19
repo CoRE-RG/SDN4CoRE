@@ -54,8 +54,6 @@ void AVBSecurityControllerApp::initialize() {
 
     setState(OK);
     _trafficLight = getModuleFromPar<ColorChangingNode>(par("pathToTrafficLight"), this, false);
-
-    this->handleParameterChange(nullptr);
 }
 
 void AVBSecurityControllerApp::handleParameterChange(const char* parname)
@@ -110,7 +108,7 @@ void AVBSecurityControllerApp::receiveSignal(cComponent* src, simsignal_t id,
             if (dynamic_cast<EthernetIIFrame *>(packet_in->getEncapsulatedPacket())) {
                 CommonHeaderFields headerFields = extractCommonHeaderFields(packet_in);
                 //check if NADSPort is set
-                if(_NADSPort > NADS_PORT_NONE && headerFields.inport == (uint32_t)_NADSPort){
+                if(_NADSPort > NADS_PORT_NONE && headerFields.inport == _NADSPort){
                     //do not forward this as it is for the security module.
                     forwardToBase = false;
                     handleNADSMessage(packet_in);
@@ -177,7 +175,7 @@ oxm_basic_match AVBSecurityControllerApp::createMatchFromPacketIn(
     if (packetIn->getBuffer_id() == OFP_NO_BUFFER){
         auto builder = OFMatchFactory::getBuilder();
         // we got the full packet.
-        uint16_t in_port = packetIn->getEncapsulatedPacket()->getArrivalGate()->getIndex();
+        int in_port = packetIn->getEncapsulatedPacket()->getArrivalGate()->getIndex();
         builder->setField(OFPXMT_OFB_IN_PORT, &in_port);
         if(EthernetIIFrame * frame = dynamic_cast<EthernetIIFrame *>(packetIn->getEncapsulatedPacket())){
 

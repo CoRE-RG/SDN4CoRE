@@ -46,7 +46,7 @@ class NetConfDataConfiguratorBase : public cSimpleModule
      * @param filter    the filter to be applied, if empty the whole config data set is returned
      * @return          the requested configuration data
      */
-    virtual NetConfConfig* getConfig(NetConfFilter& filter) = 0;
+    virtual NetConfConfig* getConfig(const NetConfFilter& filter) = 0;
 
     /**
      * Applies the changes in the config using the defaultOperation.

@@ -133,11 +133,11 @@ void IPTunnelingControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
     }
 }
 
-bool IPTunnelingControllerApp::isLocalIp(IPv4Address& addr) {
+bool IPTunnelingControllerApp::isLocalIp(const IPv4Address& addr) {
     return find(localIps.begin(), localIps.end(), addr.str()) != localIps.end();
 }
 
-IPv4Address IPTunnelingControllerApp::findBestFittingSrcIp(IPv4Address& dest) {
+IPv4Address IPTunnelingControllerApp::findBestFittingSrcIp(const IPv4Address& dest) {
     if(localIps.empty()) {
         return IPv4Address::UNSPECIFIED_ADDRESS;
     }
@@ -170,7 +170,7 @@ void IPTunnelingControllerApp::handleIncomingDatagram(IPv4Datagram *datagram) {
     // remove control info
     delete datagram->removeControlInfo();
     //route packet
-    IPv4Address& destAddr = datagram->getDestAddress();
+    const IPv4Address& destAddr = datagram->getDestAddress();
     EV_DETAIL << "Received datagram `" << datagram->getName() << "' with dest="
                      << destAddr << "\n";
     if (destAddr.isMulticast() && !receiveMulticast) {
@@ -207,7 +207,7 @@ void IPTunnelingControllerApp::handleIncomingARPPacket(OFP_Packet_In* packet_in_
         numPacketOut++;
         TCPSocket *socket = controller->findSocketForChassisId(switchPort.switchId);
         if(!socket) {
-            throw cRuntimeError(("Could not find socket for switch id" + switchPort.switchId).c_str());
+            throw cRuntimeError("Could not find socket for switch id %s", switchPort.switchId.c_str());
         }
         packetOut->setKind(TCP_C_SEND);
         controller->sendPacketOut(packetOut, socket);
@@ -270,7 +270,7 @@ void IPTunnelingControllerApp::handlePacketFromHL(cPacket *packet) {
 }
 
 void IPTunnelingControllerApp::datagramLocalOut(IPv4Datagram* datagram) {
-    IPv4Address& destAddr = datagram->getDestAddress();
+    const IPv4Address& destAddr = datagram->getDestAddress();
     EV_DETAIL << "Sending datagram " << datagram << " with destination = "
                      << destAddr << "\n";
     if (destAddr.isMulticast()) {
@@ -457,7 +457,7 @@ void IPTunnelingControllerApp::sendDatagramToHost(IPv4Datagram *datagram, HostTa
     numPacketOut++;
     TCPSocket *socket = controller->findSocketForChassisId(switchPort.switchId);
     if(!socket) {
-        throw cRuntimeError(("Could not find socket for switch id" + switchPort.switchId).c_str());
+        throw cRuntimeError("Could not find socket for switch id %s", switchPort.switchId.c_str());
     }
     packetOut->setKind(TCP_C_SEND);
     controller->sendPacketOut(packetOut, socket);

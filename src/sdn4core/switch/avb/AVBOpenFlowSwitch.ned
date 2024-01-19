@@ -50,8 +50,8 @@ module AVBOpenFlowSwitch extends OpenFlowSwitch
 
 		// Stream Reservation Protocol implementation
         srpProtocol: SRProtocol {
-            portModule = "etherMAC";
-			srpEncap = pathSwitchAgent;
+            portModule = default("etherMAC");
+			srpEncap = default(parent.pathSwitchAgent);
             @display("p=325,241");
         }
 

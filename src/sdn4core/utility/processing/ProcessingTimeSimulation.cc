@@ -31,6 +31,7 @@ ProcessingTimeSimulation::~ProcessingTimeSimulation() {
 
 void ProcessingTimeSimulation::initialize()
 {
+    handleParameterChange(nullptr);
     _queueSize = registerSignal("queueSize");
     _waitingTime = registerSignal("waitingTime");
     _busy = false;

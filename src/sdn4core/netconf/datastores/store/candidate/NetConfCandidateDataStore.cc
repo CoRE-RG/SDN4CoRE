@@ -21,6 +21,11 @@ namespace SDN4CoRE {
 
 Define_Module(NetConfCandidateDataStore);
 
+NetConfCandidateDataStore::~NetConfCandidateDataStore()
+{
+    clear();
+}
+
 void NetConfCandidateDataStore::initialize(){
     NetConfDataStoreBase::initialize();
     _runningStore = dynamic_cast<NetConfRunningDataStore*>(this->getParentModule()->getSubmodule("running"));
@@ -29,7 +34,7 @@ void NetConfCandidateDataStore::initialize(){
     }
 }
 
-NetConfConfig* NetConfCandidateDataStore::getConfig(NetConfFilter& filter){
+NetConfConfig* NetConfCandidateDataStore::getConfig(const NetConfFilter& filter){
     Enter_Method("getConfig()");
     throw cRuntimeError("Not yet implemented");
     return new NetConfConfig();
@@ -69,6 +74,7 @@ bool NetConfCandidateDataStore::checkAndLock(int lockHolderSessionId){
 }
 
 bool NetConfCandidateDataStore::applyTo(NetConfDataStoreBase* running){
+    Enter_Method("applyTo(%s)", running->getName());
     bool success = true;
     for(auto configChange: _configVector){
         success = success && running->editConfig(NetConfOperation_Operation::NETCONFOPERATION_OPERATION_MERGE,
@@ -80,6 +86,7 @@ bool NetConfCandidateDataStore::applyTo(NetConfDataStoreBase* running){
 }
 
 void NetConfCandidateDataStore::clear(){
+    Enter_Method("clear()");
     for(auto config: _configVector){
         delete config;
     }

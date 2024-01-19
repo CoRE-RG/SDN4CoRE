@@ -74,9 +74,9 @@ void OF_AVBIncoming::handleMessage(cMessage* msg) {
                             ++listener) {
 
                         if ((*listener) == this->getParentModule()) {
-                            if (strcmp(
-                                    (*listener)->getSubmodule("phy")->getName(),
-                                    "phy") == 0) {
+                            if (((*listener)->getSubmodule("phy") != nullptr)
+                                    || ((*listener)->getSubmodule("phy",0) != nullptr))
+                            {
                                 string outputStr;
                                 if (srClass == SR_CLASS::A)
                                     outputStr = "AVBAout";
@@ -89,6 +89,11 @@ void OF_AVBIncoming::handleMessage(cMessage* msg) {
                                 if ((*listener)->hasGate("AVBin")) {
                                     sendDirect(inFrame->dup(),
                                             (*listener)->gate("AVBin"));
+                                    emit(rxPkSignal, inFrame);
+                                }
+                                if ((*listener)->hasGate("AVBin",0)) {
+                                    sendDirect(inFrame->dup(),
+                                            (*listener)->gate("AVBin",0));
                                     emit(rxPkSignal, inFrame);
                                 }
                             }

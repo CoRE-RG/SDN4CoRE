@@ -49,7 +49,7 @@ void NetConfDataConfiguratorIEEE8021Qbv::initialize()
 }
 
 NetConfConfig* NetConfDataConfiguratorIEEE8021Qbv::getConfig(
-        NetConfFilter& filter) {
+        const NetConfFilter& filter) {
     Enter_Method("getConfig()");
     //todo add filter option
     NetConfConfigIEEE8021Qbv* config = new NetConfConfigIEEE8021Qbv();

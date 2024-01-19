@@ -40,8 +40,8 @@ module ManagementUnit extends StandardHost
         
         // Netconf Client module
         netConfClient: NetConfManagementUnit{
-            numNetConfApps = numNetConfApps;
-            netConfClientType = netConfClientType;
+            numNetConfApps = parent.numNetConfApps;
+            netConfClientType = parent.netConfClientType;
         }
         
     connections: 

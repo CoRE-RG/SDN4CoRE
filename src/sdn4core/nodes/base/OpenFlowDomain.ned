@@ -52,25 +52,25 @@ module OpenFlowDomain
         open_flow_switch: OpenFlowSwitch {
             @display("p=120,186");
             gates:
-                gateDataPlane[sizeof(gateDPlane)+numClients];
+                gateDataPlane[sizeof(parent.gateDPlane) + parent.numClients];
         }
 
         etherSwitch: EtherSwitch {
             @display("p=240,186");
             gates:
-                ethg[sizeof(gateCPlane)];
+                ethg[sizeof(parent.gateCPlane)];
         }
 
         client[numClients]: StandardHost {
             @display("p=120,50,row,90");
         }
     connections allowunconnected:
-        for i=0..sizeof(gateDPlane)-1 {
+        for i=0..sizeof(this.gateDPlane)-1 {
             gateDPlane[i] <--> open_flow_switch.gateDataPlane[i];
         }
 
         for i=0..numClients-1 {
-            client[i].ethg++ <--> ethernetline <--> open_flow_switch.gateDataPlane[sizeof(gateDPlane)+i];
+            client[i].ethg++ <--> ethernetline <--> open_flow_switch.gateDataPlane[sizeof(this.gateDPlane)+i];
         }
 
         for i=0..sizeof(gateCPlane)-1 {

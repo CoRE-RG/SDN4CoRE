@@ -41,8 +41,8 @@ module NetConfOpenFlowController extends OpenFlowControllerBase
         
         // Netconf Client module
         netconf: NetConfManagementUnit{
-            numNetConfApps = numNetConfApps;
-            netConfClientType = netConfClientType;
+            numNetConfApps = parent.numNetConfApps;
+            netConfClientType = parent.netConfClientType;
         }
 
     connections:

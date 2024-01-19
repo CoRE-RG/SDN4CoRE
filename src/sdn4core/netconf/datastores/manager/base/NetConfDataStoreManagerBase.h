@@ -55,7 +55,10 @@ class NetConfServerBase;
  */
 class NetConfDataStoreManagerBase : public cSimpleModule , public cListener
 {
-  protected:
+public:
+    virtual ~NetConfDataStoreManagerBase();
+
+protected:
     virtual void initialize() override;
     virtual void handleParameterChange(const char* parname) override;
     virtual void handleMessage(cMessage *msg) override;

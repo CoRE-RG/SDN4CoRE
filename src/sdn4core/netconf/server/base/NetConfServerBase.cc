@@ -48,7 +48,7 @@ void NetConfServerBase::initialize() {
     if (!_configDataStoreManager) {
         string msg = "No state data store found in ";
         msg += par("pathToConfigManager").stdstringValue();
-        cRuntimeError(msg.c_str());
+        cRuntimeError("%s",msg.c_str());
     }
 }
 

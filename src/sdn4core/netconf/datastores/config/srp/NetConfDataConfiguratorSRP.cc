@@ -27,7 +27,7 @@ namespace SDN4CoRE {
 
 Define_Module(NetConfDataConfiguratorSRP);
 
-void SDN4CoRE::NetConfDataConfiguratorSRP::initialize() {
+void NetConfDataConfiguratorSRP::initialize() {
     //load srp table module
     _srpTable = dynamic_cast<CoRE4INET::SRPTable*> (getModuleByPath(par("ofSrpTableModule")));
     if(!_srpTable){
@@ -35,14 +35,14 @@ void SDN4CoRE::NetConfDataConfiguratorSRP::initialize() {
     }
 }
 
-NetConfConfig* SDN4CoRE::NetConfDataConfiguratorSRP::getConfig(NetConfFilter& filter) {
+NetConfConfig* NetConfDataConfiguratorSRP::getConfig(const NetConfFilter& filter) {
     NetConfConfigSRP* config = new NetConfConfigSRP();
     config->setTalkerEntries(_srpTable->getTalkerEntries());
     config->setListenerEntries(_srpTable->getListenerEntries());
     return config;
 }
 
-bool SDN4CoRE::NetConfDataConfiguratorSRP::editConfig(int defaultOperation, int errorOption, NetConfConfig* config) {
+bool NetConfDataConfiguratorSRP::editConfig(int defaultOperation, int errorOption, NetConfConfig* config) {
     //check if config is valide and conforms the given operation
     Enter_Method("editConfig()");
     bool noError = true;

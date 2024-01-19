@@ -61,7 +61,7 @@ void NetConfRunningDataStore::initialize() {
     }
 }
 
-NetConfConfig *NetConfRunningDataStore::getConfig(NetConfFilter& filter) {
+NetConfConfig *NetConfRunningDataStore::getConfig(const NetConfFilter& filter) {
     Enter_Method("getConfig()");
     for (auto configurator : _configurators) {
         if (NetConfConfig* config = configurator->getConfig(filter)) {

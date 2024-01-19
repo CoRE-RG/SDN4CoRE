@@ -6,22 +6,22 @@ This is an example file on how to declare remotes for an INetConfApplication.
 	<application client_host="controller" client_app="0">
 		<connection local_port="6123" remote_address="switch1" remote_port="830" connect_at="0">
 		
-			<configure at="2" type="edit_config" module="IEEE8021Qbv">
+			<configure at="0.2" type="edit_config" module="IEEE8021Qbv">
 			 	<config port="8" gatecontrollist="C,C,C,C,C,C,C,C:0;C,C,C,C,C,C,o,o:0.00001;o,o,o,o,o,o,C,C:0.000025;C,C,C,C,C,C,C,C:0.000885"/>
 		 	</configure>
 		 	
-		 	<configure at="6" type="edit_config" module="IEEE8021Qbv">
+		 	<configure at="0.6" type="edit_config" module="IEEE8021Qbv">
 			 	<config port="8" gatecontrollist="C,C,C,C,C,C,C,C:0;C,C,C,C,C,C,o,o:0.00001;o,o,o,o,o,o,C,C:0.00004;C,C,C,C,C,C,C,C:0.000885"/>
 		 	</configure>
 		 	
 		</connection>
 		<connection local_port="6124" remote_address="switch2" remote_port="830" connect_at="0">
 		
-			<configure at="2" type="edit_config" module="IEEE8021Qbv">
+			<configure at="0.2" type="edit_config" module="IEEE8021Qbv">
 			 	<config port="1" gatecontrollist="C,C,C,C,C,C,C,C:0;C,C,C,C,C,C,o,o:0.00002;o,o,o,o,o,o,C,C:0.000035;C,C,C,C,C,C,C,C:0.000895"/>
 		 	</configure>
 		 	
-		 	<configure at="8" type="edit_config" module="IEEE8021Qbv">
+		 	<configure at="0.8" type="edit_config" module="IEEE8021Qbv">
 			 	<config port="1" gatecontrollist="C,C,C,C,C,C,C,C:0;C,C,C,C,C,C,o,o:0.00002;o,o,o,o,o,o,C,C:0.00005;C,C,C,C,C,C,C,C:0.000895"/>
 		 	</configure>
 		 	

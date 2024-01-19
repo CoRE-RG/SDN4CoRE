@@ -30,7 +30,7 @@ cRuntimeError createErrorMessage(const char* name, const char* nedModulePath, co
     msg += nedModulePath;
     msg += ": ";
     msg += reason;
-    return cRuntimeError(msg.c_str());
+    return cRuntimeError("%s",msg.c_str());
 }
 
 cModule* createFinalizeAndScheduleDynamicModule(const char* nedModulePath,
@@ -58,44 +58,59 @@ void finalizeModuleAndSchedule(cModule* module, SimTime at) {
 cModule* createDynamicModule(const char* nedModulePath,
         const char* name, cModule* parentModule, bool isVector) {
     // 0. check parameters
-    if(!nedModulePath || !name || !parentModule){
+    if(!nedModulePath || !name || !parentModule)
+    {
         throw cRuntimeError("Cannot create dynamic module: Missing Parameters.");
     }
-
     // 1. Find the factory object;
     cModuleType * moduleType = cModuleType::get(nedModulePath);
-    if(!moduleType){
+    if(!moduleType)
+    {
         throw createErrorMessage(name, nedModulePath, "Can't find module type at given path.");
     }
-
     // check whether the module exists already
-    int size = getDynamicModuleVectorSize(name, parentModule);
-    if(size<0){
-        if(isVector){
-            throw createErrorMessage(name, nedModulePath, "Should be vector but already exists as non vector type.");
-        } else {
-            throw createErrorMessage(name, nedModulePath, "SubModule already exists in ParentModule.");
-        }
-    } else if(size > 0 && !isVector) {
+    bool existsAsVector = parentModule->hasSubmoduleVector(name);
+    bool existsAsModule = parentModule->hasSubmodule(name);
+    if (existsAsModule && isVector)
+    {
+        throw createErrorMessage(name, nedModulePath, "Should be vector but already exists as non vector type.");
+    }
+    else if (existsAsModule && !isVector)
+    {
+        throw createErrorMessage(name, nedModulePath, "SubModule already exists in ParentModule.");
+    }
+    else if(existsAsVector && !isVector)
+    {
         throw createErrorMessage(name, nedModulePath, "Should be non vector but already exists as vector type.");
     }
-
     // 2. Create the module;
     cModule* module = nullptr;
     if(isVector){
-        module = moduleType->create(name, parentModule, size + 1, size);
-    } else {
+        if(existsAsVector)
+        {
+            int size = getDynamicModuleVectorSize(name, parentModule);
+            parentModule->setSubmoduleVectorSize(name, size + 1);
+            module = moduleType->create(name, parentModule, size);
+        }
+        else
+        {
+            parentModule->addSubmoduleVector(name,1);
+            module = moduleType->create(name, parentModule, 0);
+        }
+    }
+    else
+    {
         module = moduleType->create(name, parentModule);
     }
-
     return module;
 }
 
 int getDynamicModuleVectorSize(const char* name,
         cModule* parentModule) {
-    if(parentModule->getSubmodule(name)){
-        return -1;
-    }
+//    no longer required as this is checked beforehand
+//    if(parentModule->getSubmodule(name)){
+//        return -1;
+//    }
     int size = 0;
     for (; parentModule->getSubmodule(name,size); size++){};
     return size;

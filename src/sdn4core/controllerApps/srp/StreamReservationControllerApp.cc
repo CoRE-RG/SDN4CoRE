@@ -90,7 +90,6 @@ void StreamReservationControllerApp::forwardListenerReady(OFP_Packet_In* packetI
     TCPSocket *socket = controller->findSocketFor(packetIn);
     uint32 outports [] = { talkerPort};
     OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(outports, 1, -1, packetIn->getBuffer_id(), frame);
-    packetOut->getHeader().version = OFP_VERSION;
     // send packet out
     socket->send(packetOut);
     delete frame;
@@ -167,8 +166,10 @@ void StreamReservationControllerApp::sendSRPFlowModMessage(ofp_flow_mod_command 
 void StreamReservationControllerApp::updateSwitchSRPTable(OFP_Packet_In* packetIn) {
     TCPSocket *socket = controller->findSocketFor(packetIn);
     OFP_Packet_Out *packetOut = new OFP_Packet_Out("forwardSRP");
-    packetOut->getHeader().version = OFP_VERSION;
-    packetOut->getHeader().type = OFPT_VENDOR;
+    ofp_header header = packetOut->getHeader();
+    header.version = OFP_VERSION;
+    header.type = OFPT_VENDOR;
+    packetOut->setHeader(header);
     packetOut->setBuffer_id(packetIn->getBuffer_id());
     packetOut->setByteLength(24);
     omnetpp::cPacket* packet = packetIn->getEncapsulatedPacket()->getEncapsulatedPacket();

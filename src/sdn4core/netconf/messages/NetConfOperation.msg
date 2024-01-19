@@ -19,14 +19,17 @@
 // TODO implement other operations: kill-session 
 //
 
-
 cplusplus {{
 #include "sdn4core/netconf/datastructures/base/NetConfFilter.h"
 }}
 
 namespace SDN4CoRE;
 
-struct NetConfFilter;
+struct NetConfFilter{
+	@existingClass;
+	@opaque;
+	@descriptor(false);
+};
 
 //
 // Base class for all NetConf operations.
