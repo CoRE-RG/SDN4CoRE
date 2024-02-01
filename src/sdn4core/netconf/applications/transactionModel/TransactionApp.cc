@@ -343,7 +343,7 @@ void TransactionApp::checkEventHandled(bool eventHandled, cMessage* msg){
         errorMsg += " in state ";
         errorMsg += transactionAppStateToString(transactionState);
         const char* errorMessage = errorMsg.c_str();
-        throw cRuntimeError(errorMessage);
+        throw cRuntimeError("%s",errorMessage);
     }
 }
 

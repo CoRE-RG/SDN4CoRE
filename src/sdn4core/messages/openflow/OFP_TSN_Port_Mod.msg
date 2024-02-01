@@ -13,21 +13,12 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-cplusplus {{
-    #include "openflow/openflow/protocol/OpenFlow.h"
-    #include "openflow/messages/Open_Flow_Message_m.h"
-    #include "openflow/messages/OFP_Port_Mod_m.h"
-    using namespace openflow;
-}}
-namespace openflow;
-
-//forward declarations
-packet Open_Flow_Message;
-packet OFP_Port_Mod;
+import openflow.messages.Open_Flow_Message;
+import openflow.messages.OFP_Port_Mod;
 
 namespace SDN4CoRE;
 
-packet OFP_TSN_Port_Mod_CBS extends OFP_Port_Mod {
+packet OFP_TSN_Port_Mod_CBS extends openflow::OFP_Port_Mod {
     // uint32_t port_no; from OFP_Port_Mod!
     uint8_t pcp;
     unsigned long idleSlope;

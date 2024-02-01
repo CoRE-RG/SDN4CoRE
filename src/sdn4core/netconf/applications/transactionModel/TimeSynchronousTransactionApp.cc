@@ -118,7 +118,7 @@ NetConfConfigCommitTimestamp::CommitTimestamp_t TimeSynchronousTransactionApp::d
     }
     else
     {
-        throw cRuntimeError("number of switches are not %d", this->_connections.size());
+        throw cRuntimeError("number of switches are not %d", static_cast<int>(this->_connections.size()));
     }
 
     double buffer = sumOfLatencies + (2*switchProcessingTime) + (2*controllerProcessingTime);

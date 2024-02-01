@@ -31,7 +31,7 @@ void NetConfDataConfiguratorSRP::initialize() {
     //load srp table module
     _srpTable = dynamic_cast<CoRE4INET::SRPTable*> (getModuleByPath(par("ofSrpTableModule")));
     if(!_srpTable){
-        throw cRuntimeError(("Could not init as no SRP Table could be found at " + par("srpTable").str()).c_str());
+        throw cRuntimeError("Could not init as no SRP Table could be found at %s", par("srpTable").str().c_str());
     }
 }
 

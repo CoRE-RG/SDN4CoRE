@@ -602,7 +602,7 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
 void SomeipSDControllerApp::reserverResourcesForNextConfig() {
     auto reservationList = resourceReservationTable.find(nextReservationIndex);
     if(reservationList == resourceReservationTable.end()) {
-        throw cRuntimeError("nextReservationIndex %s not in resourceReservationTable", nextReservationIndex);
+        throw cRuntimeError("nextReservationIndex %d not in resourceReservationTable", nextReservationIndex);
     }
     for (auto reservation : reservationList->second) {
         sendPortModCBS(reservation.switchPort, reservation.pcp, reservation.idleSlope);
@@ -636,8 +636,10 @@ void SomeipSDControllerApp::sendPortModCBS(SwitchPort& switchPort, uint8_t pcp, 
 OFP_TSN_Port_Mod_CBS* SomeipSDControllerApp::buildPortModCBS(uint32_t portno, uint8_t pcp,
         unsigned long idleSlope) {
     OFP_TSN_Port_Mod_CBS* msg = new OFP_TSN_Port_Mod_CBS("portModCBS");
-    msg->getHeader().version = OFP_VERSION;
-    msg->getHeader().type = OFPT_PORT_MOD;
+    ofp_header header = msg->getHeader();
+    header.version = OFP_VERSION;
+    header.type = OFPT_PORT_MOD;
+    msg->setHeader(header);
     msg->setPort_no(portno);
     msg->setPcp(pcp);
     msg->setIdleSlope(idleSlope);
