@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Smoke test tool for the INET Framework: checks that simulations don't crash
 # or stop with a runtime error when run for a reasonable (CPU) time.
@@ -26,7 +26,7 @@ import subprocess
 import sys
 import time
 import unittest
-from distutils import spawn
+import shutil
 
 inetRoot = os.path.abspath("../../../inet")
 core4inetRoot = os.path.abspath("../../../CoRE4INET")
@@ -46,18 +46,16 @@ signalsandgatewaysLib = signalsandgatewaysRoot + os.sep + "src" + os.sep + "Sign
 soa4coreLib = soa4coreRoot + os.sep + "src" + os.sep + "SOA4CoRE"
 sdn4coreLib = sdn4coreRoot + os.sep + "src" + os.sep + "SDN4CoRE"
 opp_run = "opp_run"
-cpuTimeLimit = "6s"
+cpuTimeLimit = "3s"
 logFile = "test.out"
 
-if spawn.find_executable("opp_run_dbg"):
+if shutil.which("opp_run_dbg"):
     opp_run = "opp_run_dbg"
-if spawn.find_executable("opp_run"):
+if shutil.which("opp_run"):
     opp_run = "opp_run"
-if spawn.find_executable("opp_run_release"):
+if shutil.which("opp_run_release"):
     opp_run = "opp_run_release"
-    
-print opp_run
-    
+
 class SmokeTestCaseGenerator():
     fileToSimulationsMap = {}
     def generateFromCSV(self, csvFileList, filterRegexList):
@@ -154,7 +152,7 @@ class SimulationTestCase(unittest.TestCase):
     def runProgram(self, command, workingdir):
         process = subprocess.Popen(command, shell=True, cwd=workingdir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out = process.communicate()[0]
-        out = re.sub("\r", "", out)
+        out = re.sub("\r", "", str(out))
         return (process.returncode, out)
 
 class SmokeTestCase(SimulationTestCase):
@@ -165,7 +163,7 @@ class SmokeTestCase(SimulationTestCase):
         self.args = args
 
     def runTest(self):
-        global sdn4coreRoot, opp_run, nedPath, cpuTimeLimit
+        global soa4coreRoot, opp_run, nedPath, cpuTimeLimit
 
         # add paths of other libraries
         os.environ['LD_LIBRARY_PATH'] = inetRoot + os.sep + "src" + sep + core4inetRoot + os.sep + "src" + sep + openflowRoot + os.sep + "src" + sep + fico4omnetRoot + os.sep + "src" + sep + signalsandgatewaysRoot + sep + soa4coreRoot + os.sep + "src"
@@ -331,10 +329,9 @@ if __name__ == "__main__":
     result = testRunner.run(testSuite)
 
     print
-    print "Log has been saved to %s" % logFile
+    print("Log has been saved to %s" % logFile)
     
     if (len(result.errors)+len(result.failures)) > 0 :
         sys.exit(1)
     else :
         sys.exit(0)
-

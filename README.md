@@ -24,24 +24,16 @@ If you would like to reference this project please use the following [publicatio
  >Timo Häckel, Philipp Meyer, Franz Korf, and Thomas C. Schmidt. SDN4CoRE: A Simulation Model for Software-Defined Networking for Communication over Real-Time Ethernet. In: Proceedings of the 6th International OMNeT++ Community Summit 2019. Pages 24—31, Dec. 2019, EasyChair
 
 ## Quick Start
-1. Download OMNeT++ 5.5.1
-    * [https://omnetpp.org/download/old](https://omnetpp.org/download/old)
+1. Download OMNeT++ 6.0.2
+    * [https://omnetpp.org/download](https://omnetpp.org/download)
 2. Install OMNeT++
     * [https://doc.omnetpp.org/omnetpp/InstallGuide.pdf](https://doc.omnetpp.org/omnetpp/InstallGuide.pdf)
-3. Get INET framework 3.6.6
+3. Get INET framework 3.8.3
     * [https://inet.omnetpp.org/Download.html](https://inet.omnetpp.org/Download.html)
-4. Install CoRE plugins (optional)
-    * OMNEST/OMNeT++ -> Help -> Install New Software...
-    * URL `http://sim.core-rg.de/updates/`
-    * Check [Abstract Network Description Language] | [CoRE Simulation Model Installer] | [Gantt Chart Timing Analyzer]
-5. Get CoRE framework (GitHub or CoRE Simulation Model Installer)
-    * GitHub: Clone framework and import it in OMNEST/OMNeT++
-    * CoRE Simulation Model Installer: OMNEST/OMNeT++ -> Help -> Install CoRE Simulation Models...
-6. Get our original fork of the OpenFlow framework (GitHub)
-    * GitHub: Clone framework and import it in OMNEST/OMNeT++
-7. Get SDN4CoRE framework (GitHub)
-	* GitHub: Clone framework and import it in OMNEST/OMNeT++
-8. Working with the framework
+    * Disable the feature 'visualization' and all dependent features (causes build issues)
+4. Get CoRE framework
+    * GitHub: Clone [CoRE4INET](https://github.com/CoRE-RG/CoRE4INET), [FiCo4OMNeT](https://github.com/CoRE-RG/FiCo4OMNeT), [SignalsAndGateways](https://github.com/CoRE-RG/SignalsAndGateways), [SOA4CoRE](https://github.com/CoRE-RG/SOA4CoRE), our original fork of [OpenFlow](https://github.com/CoRE-RG/OpenFlow), and this repository and import them in OMNEST/OMNeT++
+5. Working with the framework
     * See the documentation in [doc/](/doc)
     * Start the examples in the framework
 
@@ -58,18 +50,18 @@ The build state of the master branch is monitored:
 <table>
   <tr>
     <th></th>
-    <th>Ubuntu 18.04</th>
-    <th>Windows 10</th>
+    <th>Ubuntu 22.04</th>
+    <th>Windows 11</th>
   </tr>
   <tr>
     <td>Building</td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Ubuntu_18.04"></td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Windows_10"></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Ubuntu_22.04"></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Windows_11"></td>
   </tr>
   <tr>
     <td>Tests</td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Ubuntu_18.04"></td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Windows_10"></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Ubuntu_22.04"></td>
+    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Windows_11"></td>
   </tr>
 </table>
 

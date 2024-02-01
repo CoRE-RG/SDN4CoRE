@@ -49,7 +49,7 @@ module TSNEthernetInterface like IWiredNic
         //Interface allows frames with this VLAN to enter and leave the port
         string taggedVIDs = default("0");
         
-        *.interfaceTableModule = default(absPath(interfaceTableModule));
+        *.interfaceTableModule = default(absPath(this.interfaceTableModule));
 
 
     gates:
@@ -67,17 +67,17 @@ module TSNEthernetInterface like IWiredNic
         //Module for the organisation of outbound traffic
         shaper: IEEE8021Qbv_Shaper {
             @display("p=48,45");
-            untaggedVID = untaggedVID;
-            taggedVIDs = taggedVIDs;
+            untaggedVID = parent.untaggedVID;
+            taggedVIDs = parent.taggedVIDs;
         }
         
         //Module for the organisation of inbound traffic
         inControl: IEEE8021Q_InControl {
             parameters:
                 @display("p=142,45");
-                promiscuous = promiscuous;
-                untaggedVID = untaggedVID;
-            	taggedVIDs = taggedVIDs;
+                promiscuous = parent.promiscuous;
+                untaggedVID = parent.untaggedVID;
+            	taggedVIDs = parent.taggedVIDs;
         }
         
         filtering: <default("NoFiltering")> like IFiltering {
@@ -87,7 +87,7 @@ module TSNEthernetInterface like IWiredNic
         //MAC Interface
         mac: <default("EtherMACFullDuplex")> like IEtherMAC{
             parameters:
-                promiscuous = promiscuous;
+                promiscuous = parent.promiscuous;
                 queueModule = "^.shaper.transmissionSelection";
                 @display("p=87,139");
         }

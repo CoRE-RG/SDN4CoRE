@@ -64,15 +64,15 @@ module AVBEthernetInterface like IWiredNic
         }
 
         // Physical connection of the port
-        phy: TTEAVBPHYPort {
+        phy[1]: TTEAVBPHYPort {
             @display("p=439,258,c,50");
-            promiscuous = be_promiscuous;
+            promiscuous = parent.be_promiscuous;
         }
 
 		// AVB critical traffic control
         avbCTC: OF_AVBIncoming {
             parameters:
-                hardware_delay = hardware_delay;
+                hardware_delay = parent.hardware_delay;
                 @display("p=429,123");
             gates:
                 AVBAout[1];
@@ -80,7 +80,7 @@ module AVBEthernetInterface like IWiredNic
         }
 
 		// AVB class A buffer
-        avbABuffer: AVBQueueBuffer {
+        avbABuffer[1]: AVBQueueBuffer {
             parameters:
                 srClass = "A";
                 srpModule = "^";
@@ -88,7 +88,7 @@ module AVBEthernetInterface like IWiredNic
         }
 
         // AVB class B buffer
-        avbBBuffer: AVBQueueBuffer {
+        avbBBuffer[1]: AVBQueueBuffer {
             parameters:
                 srClass = "B";
                 srpModule = "^";
@@ -133,18 +133,18 @@ module AVBEthernetInterface like IWiredNic
 
         avbportGatewayApp.AVBin <-- avbCTC.toGateway;
 
-        phy.phys <--> phys;
-        encap.lowerLayerOut --> phy.upperLayerIn;
-        phy.upperLayerOut --> encap.lowerLayerIn;
+        phy[0].phys <--> phys;
+        encap.lowerLayerOut --> phy[0].upperLayerIn;
+        phy[0].upperLayerOut --> encap.lowerLayerIn;
 
         encap.bgOut --> bgIn.in;
         bgOut.out --> encap.bgIn;
         bgIn.out --> avbportGatewayApp.in;
 
-        avbCTC.AVBAout[0] --> avbABuffer.in;
-        avbCTC.AVBBout[0] --> avbBBuffer.in;
-        avbABuffer.out --> phy.AVBAin;
-        avbBBuffer.out --> phy.AVBBin;
+        avbCTC.AVBAout[0] --> avbABuffer[0].in;
+        avbCTC.AVBBout[0] --> avbBBuffer[0].in;
+        avbABuffer[0].out --> phy[0].AVBAin;
+        avbBBuffer[0].out --> phy[0].AVBBin;
 
         avbportGatewayApp.encapSrpOut --> encap.srpIn;
         avbportGatewayApp.encapSrpIn <-- encap.srpOut;

@@ -64,7 +64,7 @@ module IEEE8021QbvOpenFlowSwitch extends OpenFlowSwitch
 		// Stream Reservation Protocol implementation
         srpProtocol: SRProtocol {
             portModule = "etherMAC";
-            srpEncap = pathSwitchAgent;
+            srpEncap = parent.pathSwitchAgent;
             @display("p=371,241");
         }
 

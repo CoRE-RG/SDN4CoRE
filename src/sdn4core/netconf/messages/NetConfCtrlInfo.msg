@@ -15,13 +15,9 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-cplusplus {{
-#include "NetConfMessage_m.h"
-}}
+import sdn4core.netconf.messages.NetConfMessage;
 
 namespace SDN4CoRE;
-
-enum NetConfMessageType;
 
 //
 // Control info which is attached to a request by the NetConfServer, 
@@ -30,13 +26,13 @@ enum NetConfMessageType;
 //
 // @author Timo Haeckel, for HAW Hamburg
 //
-class NetConfCtrlInfo {
+class NetConfCtrlInfo extends cObject {
     int messageType@enum(NetConfMessageType);
     string message_id;
     int session_id;
 }
 
-class NetConfClientCtrlInfo_Connection {
+class NetConfClientCtrlInfo_Connection extends cObject {
     int localPort;
     string connectAddress;
     int connectPort;

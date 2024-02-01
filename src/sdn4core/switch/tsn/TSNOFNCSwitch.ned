@@ -44,12 +44,12 @@ module TSNOFNCSwitch extends TSNOpenFlowSwitch
     submodules:
         // Netconf Server module
         netconf: NetConfManagedUnit {
-            processingTime = nc_service_time;
-            netConfServerType = netConfServerType;
-            numConfigurators = numConfigurators;
-            configurators[0].typename = of_configuratorType;
-            configurators[1].typename = qbv_configuratorType;
-            configurators[2].typename = srp_configuratorType;
+            processingTime = parent.nc_service_time;
+            netConfServerType = parent.netConfServerType;
+            numConfigurators = parent.numConfigurators;
+            configurators[0].typename = parent.of_configuratorType;
+            configurators[1].typename = parent.qbv_configuratorType;
+            configurators[2].typename = parent.srp_configuratorType;
             @display("p=225.15,240.34999");
         }
 

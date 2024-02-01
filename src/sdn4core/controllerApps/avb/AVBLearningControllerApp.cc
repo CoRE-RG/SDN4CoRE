@@ -124,14 +124,18 @@ void AVBLearningControllerApp::forwardSRPPacket(OFP_Packet_In* packet_in_msg) {
     TCPSocket *socket = controller->findSocketFor(packet_in_msg);
     //TODO use experimenter message instead of packet out!
     OFP_Packet_Out *packetOut = new OFP_Packet_Out("forwardSRP");
-    packetOut->getHeader().version = OFP_VERSION;
+
+    ofp_header header = packetOut->getHeader();
+    header.version = OFP_VERSION;
+    header.type = OFPT_FLOW_MOD;
 #if OFP_VERSION_IN_USE == OFP_100
-    packetOut->getHeader().type = OFPT_VENDOR;
+    header.type = OFPT_VENDOR;
     // TODO Add Experimenter Message Structure!
 #elif OFP_VERSION_IN_USE == OFP_151
-    packetOut->getHeader().type = OFPT_EXPERIMENTER;
+    header.type = OFPT_EXPERIMENTER;
         // TODO Add Experimenter Message Structure!
 #endif
+    packetOut->setHeader(header);
     packetOut->setBuffer_id(packet_in_msg->getBuffer_id());
     packetOut->setByteLength(24);
     omnetpp::cPacket* packet = packet_in_msg->getEncapsulatedPacket();

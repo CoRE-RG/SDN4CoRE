@@ -42,7 +42,7 @@ void NetConfDataConfiguratorFlowTable::initialize(){
     }
 }
 
-NetConfConfig *NetConfDataConfiguratorFlowTable::getConfig(NetConfFilter& filter){
+NetConfConfig *NetConfDataConfiguratorFlowTable::getConfig(const NetConfFilter& filter){
 
     OF_NetConfConfigFlowMod* config = new OF_NetConfConfigFlowMod();
     for(int i = 0; i< _flowTables.size(); i++){
@@ -73,17 +73,18 @@ bool NetConfDataConfiguratorFlowTable::editConfig(int defaultOperation, int erro
 
             for(OF100_FlowTableEntry* entry: flowTableConfig->flowTableEntries){
                 oxm_basic_match match = entry->getMatch();
+                auto priority = entry->getPriority();
 
                 switch(flowTableConfig->command){
                     case OF_NetConfConfigFlowMod::ADD_FLOW:
                         status = _flowTables[flowTableConfig->table_id]->addEntry(entry);
                         break;
                     case OF_NetConfConfigFlowMod::MODIFY_FLOW:
-                        _flowTables[flowTableConfig->table_id]->deleteMatchingEntries(match);
+                        _flowTables[flowTableConfig->table_id]->deleteMatchingEntries(match, priority);
                         status = _flowTables[flowTableConfig->table_id]->addEntry(entry);
                         break;
                     case OF_NetConfConfigFlowMod::DELETE_FLOW:
-                        _flowTables[flowTableConfig->table_id]->deleteMatchingEntries(match);
+                        _flowTables[flowTableConfig->table_id]->deleteMatchingEntries(match, priority);
                         status = true;
                         break;
                     default:

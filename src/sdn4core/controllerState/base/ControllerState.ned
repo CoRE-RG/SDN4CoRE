@@ -68,7 +68,7 @@ module ControllerSwitchState
 {
     parameters:
         @display("i=block/switch");
-        string switchName = default("");
+        string switchName @mutable = default("");
 }
 
 //

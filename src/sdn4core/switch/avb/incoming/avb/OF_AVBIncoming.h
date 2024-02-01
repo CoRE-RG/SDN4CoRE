@@ -18,6 +18,9 @@
 #ifndef CORE4INET_OF_AVBIncoming_H_
 #define CORE4INET_OF_AVBIncoming_H_
 
+#include "omnetpp.h"
+using namespace omnetpp;
+
 //CoRE4INET
 #include "core4inet/incoming/base/Incoming.h"
 #include "core4inet/services/avb/SRP/SRPTable.h"

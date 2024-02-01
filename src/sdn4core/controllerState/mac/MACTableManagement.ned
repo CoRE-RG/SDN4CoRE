@@ -34,7 +34,7 @@ simple MACTableManagement extends ControllerStateManagementBase
         switchStateModuleName = default ("macTable"); // name of the module to hold the state per switch
         
         // parameters to be set for all MACTables 
-        double agingTime @unit("s") = default(120s); // MAC Address aging default from inet::MACAddressTable         
+        double agingTime @mutable @unit("s") = default(120s); // MAC Address aging default from inet::MACAddressTable         
 }
 
 //

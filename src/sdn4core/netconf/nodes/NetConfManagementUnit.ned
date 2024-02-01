@@ -40,7 +40,7 @@ module NetConfManagementUnit
     submodules:
 
         //NetConfClient applications
-        netConfApps[numNetConfApps]: <> like INetConfApplication {
+        netConfApps[this.numNetConfApps]: <> like INetConfApplication {
 
             @display("p=220,70,c,70");
         }
@@ -53,7 +53,7 @@ module NetConfManagementUnit
         netConfClient.transportIn <-- transportIn;
         netConfClient.transportOut --> transportOut;
 
-        for i=0..(numNetConfApps-1) {
+        for i=0..(this.numNetConfApps-1) {
             netConfClient.applicationIn++ <-- netConfApps[i].applicationOut;
             netConfClient.applicationOut++ --> netConfApps[i].applicationIn;
         }

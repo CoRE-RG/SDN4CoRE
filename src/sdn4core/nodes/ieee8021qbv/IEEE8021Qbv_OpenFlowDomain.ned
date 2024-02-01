@@ -53,13 +53,13 @@ module IEEE8021Qbv_OpenFlowDomain
         open_flow_switch: IEEE8021QbvOpenFlowSwitch {
             @display("p=120,186");
             gates:
-                gateDataPlane[sizeof(gateDPlane)+numClients];
+                gateDataPlane[sizeof(parent.gateDPlane) + parent.numClients];
         }
 
         etherSwitch: EtherSwitch {
             @display("p=240,186");
             gates:
-                ethg[sizeof(gateCPlane)];
+                ethg[sizeof(parent.gateCPlane)];
         }
 
         client[numClients]: StandardHost {
@@ -71,7 +71,7 @@ module IEEE8021Qbv_OpenFlowDomain
         }
 
         for i=0..numClients-1 {
-            client[i].ethg++ <--> ethernetline <--> open_flow_switch.gateDataPlane[sizeof(gateDPlane)+i];
+            client[i].ethg++ <--> ethernetline <--> open_flow_switch.gateDataPlane[sizeof(this.gateDPlane)+i];
         }
 
         for i=0..sizeof(gateCPlane)-1 {

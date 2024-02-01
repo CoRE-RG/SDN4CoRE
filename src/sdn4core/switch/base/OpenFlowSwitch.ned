@@ -55,8 +55,8 @@ module OpenFlowSwitch
         double of_service_time @unit(s) = default(0s);
         //hardware delay for the forwarding of packets
         double hardware_delay @unit(s) = default(8us);
-        double egress_delay @unit(s) = default(hardware_delay/2);
-        double ingress_delay @unit(s) = default(hardware_delay/2);
+        double egress_delay @unit(s) = default(this.hardware_delay/2);
+        double ingress_delay @unit(s) = default(this.hardware_delay/2);
         // number of flow tables in this switch
         int numFlowTables = default(1);
 
@@ -72,14 +72,14 @@ module OpenFlowSwitch
 
         // submodule settings
         bool csmacdSupport = default(true);  // by default use CSMA/CD
-        string macType = default(csmacdSupport ? "EtherMAC" : "EtherMACFullDuplex"); // ~EtherMAC or ~EtherMACFullDuplex
+        string macType = default(this.csmacdSupport ? "EtherMAC" : "EtherMACFullDuplex"); // ~EtherMAC or ~EtherMACFullDuplex
         bool routingforwarding = default(false);
         bool multicastForwarding = default(false);
-        routingTable.forwarding = routingforwarding;
-        routingTable.multicastForwarding = multicastForwarding;   // for IPv4, IPv6, Generic
+        routingTable.forwarding = this.routingforwarding;
+        routingTable.multicastForwarding = this.multicastForwarding;   // for IPv4, IPv6, Generic
         etherMAC[*].encapType = "EtherEncapDummy";
-        etherMAC[*].csmacdSupport = csmacdSupport;
-        etherMAC[*].macType = macType;
+        etherMAC[*].csmacdSupport = this.csmacdSupport;
+        etherMAC[*].macType = this.macType;
         networkLayer.proxyARP = false;
 
         // Setting paths in all submodules in need of those modules
@@ -121,7 +121,7 @@ module OpenFlowSwitch
         }
 
         // Ethernet Interface module for the control plane port
-        eth[sizeof(gateControlPlane)]: <ethControlPlaneType> like IWiredNic {
+        eth[1]: <ethControlPlaneType> like IWiredNic {
             parameters:
                 @display("p=35,167");
         }
@@ -150,19 +150,19 @@ module OpenFlowSwitch
                 interfaceTableModule = default(absPath(".dpInterfaceTable"));
                 @display("p=431,167");
             gates:
-                dataPlaneOut[sizeof(gateDataPlane)];
-                dataPlaneIn[sizeof(gateDataPlane)];
+                dataPlaneOut[sizeof(parent.gateDataPlane)];
+                dataPlaneIn[sizeof(parent.gateDataPlane)];
         }
 
         // OpenFlow SwitchAgent
         switchAgent: <switchAgentType> like IOF_SwitchAgent {
             parameters:
-                serviceTime = of_service_time;
+                serviceTime = parent.of_service_time;
                 @display("p=325,167");
         }
 
         // Ethernet Interface modules for the data plane ports
-        etherMAC[sizeof(gateDataPlane)]: <ethDataPlaneType> like IWiredNic {
+        etherMAC[sizeof(this.gateDataPlane)]: <ethDataPlaneType> like IWiredNic {
             parameters:
                 mac.promiscuous = true;
                 @display("p=597,167,c,50");
@@ -176,11 +176,10 @@ module OpenFlowSwitch
     connections allowunconnected:
 
         // control plane connections
-        for i=0..sizeof(gateControlPlane)-1 {
-            eth[i].phys <--> gateControlPlane;
-            eth[i].upperLayerIn <-- networkLayer.ifOut++;
-            eth[i].upperLayerOut --> networkLayer.ifIn++;
-        }
+        eth[0].phys <--> gateControlPlane;
+        eth[0].upperLayerIn <-- networkLayer.ifOut++;
+        eth[0].upperLayerOut --> networkLayer.ifIn++;
+
         tcp.ipOut --> networkLayer.transportIn++;
         tcp.ipIn <-- networkLayer.transportOut++;
         tcp.appOut++ --> switchAgent.controlPlaneIn;
@@ -191,10 +190,10 @@ module OpenFlowSwitch
         lo0.upperLayerOut --> networkLayer.ifIn++;
 
         // data plane connections
-        for i=0..sizeof(gateDataPlane)-1 {
+        for i=0..sizeof(this.gateDataPlane)-1 {
             etherMAC[i].phys <--> gateDataPlane[i];
-            etherMAC[i].upperLayerOut --> ProcessingDelay {  delay = (ingress_delay); } --> relayUnit.dataPlaneIn[i];
-            etherMAC[i].upperLayerIn <-- ProcessingDelay {  delay = (egress_delay); } <-- relayUnit.dataPlaneOut[i];
+            etherMAC[i].upperLayerOut --> ProcessingDelay {  delay = (parent.ingress_delay); } --> relayUnit.dataPlaneIn[i];
+            etherMAC[i].upperLayerIn <-- ProcessingDelay {  delay = (parent.egress_delay); } <-- relayUnit.dataPlaneOut[i];
         }
 
 }

@@ -48,8 +48,10 @@ void TSN_OF_SwitchAgent::handleMessage(cMessage *msg){
 
 void TSN_OF_SwitchAgent::sendSRPResponse(CoRE4INET::ListenerReady *msg){
     OFP_Packet_In *packetIn = new OFP_Packet_In("packetIn");
-    packetIn->getHeader().version = OFP_VERSION;
-    packetIn->getHeader().type = OFPT_VENDOR;
+    ofp_header header = packetIn->getHeader();
+    header.version = OFP_VERSION;
+    header.type = OFPT_VENDOR;
+    packetIn->setHeader(header);
     packetIn->setByteLength(32);
     packetIn->encapsulate(msg);
     packetIn->setBuffer_id(OFP_NO_BUFFER);

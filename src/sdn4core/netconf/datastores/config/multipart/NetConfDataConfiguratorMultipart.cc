@@ -38,7 +38,7 @@ void NetConfDataConfiguratorMultipart::initialize() {
 }
 
 NetConfConfig* SDN4CoRE::NetConfDataConfiguratorMultipart::getConfig(
-        NetConfFilter& filter) {
+        const NetConfFilter& filter) {
     throw cRuntimeError("Get Config not implemented");
 }
 
