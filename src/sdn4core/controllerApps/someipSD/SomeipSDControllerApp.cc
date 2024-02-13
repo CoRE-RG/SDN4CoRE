@@ -193,6 +193,7 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
 }
 
 void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSDHeader* someIpSDHeader) {
+    Enter_Method("SomeipSDControllerApp::processOfferEntry()");
     LayeredInformation* info =  dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     auto serviceId = offerEntry->getServiceID();
     auto instanceId = offerEntry->getInstanceID();
@@ -220,7 +221,16 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
             SomeIpSDHeader* response = buildOffer(it->requestHeader, it->entry, entries);
             sendOffer(response, it->requestHeader, it->layeredInformation, info);
         }
+        takeRequest(*it);
         it->clear();
+    }
+}
+
+void SomeipSDControllerApp::takeRequest(SomeipServiceTable::FindRequest& request) {
+    if (request.requestHeader) take(request.requestHeader);
+    if (request.entry) take(request.entry);
+    for (auto elem: request.optionList) {
+        if (elem) take(elem);
     }
 }
 

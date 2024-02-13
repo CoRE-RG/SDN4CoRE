@@ -105,6 +105,8 @@ protected:
     void installFlowForUnicastSubscription(SomeipServiceTable::Subscription& sub);
     void installFlowForMulticastSubscription(SomeipServiceTable::Subscription& sub);
 
+    void takeRequest(SomeipServiceTable::FindRequest& request);
+
     /**
      * Checks if all necessary configurations have been set by the producer of the subscription
      * @param sub The subscription to be checked

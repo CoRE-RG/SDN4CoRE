@@ -330,6 +330,8 @@ protected:
      */
     int getOpenRequestCount() const;
 
+    void dropRequest(FindRequest* request);
+
 protected:
     /**
      * Collecting known service offers.

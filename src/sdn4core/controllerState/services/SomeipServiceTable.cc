@@ -172,9 +172,9 @@ SomeipServiceTable::ServiceRequestList SomeipServiceTable::getPendingRequests(ui
                 requests.push_back(*it);
                 if (removeFromCache)
                 {
+                    dropRequest(&(*it));
                     findInstances.erase(it--);
                 }
-
             }
         }
         if (findInstances.empty())
@@ -358,14 +358,6 @@ int SomeipServiceTable::getPublisherCount() const {
     return count;
 }
 
-int SomeipServiceTable::getOpenRequestCount() const {
-    int count = 0;
-    for (auto request : requestTable) {
-        count += request.second.size();
-    }
-    return count;
-}
-
 int SomeipServiceTable::getSubscriberCount() const {
     int count = 0;
     for (auto service : subscriptionTable) {
@@ -374,6 +366,22 @@ int SomeipServiceTable::getSubscriberCount() const {
         }
     }
     return count;
+}
+
+int SomeipServiceTable::getOpenRequestCount() const {
+    int count = 0;
+    for (auto request : requestTable) {
+        count += request.second.size();
+    }
+    return count;
+}
+
+void SomeipServiceTable::dropRequest(FindRequest* request) {
+    if (request->requestHeader) drop(request->requestHeader);
+    if (request->entry) drop(request->entry);
+    for (auto elem: request->optionList) {
+        if (elem) drop(elem);
+    }
 }
 
 } /*end namespace SDN4CoRE*/
