@@ -98,6 +98,9 @@ void SomeipSDControllerApp::initialize() {
     myLayeredInformation.eth_src.setAddress("C0:C0:C0:C0:C0:C0");
     myLayeredInformation.ip_src = L3Address("10.0.0.2");
     myLayeredInformation.transport_src = SOMEIPSD_PORT;
+    myLayeredInformation.eth_dst = MACAddress::makeMulticastAddress(someipMcastAddress);
+    myLayeredInformation.ip_dst = someipMcastAddress;
+    myLayeredInformation.transport_dst = SOMEIPSD_PORT;
     myLayeredInformation.in_port = -1;
     myLayeredInformation.sw_info = nullptr;
 
@@ -178,16 +181,16 @@ void SomeipSDControllerApp::processFindEntry(SomeIpSDEntry* findInquiry, SomeIpS
             return;
         }
         // still unknown so forward
-        sendFind(someIpSDHeader->dup(), someIpSDHeader);
+        multicastSOMEIPMessage(someIpSDHeader->dup(), findInfo);
     }
     else if(entries.empty())
     {
-        SomeIpSDHeader* myFind = buildFind(someIpSDHeader, findInquiry);
-        sendFind(myFind, someIpSDHeader);
         serviceTable->updateRequestTable(findInquiry, someIpSDHeader);
+        SomeIpSDHeader* myFind = buildFind(someIpSDHeader, findInquiry);
+        multicastSOMEIPMessage(myFind, findInfo);
     } else {
         SomeIpSDHeader* foundOffer = buildOffer(someIpSDHeader, findInquiry, entries);
-        sendOffer(foundOffer, someIpSDHeader, findInfo, entries.front().layeredInformation);
+        forwardSOMEIPMessage(foundOffer,entries.front().layeredInformation,findInfo);
         // TODO maybe use controller layered info if multiple entries
     }
 }
@@ -202,7 +205,7 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
     {
         SomeIpSDHeader* dupHeader = someIpSDHeader->dup();
         dupHeader->removeControlInfo();
-        sendFind(dupHeader, someIpSDHeader); //todo rename as this actually sends an offer...
+        multicastSOMEIPMessage(dupHeader, info);
         forwarded = true;
     }
     if(info->ip_src == myLayeredInformation.ip_src)
@@ -219,7 +222,7 @@ void SomeipSDControllerApp::processOfferEntry(SomeIpSDEntry* offerEntry,SomeIpSD
         if(!forwarded)
         {
             SomeIpSDHeader* response = buildOffer(it->requestHeader, it->entry, entries);
-            sendOffer(response, it->requestHeader, it->layeredInformation, info);
+            forwardSOMEIPMessage(response,info,it->layeredInformation);
         }
         takeRequest(*it);
         it->clear();
@@ -249,14 +252,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
 
     // build subscribe eventgroup
     SomeIpSDHeader* header = buildSubscribeEventGroup(someIpSDHeader, entry);
-    // build packet out
-    EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation, instance->layeredInformation);
-    uint32_t outports [] = {(uint32_t)instance->layeredInformation->in_port};
-    OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
-            outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
-    packetOut->setKind(TCP_C_SEND);
-    controller->sendPacketOut(packetOut, instance->layeredInformation->sw_info->getSocket());
-    delete eth2Frame;
+    forwardSOMEIPMessage(header, layeredInformation, instance->layeredInformation);
 }
 
 void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* entry, SomeIpSDHeader* someIpSDHeader) {
@@ -292,13 +288,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
 
                 // forward subscription ack to subscriber
                 SomeIpSDHeader* header = buildSubscribeEventGroupAck(someIpSDHeader, entry);
-                EthernetIIFrame* eth2Frame = encapSDHeader(header, layeredInformation, &iter->consumerInformation);
-                uint32_t outports [] = {(uint32_t)iter->consumerInformation.in_port};
-                OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
-                        outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
-                packetOut->setKind(TCP_C_SEND);
-                controller->sendPacketOut(packetOut, iter->consumerInformation.sw_info->getSocket());
-                delete eth2Frame;
+                forwardSOMEIPMessage(header, layeredInformation, &iter->consumerInformation);
                 iter->active = true;
             }
             // consumer handled the sub ack!
@@ -389,64 +379,25 @@ SOA4CoRE::SomeIpSDHeader* SomeipSDControllerApp::buildSubscribeEventGroupAck(
     return header;
 }
 
-void SomeipSDControllerApp::sendFind(SomeIpSDHeader* find, SomeIpSDHeader* findSource){
-    LayeredInformation* info = dynamic_cast<LayeredInformation*>(findSource->getControlInfo());
-    //Layer 4
-    UDPPacket *udpPacket = new UDPPacket(find->getName());
-        udpPacket->setByteLength(UDP_HEADER_BYTES);
-        udpPacket->encapsulate(find);
-        udpPacket->setSourcePort(myLayeredInformation.transport_src);
-        udpPacket->setDestinationPort(SOMEIPSD_PORT);
-
-    //Layer 3
-    IPv4Datagram *datagram = new IPv4Datagram(find->getName());
-    IPv4Address src = myLayeredInformation.ip_src.toIPv4();
-    short ttl = 1;
-        datagram->setByteLength(IP_HEADER_BYTES);
-        datagram->encapsulate(udpPacket);
-        datagram->setSrcAddress(src);
-        datagram->setDestinationAddress(someipMcastAddress);
-        datagram->setMoreFragments(false);
-        datagram->setTimeToLive(ttl);
-        datagram->setTransportProtocol(17); //the UDP-standard protocol-id
-
-    // Layer 2
-    EthernetIIFrame *eth2Frame = new EthernetIIFrame(find->getName());
-        eth2Frame->setSrc(myLayeredInformation.eth_src);
-        eth2Frame->encapsulate(datagram);
-        if (eth2Frame->getByteLength() < MIN_ETHERNET_FRAME_BYTES)
-            eth2Frame->setByteLength(MIN_ETHERNET_FRAME_BYTES); // "padding"
-
-    // Openflow
-    OFP_Packet_Out *packetOut = new OFP_Packet_Out("packetOut");
-    ofp_header header = packetOut->getHeader();
-    header.version = OFP_VERSION;
-    header.type = OFPT_PACKET_OUT;
-    packetOut->setHeader(header);
-        packetOut->setBuffer_id(OFP_NO_BUFFER);
-        packetOut->setByteLength(24);
-        packetOut->encapsulate(eth2Frame);
-    ofp_action_output *action_output = new ofp_action_output();
-    action_output->port = OFPP_FLOOD;
-        packetOut->setIn_port(info->in_port);
-        packetOut->setActionsArraySize(1);
-        packetOut->setActions(0, *action_output);
-        packetOut->setKind(TCP_C_SEND);
-
-    controller->sendPacketOut(packetOut, info->sw_info->getSocket());
-}
-
-void SomeipSDControllerApp::sendOffer(SomeIpSDHeader* offer, SomeIpSDHeader* findSource, LayeredInformation* infoFind, LayeredInformation* infoOffer){
-    EthernetIIFrame *eth2Frame = encapSDHeader(offer, infoOffer, infoFind);
-
-    uint32_t outports [] = {(uint32_t)infoFind->in_port};
+void SomeipSDControllerApp::forwardSOMEIPMessage(SomeIpSDHeader* msg, LayeredInformation* srcInfo, LayeredInformation* dstInfo)
+{
+    EthernetIIFrame *eth2Frame = encapSDHeader(msg, srcInfo, dstInfo);
+    uint32_t outports [] = {(uint32_t)dstInfo->in_port};
     OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
             outports, 1, OFPP_CONTROLLER, OFP_NO_BUFFER, eth2Frame);
     packetOut->setKind(TCP_C_SEND);
+    controller->sendPacketOut(packetOut, dstInfo->sw_info->getSocket());
+    delete eth2Frame; // was duplicated during packet out creation
+}
 
-    controller->sendPacketOut(packetOut, infoFind->sw_info->getSocket());
-
-    delete eth2Frame;
+void SomeipSDControllerApp::multicastSOMEIPMessage(SomeIpSDHeader* msg, LayeredInformation* srcInfo)
+{
+    EthernetIIFrame *eth2Frame = encapSDHeader(msg, &myLayeredInformation);
+    uint32 outports [] = { OFPP_FLOOD };
+    OFP_Packet_Out *packetOut = OFMessageFactory::instance()->createPacketOut(
+            outports, 1, srcInfo->in_port, OFP_NO_BUFFER, eth2Frame);
+    controller->sendPacketOut(packetOut, srcInfo->sw_info->getSocket());
+    delete eth2Frame; // was duplicated during packet out creation
 }
 
 void SomeipSDControllerApp::installFlowForUnicastSubscription(SomeipServiceTable::Subscription& sub) {

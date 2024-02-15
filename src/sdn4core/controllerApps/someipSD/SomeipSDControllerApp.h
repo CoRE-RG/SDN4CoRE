@@ -99,8 +99,8 @@ protected:
     SOA4CoRE::SomeIpSDHeader* buildSubscribeEventGroup(SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry);
     SOA4CoRE::SomeIpSDHeader* buildSubscribeEventGroupAck(SOA4CoRE::SomeIpSDHeader* source, SOA4CoRE::SomeIpSDEntry* entry);
 
-    void sendFind(SOA4CoRE::SomeIpSDHeader*, SOA4CoRE::SomeIpSDHeader* findSource);
-    void sendOffer(SOA4CoRE::SomeIpSDHeader* offer, SOA4CoRE::SomeIpSDHeader* findSource, LayeredInformation* infoFind, LayeredInformation* infoOffer);
+    void forwardSOMEIPMessage(SOA4CoRE::SomeIpSDHeader* msg, LayeredInformation* srcInfo, LayeredInformation* dstInfo);
+    void multicastSOMEIPMessage(SOA4CoRE::SomeIpSDHeader* msg, LayeredInformation* srcInfo);
 
     void installFlowForUnicastSubscription(SomeipServiceTable::Subscription& sub);
     void installFlowForMulticastSubscription(SomeipServiceTable::Subscription& sub);
