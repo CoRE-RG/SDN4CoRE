@@ -86,6 +86,7 @@ void SomeipSDControllerApp::initialize() {
             }
         }
     }
+    streamIntervalAsCMI = this->par("streamIntervalAsCMI");
 
     if((useXMLReservationList = this->par("useXMLReservationList"))) {
         if(!loadXMLReservationList()) {
@@ -530,11 +531,19 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
     auto ressourceConfig = publisher->optionList.getFirstConfigOfType<RessourceConfigurationOption*>();
     //calculate framesize used per class measurement interval.
     uint16_t fullL2FrameSize = calculateL2Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxPayload());
+    int normalizedFramesize = fullL2FrameSize;
     SR_CLASS srclass = SR_CLASS::A;
-    int normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, ressourceConfig->getMinInterval(), srclass, false);
-    if(normalizedFramesize < 0) {
-        srclass = SR_CLASS::B;
-        normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, ressourceConfig->getMinInterval(), srclass, true);
+    if (streamIntervalAsCMI)
+    {
+        auto interval = ressourceConfig->getMinInterval();
+        normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, interval, srclass, false);
+        if(normalizedFramesize < 0) {
+            srclass = SR_CLASS::B;
+            normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, interval, srclass, true);
+            if(normalizedFramesize < 0) {
+                throw cRuntimeError("Normalized framesize negativ for Class A and B CMI");
+            }
+        }
     }
     // -- not unique if multiple instances of a service exist and are subscribed by the same destination
     // uint64_t streamId = buildStreamIDForService(serviceId, mac_dest)

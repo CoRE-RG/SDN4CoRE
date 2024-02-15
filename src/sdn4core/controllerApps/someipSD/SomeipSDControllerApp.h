@@ -184,6 +184,10 @@ protected:
       */
      bool reserveResources;
      /**
+      * Cached parameter of the stream interval should be used as CMI instead of SRClass.
+      */
+     bool streamIntervalAsCMI;
+     /**
       * Cached parameter if the xml configuration (resourceReservationTable) should be used for resource reservation instead of SRTables.
       */
      bool useXMLReservationList;

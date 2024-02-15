@@ -48,4 +48,6 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         flowModIdleTimeOut = default(0);
         bool reserveResources = default(false);
         bool useXMLReservationList = default(false); //set xml config in PacketProcessorBase::confixXML 
+        bool streamIntervalAsCMI = default(false);  // calculate IdleSlope based on stream interval instead of CMI
+        											// the framesize will be "normalized" for the ratio of the interval / CMI of the priority 
 }
