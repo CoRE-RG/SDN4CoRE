@@ -64,32 +64,42 @@ void SomeipSDControllerApp::initialize() {
     forwardOfferMulticast = this->par("forwardOfferMulticast");
     someipMcastAddress = IPv4Address(par("someipMcastAddress").stringValue());
 
-    if(!(serviceTable = tryLocateStateManager<SomeipServiceTable*>("serviceTable"))) {
+    if (!(serviceTable = tryLocateStateManager<SomeipServiceTable*>("serviceTable")))
+    {
         // create the service manager
         serviceTable = dynamic_cast<SomeipServiceTable*>(
                 createFinalizeAndScheduleDynamicModule("sdn4core.controllerState.services.SomeipServiceTable",
                         "serviceTable", this->getParentModule()->getSubmodule("controllerState"), false));
-        if(!serviceTable){
+        if (!serviceTable)
+        {
             throw cRuntimeError("Could not find or create SomeipServiceTable.");
         }
     }
 
-    if((reserveResources = this->par("reserveResources"))) {
+    if ((reserveResources = this->par("reserveResources")))
+    {
         srpManager = tryLocateStateManager<SRPTableManagement*>("srpTableManagement");
-        if(!srpManager) {
+        if (!srpManager)
+        {
                 // create the mac manager
             srpManager = dynamic_cast<SRPTableManagement*>(
                     createFinalizeAndScheduleDynamicModule("sdn4core.controllerState.srp.SRPTableManagement",
                             "srpTableManagement", this->getParentModule()->getSubmodule("controllerState"), false));
-            if(!srpManager){
+            if (!srpManager)
+            {
                 throw cRuntimeError("Could not create SRPTableManagement.");
             }
         }
     }
-    streamIntervalAsCMI = this->par("streamIntervalAsCMI");
+    if (streamIntervalAsCMI = this->par("streamIntervalAsCMI"))
+    {
+        map<int,simtime_t> pcpCMI = this->par("pcpCMI").cValueMap();
+    }
 
-    if((useXMLReservationList = this->par("useXMLReservationList"))) {
-        if(!loadXMLReservationList()) {
+    if ((useXMLReservationList = this->par("useXMLReservationList")))
+    {
+        if (!loadXMLReservationList())
+        {
             throw cRuntimeError("useXMLReservationList is set, but no valid configXML");
         }
         nextReservationIndex = 1;

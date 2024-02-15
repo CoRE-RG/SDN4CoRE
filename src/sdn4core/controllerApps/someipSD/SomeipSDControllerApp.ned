@@ -47,7 +47,18 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         flowModHardTimeOut = default(0);
         flowModIdleTimeOut = default(0);
         bool reserveResources = default(false);
-        bool useXMLReservationList = default(false); //set xml config in PacketProcessorBase::confixXML 
         bool streamIntervalAsCMI = default(false);  // calculate IdleSlope based on stream interval instead of CMI
         											// the framesize will be "normalized" for the ratio of the interval / CMI of the priority 
+        // the class measurement interval for the 802.1Q priorities
+        // the key must be the pcp index (usually 0 - 7), see example below.  
+        // A CMI <= 0 will not allow stream reservation in this priority.
+        // Pcps that are unspecified will also not allow stream reservation.         
+        object pcpCMI = { 
+            3: 0s,
+            4: 0s,
+            5: 250us,
+            6: 125us,
+            7: 0s
+            };
+        bool useXMLReservationList = default(false); //set xml config in PacketProcessorBase::confixXML
 }
