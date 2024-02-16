@@ -19,6 +19,7 @@
 
 //STD
 #include <sstream>
+#include <stdlib.h>
 //inet
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
@@ -91,11 +92,24 @@ void SomeipSDControllerApp::initialize() {
             }
         }
     }
-    if (streamIntervalAsCMI = this->par("streamIntervalAsCMI"))
-    {
-        map<int,simtime_t> pcpCMI = this->par("pcpCMI").cValueMap();
-    }
 
+    streamIntervalAsCMI = this->par("streamIntervalAsCMI");
+    if (!streamIntervalAsCMI)
+    {
+        cValueMap* pcpCMI = dynamic_cast<cValueMap*>(this->par("pcpCMI").objectValue());
+        if(!pcpCMI) {
+            throw cRuntimeError("CMIs for PCPs have not been specified.");
+        }
+        for (auto it : pcpCMI->getFields())
+        {
+            int pcp = atoi(it.first.c_str());
+            double cmi = it.second.doubleValueInUnit("s");
+            if (cmi > 0)
+            {
+                pcpCMIs[pcp] = cmi;
+            }
+        }
+    }
     if ((useXMLReservationList = this->par("useXMLReservationList")))
     {
         if (!loadXMLReservationList())
@@ -543,16 +557,25 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
     uint16_t fullL2FrameSize = calculateL2Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxPayload());
     int normalizedFramesize = fullL2FrameSize;
     SR_CLASS srclass = SR_CLASS::A;
+    double interval;
     if (streamIntervalAsCMI)
     {
-        auto interval = ressourceConfig->getMinInterval();
-        normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, interval, srclass, false);
+        interval = ressourceConfig->getMinInterval();
+    }
+    else {
+        auto cmiIt = pcpCMIs.find(qOption->getPcp());
+        if(cmiIt == pcpCMIs.end())
+        {
+            throw cRuntimeError("CMI for PCP %d unknown", qOption->getPcp());
+        }
+        interval = cmiIt->second;
+    }
+    normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, interval, srclass, false);
+    if(normalizedFramesize < 0) {
+        srclass = SR_CLASS::B;
+        normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, interval, srclass, true);
         if(normalizedFramesize < 0) {
-            srclass = SR_CLASS::B;
-            normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, interval, srclass, true);
-            if(normalizedFramesize < 0) {
-                throw cRuntimeError("Normalized framesize negativ for Class A and B CMI");
-            }
+            throw cRuntimeError("Normalized framesize negativ for Class A and B CMI");
         }
     }
     // -- not unique if multiple instances of a service exist and are subscribed by the same destination

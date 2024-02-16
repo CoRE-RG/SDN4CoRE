@@ -188,6 +188,10 @@ protected:
       */
      bool streamIntervalAsCMI;
      /**
+      *
+      */
+     std::map<int, double> pcpCMIs;
+     /**
       * Cached parameter if the xml configuration (resourceReservationTable) should be used for resource reservation instead of SRTables.
       */
      bool useXMLReservationList;
