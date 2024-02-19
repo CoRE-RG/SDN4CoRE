@@ -53,12 +53,6 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         // the key must be the pcp index (usually 0 - 7), see example below.  
         // A CMI <= 0 will not allow stream reservation in this priority.
         // Pcps that are unspecified will also not allow stream reservation.         
-        object pcpCMI = { 
-            3: 0s,
-            4: 0s,
-            5: 250us,
-            6: 125us,
-            7: 0s
-            };
+        object pcpCMI = default({3: 0s, 4: 0s, 5: 250us, 6: 125us, 7: 0s});
         bool useXMLReservationList = default(false); //set xml config in PacketProcessorBase::confixXML
 }

@@ -160,6 +160,15 @@ void SomeipSDControllerApp::processPacketIn(OFP_Packet_In* packet_in_msg) {
                     layeredInformation->transport_dst = transport->getDestinationPort();
                     layeredInformation->in_port = eth->getArrivalGate()->getIndex();
                     layeredInformation->sw_info = swInfo;
+                    // log layered info
+                    EV << "SOME/IP Message from switch " << layeredInformation->sw_info->getMacAddress()
+                            << ": Src {eth:" << layeredInformation->eth_src.str()
+                            << ";ip:" << layeredInformation->ip_src.str()
+                            << ";port:" << layeredInformation->transport_src
+                            << "} Dst {eth:" << layeredInformation->eth_dst.str()
+                            << ";ip:" << layeredInformation->ip_dst.str()
+                            << ";port:" << layeredInformation->transport_dst
+                            << "}" << endl;
                     someIpSDHeader->setControlInfo(layeredInformation);
                     processSomeIpSDHeader(someIpSDHeader);
                 }
@@ -267,8 +276,8 @@ void SomeipSDControllerApp::processSubscribeEventGroupEntry(SomeIpSDEntry* entry
     LayeredInformation* layeredInformation = dynamic_cast<LayeredInformation*>(someIpSDHeader->getControlInfo());
     auto instance = serviceTable->getServiceInstance(entry->getServiceID(), entry->getInstanceID(), true);
     // get dest ip of the service and compare to the dest id in layered information
-    L3Address& destination = instance->layeredInformation->ip_src;
-    if (destination != layeredInformation->ip_dst && destination != myLayeredInformation.ip_src) {
+    L3Address& destination = layeredInformation->ip_dst;
+    if (destination != instance->layeredInformation->ip_src && destination != myLayeredInformation.ip_src) {
         throw cRuntimeError("The subscription was sent to a different destination than known to the controller for the service instance!");
     }
 
