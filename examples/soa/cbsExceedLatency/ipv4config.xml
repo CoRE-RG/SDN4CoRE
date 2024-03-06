@@ -1,0 +1,8 @@
+<config>
+
+    <interface hosts="**dvc*" names="eth0" address="192.168.x.x" /> <!-- data plane -->
+    <route hosts="**dvc*" destination="*" interface="eth0" metric="50"/>
+    
+    <interface hosts="**swt* controller*" names="eth*" address="10.x.x.x"/> <!-- control plane -->
+    
+</config>
