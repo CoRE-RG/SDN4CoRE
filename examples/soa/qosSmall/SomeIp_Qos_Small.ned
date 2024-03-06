@@ -15,12 +15,13 @@
 
 package sdn4core.examples.soa.qosSmall;
 
-import inet.node.ethernet.Eth100M;
+import inet.node.ethernet.EtherLink;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 
 network SomeIp_Qos_Small
 {
     parameters:
+        double linkspeed @unit(bps) = default(100Mbps);
     submodules:
         configurator: IPv4NetworkConfigurator {
          	parameters:
@@ -40,23 +41,21 @@ network SomeIp_Qos_Small
         
     connections:
         // connect controplane
-        S[0].gateControlPlane <--> Eth100M <--> controller.ethg++;
-        S[1].gateControlPlane <--> Eth100M <--> controller.ethg++;
-        S[2].gateControlPlane <--> Eth100M <--> controller.ethg++;
+        S[0].gateControlPlane <--> EtherLink{datarate=parent.linkspeed;} <--> controller.ethg++;
+        S[1].gateControlPlane <--> EtherLink{datarate=parent.linkspeed;} <--> controller.ethg++;
+        S[2].gateControlPlane <--> EtherLink{datarate=parent.linkspeed;} <--> controller.ethg++;
         
         // connect switches
-        S[0].gateDataPlane++ <--> Eth100M <--> S[1].gateDataPlane++;
-        S[1].gateDataPlane++ <--> Eth100M <--> S[2].gateDataPlane++;
+        S[0].gateDataPlane++ <--> EtherLink{datarate=parent.linkspeed;} <--> S[1].gateDataPlane++;
+        S[1].gateDataPlane++ <--> EtherLink{datarate=parent.linkspeed;} <--> S[2].gateDataPlane++;
         
         // connect nodes
-        N[0].ethg++ <--> Eth100M <--> S[0].gateDataPlane++;
-        N[1].ethg++ <--> Eth100M <--> S[1].gateDataPlane++;
-        N[2].ethg++ <--> Eth100M <--> S[2].gateDataPlane++;
-        N[3].ethg++ <--> Eth100M <--> S[1].gateDataPlane++;
+        N[0].ethg++ <--> EtherLink{datarate=parent.linkspeed;} <--> S[0].gateDataPlane++;
+        N[1].ethg++ <--> EtherLink{datarate=parent.linkspeed;} <--> S[1].gateDataPlane++;
+        N[2].ethg++ <--> EtherLink{datarate=parent.linkspeed;} <--> S[2].gateDataPlane++;
+        N[3].ethg++ <--> EtherLink{datarate=parent.linkspeed;} <--> S[1].gateDataPlane++;
         
-        // connect ct nodes
-        
-        CT[0].ethg++ <--> Eth100M <--> S[0].gateDataPlane++;
-        CT[1].ethg++ <--> Eth100M <--> S[2].gateDataPlane++;
-        
+        // connect ct nodes        
+        CT[0].ethg++ <--> EtherLink{datarate=parent.linkspeed;} <--> S[0].gateDataPlane++;
+        CT[1].ethg++ <--> EtherLink{datarate=parent.linkspeed;} <--> S[2].gateDataPlane++;
 }
