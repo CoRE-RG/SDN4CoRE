@@ -1,0 +1,5 @@
+<controller>
+	<hostTable>
+		<host nodeName="sink" macAddress="0A-0B-0C-03-01-01" vids="0" switch_id="0A-00-00-0C-00-01" port="0" />
+	</hostTable>		
+</controller>
