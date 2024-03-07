@@ -36,7 +36,6 @@ module Node extends MiddlewareTSNHost
 		services[*].qosGroups = "SOMEIP_UDP_MCAST";
         services[*].qosGroup = "SOMEIP_UDP_MCAST";
         services[*].instanceID = 0x0001;
-        services[*].startTime = 0.1s;
 		eth[*].shaper.transmissionSelectionAlgorithm[5].typename = "CreditBasedShaper";
 		eth[*].shaper.transmissionSelectionAlgorithm[6].typename = "CreditBasedShaper";
 		eth[*].shaper.transmissionSelectionAlgorithm[7].typename = "CreditBasedShaper";
