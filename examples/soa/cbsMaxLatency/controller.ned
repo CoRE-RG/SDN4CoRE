@@ -29,7 +29,7 @@ module Controller extends TSN_NC_OF_Controller
         controllerApps[0].packetFilterBlacklist = "etherType=0x88CC;udpSrc=30490;ipProto=17";
         controllerApps[0].matchL2Src = false;
         controllerApps[0].matchL2Type = true;
-//        controllerApps[0].configXML = xmldoc("controllerconfig.xml");
+        controllerApps[0].configXML = xmldoc("controllerconfig.xml");
         controllerApps[0].matchAll = false;
         controllerApps[1].typename = "LLDPControllerApp";
 		controllerApps[2].typename = "SomeipSDControllerApp";       
