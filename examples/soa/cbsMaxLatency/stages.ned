@@ -43,9 +43,10 @@ module Stages
 	    for i = 0..numStages-2 {
 	        stageSwitch[i].gateDataPlane++ <--> Eth100M { length = 1m; } <--> stageSwitch[i+1].gateDataPlane++;
 	    }
+	    right <--> Eth100M { length = 1m; @display("t=listener;m=e"); } <--> stageSwitch[numStages-1].gateDataPlane++;
 	    for i = 0..numStages-1 {
 	        stageSwitch[i].gateControlPlane <--> Eth100M { length = 1m; @display("t=cp;m=s"); } <--> controlplane[i];
 			stageSwitch[i].gateDataPlane++ <--> Eth100M { length = 1m; } <--> beSrc[i].ethg++;
 	    }
-	    right <--> Eth100M { length = 1m; @display("t=listener;m=e"); } <--> stageSwitch[numStages-1].gateDataPlane++;
+	    
 }

@@ -47,6 +47,12 @@ network cbsMaxLatency
         aggregateSwitch: Switch {
             @display("p=500,150");
         }
+		
+		beSrc: Node {
+            parameters:
+            	@display("i=block/source;p=100,100,r,50");
+                localAddress = "beSrc";
+		}
         
         sink: Node {
             parameters:
@@ -61,14 +67,15 @@ network cbsMaxLatency
     connections:
         // Controlplane
         aggregateSwitch.gateControlPlane <--> Eth100M { length = 1m; } <--> controller.ethg++;
-        for j=0..(numStages*numInputLinks)-1 {
-        	stage[j%numInputLinks].controlplane[j%numStages] <--> controller.ethg++;
+        for i=0..numInputLinks-1, for j=0..numStages-1 {
+        	stage[i].controlplane[j] <--> controller.ethg++;
     	}
     	// Dataplane
     	aggregateSwitch.gateDataPlane++ <--> Eth100M { length = 1m; } <--> sink.ethg++;
     	for i=0..numInputLinks-1 {
     		talkerSrc[i].ethg++ <--> stage[i].left;
     		stage[i].right <--> aggregateSwitch.gateDataPlane++;
-    	}    	
+    	}
+    	aggregateSwitch.gateDataPlane++ <--> Eth100M { length = 1m; } <--> beSrc.ethg++;
 }
 

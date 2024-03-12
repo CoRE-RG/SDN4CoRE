@@ -26,7 +26,7 @@ module Switch extends TSNOFNCSwitch
 		etherMAC[*].shaper.transmissionSelectionAlgorithm[7].typename = "CreditBasedShaper";
 		etherMAC[*].shaper.transmissionSelectionAlgorithm[6].typename = "CreditBasedShaper";
 		etherMAC[*].shaper.transmissionSelectionAlgorithm[5].typename = "CreditBasedShaper";
-		etherMAC[*].shaper.transmissionSelectionAlgorithm[7].staticIdleSlope = 50000 kbps;
+//		etherMAC[*].shaper.transmissionSelectionAlgorithm[7].staticIdleSlope = 50000 kbps;
         switchAgent.connectAddress = "controller";
 		switchAgent.connectAt = 0s;
 }
