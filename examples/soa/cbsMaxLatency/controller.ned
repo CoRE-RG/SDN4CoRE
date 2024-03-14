@@ -33,7 +33,7 @@ module Controller extends TSN_NC_OF_Controller
         controllerApps[0].matchAll = false;
         controllerApps[1].typename = "LLDPControllerApp";
 		controllerApps[2].typename = "SomeipSDControllerApp";       
-        controllerApps[2].streamIntervalAsCMI = false;
-        controllerApps[2].pcpCMI = {7:125us};   
-        controllerApps[2].reserveResources = true;
+        controllerApps[2].streamIntervalAsCMI = default(false);
+        controllerApps[2].pcpCMI = default({7:125us});   
+        controllerApps[2].reserveResources = default(true);
 }
