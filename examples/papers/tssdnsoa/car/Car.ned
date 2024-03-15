@@ -13,17 +13,20 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package nidsdatasetcreation.simulations.car;
+package sdn4core.examples.papers.tssdnsoa.car;
+
+import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.node.ethernet.Eth1G;
 
 network Car
 {
     @display("bgb=1180,1700;bgi=backgrounds/CarBG1,s");
     types:
-        channel Eth1G_2m extends inet.node.ethernet.Eth1G
+        channel Eth1G_2m extends Eth1G
         {
             length = 2m;
         }
-        channel Eth1G_05m extends inet.node.ethernet.Eth1G
+        channel Eth1G_05m extends Eth1G
         {
             length = 0.5m;
         }
@@ -34,22 +37,22 @@ network Car
                 @display("p=50,50");
         }
         controller: Controller {
-            @display("p=639.744,367.168");
+            @display("p=923.568,780.432");
         }
         switchFrontLeft: Switch {
-            @display("p=495.04,495.04;i=device/switch");
+            @display("p=495.04,495.04");
         }
         switchFrontRight: Switch {
-            @display("p=776.83203,495.04;i=device/switch");
+            @display("p=776.83203,495.04");
         }
         switchRearLeft: Switch {
-            @display("p=495.04,1172.864;i=device/switch");
+            @display("p=495.04,1172.864");
         }
         switchRearRight: Switch {
-            @display("p=776.83203,1172.864;i=device/switch");
+            @display("p=776.83203,1172.864");
         }
         switchCenter: Switch {
-            @display("p=639.744,834.94403;i=device/switch");
+            @display("p=639.744,834.94403");
         }
         zonalControllerFrontLeft: Node {
             @display("p=357.84,310.98;i=device/card");
@@ -85,21 +88,21 @@ network Car
             @display("p=639.744,567.392;i=device/pocketpc");
         }
         adas: Node {
-            @display("p=639.744,1035.776;i=device/server2");
+            @display("p=923.568,1015.584;i=device/server2");
         }
         connectivityGateway: Node {
-            @display("p=639.744,734.94403;i=device/accesspoint");
+            @display("p=282.864,702.048;i=device/accesspoint");
         }
         // masterClock: Node {
         //     @display("p=639.744,894.88;i=device/clock");
         // }
     connections:
         // control plane
-        controller.ethg++ <--> Eth1G_2m <--> switchFrontLeft.gateControlPlane++; 	// 0 - 0
-        controller.ethg++ <--> Eth1G_2m <--> switchFrontRight.gateControlPlane++; 	// 1 - 0
-        controller.ethg++ <--> Eth1G_2m <--> switchCenter.gateControlPlane++; 		// 2 - 0
-        controller.ethg++ <--> Eth1G_2m <--> switchRearRight.gateControlPlane++; 	// 3 - 0
-        controller.ethg++ <--> Eth1G_2m <--> switchRearLeft.gateControlPlane++; 	// 4 - 0
+        controller.ethg++ <--> Eth1G_2m <--> switchFrontLeft.gateControlPlane; 	// 0 - 0
+        controller.ethg++ <--> Eth1G_2m <--> switchFrontRight.gateControlPlane; 	// 1 - 0
+        controller.ethg++ <--> Eth1G_2m <--> switchCenter.gateControlPlane; 		// 2 - 0
+        controller.ethg++ <--> Eth1G_2m <--> switchRearRight.gateControlPlane; 	// 3 - 0
+        controller.ethg++ <--> Eth1G_2m <--> switchRearLeft.gateControlPlane; 	// 4 - 0
         // data plane
         // backbone (no longer as a ring but as a star topology introducing central switch)
         switchFrontLeft.gateDataPlane++ <--> Eth1G_2m <--> switchCenter.gateDataPlane++; 				// 0 - 0

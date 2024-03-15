@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.soa.cbsMaxLatency;
+package sdn4core.examples.papers.tssdnsoa.car;
 
 import  sdn4core.switch.tsn.TSNOFNCSwitch;
 
