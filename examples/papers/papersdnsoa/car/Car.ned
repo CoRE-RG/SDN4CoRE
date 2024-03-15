@@ -15,10 +15,7 @@
 
 package nidsdatasetcreation.simulations.car;
 
-import inet.node.contract.IEthernetNetworkNode;
-import nidsdatasetcreation.networks.scenarios.TsnNetworkScenario;
-
-network Car extends TsnNetworkScenario
+network Car
 {
     @display("bgb=1180,1700;bgi=backgrounds/CarBG1,s");
     types:
@@ -31,77 +28,97 @@ network Car extends TsnNetworkScenario
             length = 0.5m;
         }
     submodules:
-        switchFrontLeft: <> like IEthernetNetworkNode {
+        configurator: IPv4NetworkConfigurator {
+            parameters:
+                config = xmldoc("ipv4config.xml");
+                @display("p=50,50");
+        }
+        controller: Controller {
+            @display("p=639.744,367.168");
+        }
+        switchFrontLeft: Switch {
             @display("p=495.04,495.04;i=device/switch");
         }
-        switchFrontRight: <> like IEthernetNetworkNode {
+        switchFrontRight: Switch {
             @display("p=776.83203,495.04;i=device/switch");
         }
-        switchRearLeft: <> like IEthernetNetworkNode {
+        switchRearLeft: Switch {
             @display("p=495.04,1172.864;i=device/switch");
         }
-        switchRearRight: <> like IEthernetNetworkNode {
+        switchRearRight: Switch {
             @display("p=776.83203,1172.864;i=device/switch");
         }
-        zonalControllerFrontLeft: <> like IEthernetNetworkNode {
+        switchCenter: Switch {
+            @display("p=639.744,834.94403;i=device/switch");
+        }
+        zonalControllerFrontLeft: Node {
             @display("p=357.84,310.98;i=device/card");
         }
-        zonalControllerFrontRight: <> like IEthernetNetworkNode {
+        zonalControllerFrontRight: Node {
             @display("p=924.42004,310.98;i=device/card");
         }
-        zonalControllerRearLeft: <> like IEthernetNetworkNode {
+        zonalControllerRearLeft: Node {
             @display("p=322.21542,1203.238;i=device/card");
         }
-        zonalControllerRearRight: <> like IEthernetNetworkNode {
+        zonalControllerRearRight: Node {
             @display("p=957.63324,1203.238;i=device/card");
         }
-        lidarFrontLeft: <> like IEthernetNetworkNode {
+        lidarFrontLeft: Node {
             @display("p=496.29,198.09001;i=device/mainframe");
         }
-        lidarFrontRight: <> like IEthernetNetworkNode {
+        lidarFrontRight: Node {
             @display("p=777.45,198.09001;i=device/mainframe");
         }
-        lidarRearLeft: <> like IEthernetNetworkNode {
+        lidarRearLeft: Node {
             @display("p=464.576,1344.224;i=device/mainframe");
         }
-        lidarRearRight: <> like IEthernetNetworkNode {
+        lidarRearRight: Node {
             @display("p=811.104,1344.224;i=device/mainframe");
         }
-        cameraFront: <> like IEthernetNetworkNode {
+        cameraFront: Node {
             @display("p=641.13,149.1;i=device/smallrouter");
         }
-        cameraRear: <> like IEthernetNetworkNode {
+        cameraRear: Node {
             @display("p=639.744,1367.072;i=device/smallrouter");
         }
-        infotainment: <> like IEthernetNetworkNode {
+        infotainment: Node {
             @display("p=639.744,567.392;i=device/pocketpc");
         }
-        adas: <> like IEthernetNetworkNode {
+        adas: Node {
             @display("p=639.744,1035.776;i=device/server2");
         }
-        connectivityGateway: <> like IEthernetNetworkNode {
+        connectivityGateway: Node {
             @display("p=639.744,734.94403;i=device/accesspoint");
         }
-        masterClock: <> like IEthernetNetworkNode {
-            @display("p=639.744,894.88;i=device/clock");
-        }
+        // masterClock: Node {
+        //     @display("p=639.744,894.88;i=device/clock");
+        // }
     connections:
-        switchFrontLeft.ethg++ <--> Eth1G_2m <--> switchFrontRight.ethg++; 				// 0 - 0
-        switchFrontRight.ethg++ <--> Eth1G_2m <--> switchRearRight.ethg++; 				// 1 - 0
-        switchRearRight.ethg++ <--> Eth1G_2m <--> switchRearLeft.ethg++;   				// 1 - 0
-        switchRearLeft.ethg++ <--> Eth1G_2m <--> switchFrontLeft.ethg++;   				// 1 - 1
-        switchFrontLeft.ethg++ <--> Eth1G_05m <--> lidarFrontLeft.ethg++;  				// 2 - 0
-        switchFrontLeft.ethg++ <--> Eth1G_05m <--> connectivityGateway.ethg++;			// 3 - 0
-        switchFrontLeft.ethg++ <--> Eth1G_05m <--> zonalControllerFrontLeft.ethg++;		// 4 - 0
-        switchFrontLeft.ethg++ <--> Eth1G_05m <--> infotainment.ethg++;					// 5 - 0
-        cameraFront.ethg++ <--> Eth1G_05m <--> switchFrontRight.ethg++;					// 0 - 2
-        lidarFrontRight.ethg++ <--> Eth1G_05m <--> switchFrontRight.ethg++;				// 0 - 3
-        zonalControllerFrontRight.ethg++ <--> Eth1G_05m <--> switchFrontRight.ethg++;	// 0 - 4
-        switchRearRight.ethg++ <--> Eth1G_05m <--> adas.ethg++;							// 2 - 0
-        switchRearRight.ethg++ <--> Eth1G_05m <--> zonalControllerRearRight.ethg++;		// 3 - 0
-        switchRearRight.ethg++ <--> Eth1G_05m <--> lidarRearRight.ethg++;				// 4 - 0
-        switchRearRight.ethg++ <--> Eth1G_05m <--> masterClock.ethg++;                  // 5 - 0
-        cameraRear.ethg++ <--> Eth1G_05m <--> switchRearLeft.ethg++;					// 0 - 2
-        lidarRearLeft.ethg++ <--> Eth1G_05m <--> switchRearLeft.ethg++;					// 0 - 3
-        zonalControllerRearLeft.ethg++ <--> Eth1G_05m <--> switchRearLeft.ethg++;       // 0 - 4
+        // control plane
+        controller.ethg++ <--> Eth1G_2m <--> switchFrontLeft.gateControlPlane++; 	// 0 - 0
+        controller.ethg++ <--> Eth1G_2m <--> switchFrontRight.gateControlPlane++; 	// 1 - 0
+        controller.ethg++ <--> Eth1G_2m <--> switchCenter.gateControlPlane++; 		// 2 - 0
+        controller.ethg++ <--> Eth1G_2m <--> switchRearRight.gateControlPlane++; 	// 3 - 0
+        controller.ethg++ <--> Eth1G_2m <--> switchRearLeft.gateControlPlane++; 	// 4 - 0
+        // data plane
+        // backbone (no longer as a ring but as a star topology introducing central switch)
+        switchFrontLeft.gateDataPlane++ <--> Eth1G_2m <--> switchCenter.gateDataPlane++; 				// 0 - 0
+        switchFrontRight.gateDataPlane++ <--> Eth1G_2m <--> switchCenter.gateDataPlane++; 				// 0 - 1
+        switchRearRight.gateDataPlane++ <--> Eth1G_2m <--> switchCenter.gateDataPlane++;   				// 0 - 2
+        switchRearLeft.gateDataPlane++ <--> Eth1G_2m <--> switchCenter.gateDataPlane++;   				// 0 - 3
+        // edge
+        switchFrontLeft.gateDataPlane++ <--> Eth1G_05m <--> lidarFrontLeft.ethg++;  				// 1 - 0
+        switchFrontLeft.gateDataPlane++ <--> Eth1G_05m <--> connectivityGateway.ethg++;			    // 2 - 0
+        switchFrontLeft.gateDataPlane++ <--> Eth1G_05m <--> zonalControllerFrontLeft.ethg++;		// 3 - 0
+        switchFrontLeft.gateDataPlane++ <--> Eth1G_05m <--> infotainment.ethg++;					// 4 - 0
+        switchFrontRight.gateDataPlane++ <--> Eth1G_05m <--> cameraFront.ethg++;					// 1 - 0
+        switchFrontRight.gateDataPlane++ <--> Eth1G_05m <--> lidarFrontRight.ethg++;				// 2 - 0
+        switchFrontRight.gateDataPlane++ <--> Eth1G_05m <--> zonalControllerFrontRight.ethg++;	    // 3 - 0
+        switchRearRight.gateDataPlane++ <--> Eth1G_05m <--> adas.ethg++;							// 1 - 0
+        switchRearRight.gateDataPlane++ <--> Eth1G_05m <--> zonalControllerRearRight.ethg++;		// 2 - 0
+        switchRearRight.gateDataPlane++ <--> Eth1G_05m <--> lidarRearRight.ethg++;				    // 3 - 0
+        // switchRearRight.gateDataPlane++ <--> Eth1G_05m <--> masterClock.ethg++;                  // 5 - 0
+        switchRearLeft.gateDataPlane++ <--> Eth1G_05m <--> cameraRear.ethg++;					    // 1 - 0
+        switchRearLeft.gateDataPlane++ <--> Eth1G_05m <--> lidarRearLeft.ethg++;					// 2 - 0
+        switchRearLeft.gateDataPlane++ <--> Eth1G_05m <--> zonalControllerRearLeft.ethg++;          // 3 - 0
 }
