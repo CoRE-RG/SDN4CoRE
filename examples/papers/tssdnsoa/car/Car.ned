@@ -56,42 +56,55 @@ network Car
         }
         zonalControllerFrontLeft: Node {
             @display("p=357.84,310.98;i=device/card");
+            localAddress = "zonalControllerFrontLeft";
         }
         zonalControllerFrontRight: Node {
             @display("p=924.42004,310.98;i=device/card");
+            localAddress = "zonalControllerFrontRight";
         }
         zonalControllerRearLeft: Node {
             @display("p=322.21542,1203.238;i=device/card");
+            localAddress = "zonalControllerRearLeft";
         }
         zonalControllerRearRight: Node {
             @display("p=957.63324,1203.238;i=device/card");
+            localAddress = "zonalControllerRearRight";
         }
         lidarFrontLeft: Node {
             @display("p=496.29,198.09001;i=device/mainframe");
+            localAddress = "lidarFrontLeft";
         }
         lidarFrontRight: Node {
             @display("p=777.45,198.09001;i=device/mainframe");
+            localAddress = "lidarFrontRight";
         }
         lidarRearLeft: Node {
             @display("p=464.576,1344.224;i=device/mainframe");
+            localAddress = "lidarRearLeft";
         }
         lidarRearRight: Node {
             @display("p=811.104,1344.224;i=device/mainframe");
+            localAddress = "lidarRearRight";
         }
         cameraFront: Node {
             @display("p=641.13,149.1;i=device/smallrouter");
+            localAddress = "cameraFront";
         }
         cameraRear: Node {
             @display("p=639.744,1367.072;i=device/smallrouter");
+            localAddress = "cameraRear";
         }
         infotainment: Node {
-            @display("p=639.744,567.392;i=device/pocketpc");
+            @display("p=282.864,552.096;i=device/pocketpc");
+            localAddress = "infotainment";
         }
         adas: Node {
             @display("p=923.568,1015.584;i=device/server2");
+            localAddress = "adas";
         }
         connectivityGateway: Node {
-            @display("p=282.864,702.048;i=device/accesspoint");
+            @display("p=282.864,777.024;i=device/accesspoint");
+            localAddress = "connectivityGateway";
         }
         // masterClock: Node {
         //     @display("p=639.744,894.88;i=device/clock");
