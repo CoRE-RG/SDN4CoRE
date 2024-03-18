@@ -244,6 +244,9 @@ void PacketProcessorBase::handleParameterChange(const char* parname) {
     if (!parname || !strcmp(parname, "flowModHardTimeOut")) {
         _hardTimeout = par("flowModHardTimeOut");
     }
+    if (!parname || !strcmp(parname, "cookie")) {
+        _cookie = par("cookie");
+    }
     if (!parname || !strcmp(parname, "packetFilterWhitelist")) {
         _whitelist.initializeFromPar(
                 this->par("packetFilterWhitelist").stdstringValue());

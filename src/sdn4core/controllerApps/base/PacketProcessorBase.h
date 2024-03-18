@@ -184,6 +184,10 @@ protected:
      */
     int _hardTimeout;
     /**
+     * The cached flow rule cookie parameter
+     */
+    uint64_t _cookie;
+    /**
      * A map with whitelisted packet filters cached from parameter.
      */
     PacketFilter _whitelist;

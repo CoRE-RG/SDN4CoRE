@@ -31,6 +31,8 @@ simple PacketProcessorBase like AbstractControllerApp
         int flowModIdleTimeOut = default(10);
         // priority of a flow created by this application
         int priority = default(1);
+        // cookie for flows created by this application
+        int cookie = default(0);
         
         //offline configuration containing mac and srp information.
         xml configXML = default(xml("<root/>"));
