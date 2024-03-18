@@ -103,6 +103,7 @@ protected:
     void multicastSOMEIPMessage(SOA4CoRE::SomeIpSDHeader* msg, LayeredInformation* srcInfo);
 
     void installFlowForUnicastSubscription(SomeipServiceTable::Subscription& sub);
+    void installUnicastFlowRule(std::string switchId, inet::IPv4Address ip_src, uint16_t tp_src, uint8_t ip_proto, inet::IPv4Address ip_dst, uint16_t tp_dst, int inport, uint32_t outport);
     void installFlowForMulticastSubscription(SomeipServiceTable::Subscription& sub);
 
     void takeRequest(SomeipServiceTable::FindRequest& request);

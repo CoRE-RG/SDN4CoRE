@@ -457,6 +457,21 @@ void SomeipSDControllerApp::installFlowForUnicastSubscription(SomeipServiceTable
             reserveResourcesForSubscription(sub, route);
         }
     }
+    // follow the route and install flows
+    for(SwitchPort& switchPort : route)
+    {
+        int inport = topology->findOutportAtSwitch(switchPort.switchId, ip_src);
+        installUnicastFlowRule(switchPort.switchId, ip_src, tp_src, ip_proto, ip_dst, tp_dst, inport, switchPort.port);
+        if (ip_proto == IP_PROT_TCP)
+        {
+            // we need a reverse flow as well for acknowledgements
+            installUnicastFlowRule(switchPort.switchId, ip_dst, tp_dst, ip_proto, ip_src, tp_src, switchPort.port, inport);
+        }
+    }
+}
+
+void SomeipSDControllerApp::installUnicastFlowRule(string switchId, IPv4Address ip_src, uint16_t tp_src, uint8_t ip_proto, IPv4Address ip_dst, uint16_t tp_dst, int inport, uint32_t outport)
+{
     // create the match
     auto builder = OFMatchFactory::getBuilder();
     builder->setField(OFPXMT_OFB_IPV4_SRC, &(ip_src));
@@ -464,15 +479,16 @@ void SomeipSDControllerApp::installFlowForUnicastSubscription(SomeipServiceTable
     builder->setField(OFPXMT_OFB_IP_PROTO, &(ip_proto));
     builder->setField(OFPXMT_OFB_IPV4_DST, &(ip_dst));
     builder->setField(OFPXMT_OFB_UDP_DST, &(tp_dst));
-    // follow the route and install flows
-    for(SwitchPort& switchPort : route)
-    {
-        int inport = topology->findOutportAtSwitch(switchPort.switchId, ip_src);
-        builder->setField(OFPXMT_OFB_IN_PORT, &(inport));
-        oxm_basic_match match = builder->build();
-        TCPSocket* socket = controller->findSocketForChassisId(switchPort.switchId);
-        sendFlowModMessage(ofp_flow_mod_command::OFPFC_ADD, match, switchPort.port, socket, _idleTimeout, _hardTimeout);
-    }
+    builder->setField(OFPXMT_OFB_IN_PORT, &(inport));
+    uint32_t outports [1] = {outport};
+    oxm_basic_match match = builder->build();
+    TCPSocket* socket = controller->findSocketForChassisId(switchId);
+    auto flowMod = OFMessageFactory::instance()->createFlowModMessage(
+            ofp_flow_mod_command::OFPFC_ADD, match, priority,
+            outports, 1, _idleTimeout, _hardTimeout, _cookie);
+    EV << "sendFlowModMessage" << '\n';
+    numFlowMod++;
+    socket->send(flowMod);
 }
 
 void SomeipSDControllerApp::installFlowForMulticastSubscription(SomeipServiceTable::Subscription& sub) {
@@ -527,7 +543,8 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(SomeipServiceTab
             outports [i++] = port;
         }
         auto flowMod = OFMessageFactory::instance()->createFlowModMessage(
-                ofp_flow_mod_command::OFPFC_ADD, match, this->priority, outports, hop.second.size(), _idleTimeout, _hardTimeout);
+                ofp_flow_mod_command::OFPFC_ADD, match, this->priority, outports, hop.second.size(),
+                _idleTimeout, _hardTimeout, _cookie);
         EV << "sendFlowModMessage" << '\n';
         numFlowMod++;
         socket->send(flowMod);
