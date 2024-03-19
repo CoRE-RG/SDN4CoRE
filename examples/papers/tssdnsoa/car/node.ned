@@ -25,12 +25,12 @@ module Node extends MiddlewareTSNHost
         middleware.sm.typename = "SomeIpManager";
         middleware.sd.typename = "SomeIpSD";
 		middleware.**.multicastInterface = "eth0";
-		middleware.sm.initialDelay = 0ms;
+		middleware.sm.initialDelay = uniform(0ms,10ms);
 		middleware.sm.repetitionsMax=3;
-		middleware.sm.repetitionBaseDelay = 1s;
-		middleware.sm.cyclicOfferDelay = 7s;
-        // middleware.sm.registerStreams = true;
-        // middleware.sm.advertiseStreamRegistration = false;
+		middleware.sm.repetitionBaseDelay = 100ms;
+		middleware.sm.cyclicOfferDelay = 2s;
+        middleware.sm.registerStreams = true;
+        middleware.sm.advertiseStreamRegistration = false;
         middleware.sd.includeIEEE8021QConfig = true;
         middleware.sd.includeRessourceConfig = true;
         middleware.sd.includeRealTimeConfig = true;
@@ -38,9 +38,9 @@ module Node extends MiddlewareTSNHost
         services[*].qosGroups = default("SOMEIP_UDP");
         services[*].qosGroup = default("SOMEIP_UDP"); // default UDP, if mcast address set, make this SOMEIP_UDP_MCAST; if app is tcp set to SOMEIP_TCP
         services[*].instanceID = 0x0001;
-		// eth[*].shaper.transmissionSelectionAlgorithm[5].typename = "CreditBasedShaper";
-		// eth[*].shaper.transmissionSelectionAlgorithm[6].typename = "CreditBasedShaper";
-		// eth[*].shaper.transmissionSelectionAlgorithm[7].typename = "CreditBasedShaper";
+        services[*].vlan_id = 0;
+		eth[*].shaper.transmissionSelectionAlgorithm[5].typename = "CreditBasedShaper";
+		eth[*].shaper.transmissionSelectionAlgorithm[4].typename = "CreditBasedShaper";
 	submodules:
 	connections:
 }
