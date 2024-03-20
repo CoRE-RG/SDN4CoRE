@@ -555,8 +555,23 @@ bool SomeipSDControllerApp::requiresResourceReservation(SomeipServiceTable::Subs
     int serviceId = sub.service.getServiceId();
     int instanceId = sub.service.getInstanceId();
     auto& pubOptions = serviceTable->getServiceInstance(serviceId, instanceId, true)->optionList;
-    return pubOptions.hasConfigType<IEEE8021QConfigurationOption*>()
-            && pubOptions.hasConfigType<RessourceConfigurationOption*>();
+    if (pubOptions.hasConfigType<IEEE8021QConfigurationOption*>())
+    {// q options requiured
+        if (pubOptions.hasConfigType<RessourceConfigurationOption*>())
+        {// ressource options required
+            auto qOption = pubOptions.getFirstConfigOfType<IEEE8021QConfigurationOption*>();
+            auto cmiIt = pcpCMIs.find(qOption->getPcp());
+            if(cmiIt != pcpCMIs.end())
+            {// a cmi must be set for the pcp
+                return true;
+            }
+            else if (streamIntervalAsCMI)
+            {// interval can be used for reservation
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void SomeipSDControllerApp::reserveResourcesForSubscription(
