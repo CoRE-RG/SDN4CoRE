@@ -1,0 +1,217 @@
+<config>
+    <switch id="0A-AA-00-00-00-06">
+        <flowTable index="0">
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.20" tp_dst="2000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="3" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.12" tp_dst="1200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="0"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="3" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.10" tp_dst="1000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="0"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="3" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.11" tp_dst="1100" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="0"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.21" tp_dst="2100" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.22" tp_dst="2200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+        </flowTable>
+    </switch>
+    <switch id="0A-AA-00-00-00-0C">
+        <flowTable index="0">
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.20" tp_dst="2000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.12" tp_dst="1200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.10" tp_dst="1000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.11" tp_dst="1100" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.21" tp_dst="2100" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.22" tp_dst="2200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+        </flowTable>
+    </switch>
+    <switch id="0A-AA-00-00-00-11">
+        <flowTable index="0">
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.20" tp_dst="2000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.12" tp_dst="1200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.10" tp_dst="1000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.11" tp_dst="1100" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.21" tp_dst="2100" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.22" tp_dst="2200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+        </flowTable>
+    </switch>
+    <switch id="0A-AA-00-00-00-16">
+        <flowTable index="0">
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="1" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.20" tp_dst="2000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="2"/>
+                    <action_output port="0"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.12" tp_dst="1200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="2"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.10" tp_dst="1000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="2"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.11" tp_dst="1100" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="2"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="1" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.21" tp_dst="2100" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="2"/>
+                    <action_output port="0"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="1" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.22" tp_dst="2200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="2"/>
+                    <action_output port="0"/>
+                </instructions>
+            </flowEntry>
+        </flowTable>
+    </switch>
+    <switch id="0A-AA-00-00-00-1B">
+        <flowTable index="0">
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="2" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.20" tp_dst="2000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="1"/>
+                    <action_output port="3"/>
+                    <action_output port="0"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.12" tp_dst="1200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="1"/>
+                    <action_output port="2"/>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.10" tp_dst="1000" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="1"/>
+                    <action_output port="2"/>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="0" nw_proto="17" nw_src="192.168.0.1" nw_dst="224.0.0.11" tp_dst="1100"  dl_vlan_pcp="6"/>
+                <instructions>
+                    <action_output port="1"/>
+                    <action_output port="2"/>
+                    <action_output port="3"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="2" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.21" tp_dst="2100" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="1"/>
+                    <action_output port="3"/>
+                    <action_output port="0"/>
+                </instructions>
+            </flowEntry>
+            <flowEntry hardTimeout="0" idleTimeout="0" cookie="4200" priority="20" flags="0">
+                <match in_port="2" nw_proto="17" nw_src="192.168.0.45" nw_dst="224.0.0.22" tp_dst="2200" dl_vlan_pcp="6" />
+                <instructions>
+                    <action_output port="1"/>
+                    <action_output port="3"/>
+                    <action_output port="0"/>
+                </instructions>
+            </flowEntry>
+        </flowTable>
+    </switch>
+</config>

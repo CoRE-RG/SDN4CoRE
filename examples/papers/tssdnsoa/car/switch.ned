@@ -27,4 +27,5 @@ module Switch extends TSNOFNCSwitch
 		etherMAC[*].shaper.transmissionSelectionAlgorithm[4].typename = "CreditBasedShaper";
         switchAgent.connectAddress = "controller";
 		switchAgent.connectAt = 0s;
+        relayUnit.configXML = xmldoc("flowTables.xml");
 }
