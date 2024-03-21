@@ -34,7 +34,4 @@ module Controller extends TSN_NC_OF_Controller
         controllerApps[1].typename = "LLDPControllerApp";
 		controllerApps[2].typename = "SomeipSDControllerApp";       
 		controllerApps[2].cookie = 42;
-        controllerApps[2].streamIntervalAsCMI = default(false);
-        controllerApps[2].pcpCMI = default({5:125us, 4:250us});   
-        controllerApps[2].reserveResources = default(true);
 }

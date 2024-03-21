@@ -29,18 +29,11 @@ module Node extends MiddlewareTSNHost
 		middleware.sm.repetitionsMax=3;
 		middleware.sm.repetitionBaseDelay = 100ms;
 		middleware.sm.cyclicOfferDelay = 2s;
-        middleware.sm.registerStreams = true;
-        middleware.sm.advertiseStreamRegistration = false;
-        middleware.sd.includeIEEE8021QConfig = true;
-        middleware.sd.includeRessourceConfig = true;
-        middleware.sd.includeRealTimeConfig = true;
         services[*].applicationTCPPort = default(1000);
         services[*].qosGroups = default("SOMEIP_UDP");
         services[*].qosGroup = default("SOMEIP_UDP"); // default UDP, if mcast address set, make this SOMEIP_UDP_MCAST; if app is tcp set to SOMEIP_TCP
         services[*].instanceID = 0x0001;
         services[*].vlan_id = 0;
-		eth[*].shaper.transmissionSelectionAlgorithm[5].typename = "CreditBasedShaper";
-		eth[*].shaper.transmissionSelectionAlgorithm[4].typename = "CreditBasedShaper";
 	submodules:
 	connections:
 }

@@ -189,7 +189,7 @@ protected:
       */
      bool streamIntervalAsCMI;
      /**
-      *
+      * CMIs set for the vlan pcps used for bandwidth reservation.
       */
      std::map<int, double> pcpCMIs;
      /**

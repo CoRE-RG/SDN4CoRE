@@ -23,8 +23,6 @@ module Switch extends TSNOFNCSwitch
         hardware_delay = 8us;
         of_service_time = 100us;
         switchAgent.parallelProcessing = true;
-		etherMAC[*].shaper.transmissionSelectionAlgorithm[5].typename = "CreditBasedShaper";
-		etherMAC[*].shaper.transmissionSelectionAlgorithm[4].typename = "CreditBasedShaper";
         switchAgent.connectAddress = "controller";
 		switchAgent.connectAt = 0s;
         relayUnit.configXML = xmldoc("flowTables.xml");

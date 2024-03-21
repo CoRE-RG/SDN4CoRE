@@ -30,7 +30,7 @@ import sdn4core.controllerApps.base.PacketProcessorBase;
 //		 the full SOME/IP feature set!
 //       Many features are missing and might not be implemented efficiently. 
 //
-// @author Jan Schmitt-Solbrig, Timo Haeckel, for HAW Hamburg
+// @author Jan Schmitt-Solbrig, Timo Haeckel for HAW Hamburg
 //
 simple SomeipSDControllerApp extends PacketProcessorBase
 {
