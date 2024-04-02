@@ -305,6 +305,18 @@ public:
      */
     virtual void clearTable();
 
+    const RequestMap& getRequestTable() const {
+        return requestTable;
+    }
+
+    const ServiceInstanceMap& getServiceTable() const {
+        return serviceTable;
+    }
+
+    const SubscriptionMap& getSubscriptionTable() const {
+        return subscriptionTable;
+    }
+
 protected:
 
     virtual void initialize() override;

@@ -54,5 +54,7 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         // A CMI <= 0 will not allow stream reservation in this priority.
         // Pcps that are unspecified will also not allow stream reservation.         
         object pcpCMI = default({3: 0s, 4: 0s, 5: 250us, 6: 125us, 7: 0s});
+        double portTransmitRate @unit(bps) = default(1Gbps);
+        double switchProcessingDelay @unit(s) = default(8us); // default of TSN switches from CoRE4INET
         bool useXMLReservationList = default(false); //set xml config in PacketProcessorBase::confixXML
 }

@@ -126,6 +126,8 @@ protected:
     void sendPortModCBS(SwitchPort& switchPort, uint8_t pcp, unsigned long idleSlope);
     OFP_TSN_Port_Mod_CBS* buildPortModCBS(uint32_t portno, uint8_t pcp, unsigned long idleSlope);
 
+    bool verifyNetworkMaxLatencies(bool errorOnFailure);
+
     bool loadXMLReservationList();
 
     SomeipOptionsList getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
@@ -141,6 +143,17 @@ private:
      inet::EthernetIIFrame * encapSDHeader(SOA4CoRE::SomeIpSDHeader* header,
              LayeredInformation* src, LayeredInformation* dst);
 
+     void clearCachedLatencyValues();
+
+     unsigned long getPortIdleSlope(SwitchPor& switchPort, uint8_t pcp);
+
+     std::vector<unsigned long> findInputIdleSlopes(SwitchPort& switchPort, uint8_t pcp);
+
+     size_t findClassMaxFrameSize(SwitchPort& switchPort, uint8_t pcp);
+
+     void updateClassMaxFrame(SwitchPort& switchPort, uint8_t pcp, size_t frameL2Bytes);
+
+     double findMaxHopInterference(SwitchPort& switchPort, uint8_t pcp);
 
 protected:
      /**
@@ -204,6 +217,28 @@ protected:
       * The next entry in the reservation table to be executed.
       */
      int nextReservationIndex = 0;
+
+private:
+     // cached values for lantency calculation
+     /**
+      * Cached values for the outgoing idle slopes of switchid, portno, pcp
+      */
+     map<string, map<int, map<uint8_t, unsigned long>>> portIdleSlopes;
+
+     /**
+      * Cached values for the incoming idle slopes of switchid, portno, pcp
+      */
+     map<string, map<uint8_t, map<int, unsigned long>>> inputIdleSlopes;    
+
+     /**
+      * Cached values for the maximum frame sizes of switchid, pcp in bit including IFG
+      */
+     map<string, map<pcp, size_t>> classMaxFrames;
+
+      /**
+       * Cached values for the maximum hop interference of switchid, portno, pcp
+       */
+     map<string, map<int, map<uint8_t, double>>> maxHopInterference;
 };
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::SwitchPortIdleSlope& config)

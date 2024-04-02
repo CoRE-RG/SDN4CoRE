@@ -117,6 +117,14 @@ public:
     virtual unsigned long getReservedBandwidthForSwitchPortAndPcp(std::string swMacAddr, int port, uint8_t pcp);
 
     /**
+     * Calculate the incoming idle slope from srp tables for the switch, port, and pcp
+     * @param swMacAddr The switch address
+     * @param port the port at the switch
+     * @param pcp the pcp of the queue
+     */
+    virtual unsigned long getIncomingIdleSlopeForSwitchPortAndPcp(std::string swMacAddr, int port, uint8_t pcp);
+
+    /**
      * Get the out port for a certain talker at a switch.
      * @param switchInfo        The switch to find the outport for.
      * @param streamId          The stream ID of the talker.
@@ -124,6 +132,22 @@ public:
      * @return The outport for the talker.
      */
     virtual int getTalkerPort(openflow::Switch_Info* switchInfo, uint64_t streamId, uint16_t vid);
+
+    /**
+     * Calculate the worst-case queuing latency in seconds for a port according to the 802.1Q-2022 standard.
+     *       802.1Q-2022 https://ieeexplore.ieee.org/document/10004498
+     *       See Annex L.3
+     * @note for now only valid for highest priority class.
+     * @param idleSlope         The idle slope of the port.
+     * @param classMaxFrame     The maximum frame size of the class (in bits including IFG).
+     * @param ctMaxFrame        The maximum frame size of the cross traffic (in bits including IFG).
+     * @param inputPortIdleSlopes The maximum possible bandwidth for the class for each possible input port i.
+     * @param portTransmitRate  The transmit rate of the port.
+     * @param sumHigherClassMaxFrames The sum of the maximum frame sizes of higher classes (in bits including IFG for all classes).
+     * @param sumHigherClassIdleSlope The sum of the idle slopes of higher classes.
+     * @return The maximum port queuing delay in seconds.
+     */
+    virtual double calculateMaxQueueingDelay(unsigned long idleSlope, int classMaxFrame, int ctMaxFrame, const std::vector<unsigned long>& inputPortIdleSlopes, double portTransmitRate, int sumHigherClassMaxFrames, unsigned long sumHigherClassIdleSlope);
 
     /**
      * Provides a forwarding information for AVBFrames according to the SRPTable of a

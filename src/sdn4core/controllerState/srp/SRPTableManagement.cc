@@ -113,6 +113,42 @@ unsigned long SRPTableManagement::getReservedBandwidthForSwitchPortAndPcp(
     return srpTable->getBandwidthForModuleAndPcp(module, pcp);
 }
 
+unsigned long SRPTableManagement::getIncomingIdleSlopeForSwitchPortAndPcp(std::string swMacAddr, int port, uint8_t pcp)
+{
+    Enter_Method("getIncomingHostIdleSlopeForSwitchPortAndPcp()");
+    SRPTable* srpTable = getManagedState(swMacAddr);
+    if (!srpTable) {
+        throw cRuntimeError("There is no srp table for this switch!");
+    }
+    PortModule* module = getSwitchPort(swMacAddr, port);
+    auto talkers = srpTable->getTalkerEntries();
+    if (talkers.empty())
+    {
+        return 0;
+    }
+    auto listeners = srpTable->getListenerEntries();
+    if (listeners.empty())
+    {
+        return 0;
+    }
+    unsigned long inputBandwidth = 0;
+    for (auto& talker : talkers)
+    {
+        if (talker.pcp == pcp && talker.module == module)
+        {
+            for (auto& listener: listeners)
+            {
+                if (listener.streamId == talker.streamId && listener.vlan_id == talker.vlan_id)
+                {
+                    inputBandwidth += bandwidthFromSizeAndInterval(tentry->framesize + static_cast<size_t>(SRP_SAFETYBYTE), tentry->intervalFrames, getIntervalForClass(tentry->srClass));
+                    break;
+                }
+            }
+        }
+    }
+    return inputBandwidth;
+}
+
 int SRPTableManagement::getTalkerPort(openflow::Switch_Info* switchInfo, uint64_t streamId, uint16_t vid) {
     Enter_Method("getTalkerPort");
     SRPTable* srpTable = getManagedState(switchInfo->getMacAddress());
@@ -123,6 +159,45 @@ int SRPTableManagement::getTalkerPort(openflow::Switch_Info* switchInfo, uint64_
        return module->getPort();
     }
     return -1;
+}
+
+double SRPTableManagement::calculateMaxQueueingDelay(unsigned long idleSlope, int classMaxFrame, int ctMaxFrame, const std::vector<unsigned long>& inputPortIdleSlopes, double portTransmitRate, size_t sumHigherClassMaxFrames, unsigned long sumHigherClassIdleSlope)
+{
+    // we use the formulas from the 802.1Q-2022 standard (see annex L 3.1)
+    // L.3.1.1 Queuing delay
+    // W<X = R0 - sum[k<X](Rk) 
+    // qDelayX = (M0 + sum[k<X](MK)) / W<X
+    double queueingDelay = (ctMaxFrame + sumHigherClassMaxFrames) / (portTransmitRate - sumHigherClassIdleSlope);
+    //L.3.1.2 Fan-in delay
+    double fanInData = 0;
+    // a) Determine BO, the maximum possible bandwidth for class X on the output port.
+    double b0 = idleSlope;
+    // b) For each possible input port i, determine the maximum possible bandwidth Bi for Class X [provided as a parameter]
+    // c) For input port i, calculate maxBurstX,i using max(BO, Bi) for the bandwidth. 
+    for (double bi : inputPortIdleSlopes)
+    {
+        if (b0 > 0)
+        {
+            // c) [...](In the maxBurst formula, use WX = R0 – max(BO, Bi).)
+            double w = portTransmitRate - max(b0, bi);
+            // d) Add max(maxBurstX,i) to the total fan-in data.
+            fanInData += (ctMaxFrame * idleSlope / w) + (classMaxFrame * portTransmitRate / w);
+            // e) set BO = BO – Bi and repeat from step c) until BO = 0.
+            b0 -= bi;
+        }
+        else
+        {
+            // f) For each remaining port, add MX,i to the total fan-in data.
+            fanInData += classMaxFrame;
+        }
+    }
+    double fanInDelay = fanInData / portTransmitRate;
+    // L.3.1.3 Permanent delay
+    // permanent buffer occupancy occurs when bridges are starved and then a burst occurs due to queueing delay
+    // Since this kind of event could happen on multiple input ports at the same time, the “permanently buffered” data equals the worst-case fan-in data.
+    double permanentBufferDelay = fanInDelay;
+    double maxDelay = queueingDelay + fanInDelay + permanentBufferDelay;
+    return maxDelay;
 }
 
 SRPTableManagement::SRPForwardingInfo_t* SRPTableManagement::getForwardingInfoForStreamID(
