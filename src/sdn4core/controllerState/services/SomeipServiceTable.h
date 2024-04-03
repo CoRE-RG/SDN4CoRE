@@ -135,7 +135,7 @@ public: //type definitions and nested classes
         // to consumer / subscriber
         LayeredInformation consumerInformation;
         SOA4CoRE::IPv4EndpointOption consumerEndpoint;
-        std::list<SOA4CoRE::ConfigurationOption*> configOptions;
+        SomeipOptionsList configOptions;
         // control information
         bool active = false;
         bool waitingForAck = false;
@@ -146,7 +146,7 @@ public: //type definitions and nested classes
         }
         inline bool operator!=(const Subscription& other) { return !(*this == other); }
 
-        bool isConsumer(LayeredInformation otherInformation, SOA4CoRE::IPv4EndpointOption otherEndpoint) {
+        bool isConsumer(LayeredInformation otherInformation, SOA4CoRE::IPv4EndpointOption otherEndpoint) const {
             return otherInformation.eth_src == consumerInformation.eth_src
                     && otherInformation.ip_src == consumerInformation.ip_src
                     && otherInformation.transport_src == consumerInformation.transport_src
@@ -154,7 +154,7 @@ public: //type definitions and nested classes
                     && otherEndpoint.getPort() == consumerEndpoint.getPort();
         }
 
-        bool isProvider(LayeredInformation otherInformation, SOA4CoRE::IPv4EndpointOption otherEndpoint) {
+        bool isProvider(LayeredInformation otherInformation, SOA4CoRE::IPv4EndpointOption otherEndpoint) const {
             return otherInformation.eth_src == providerInformation.eth_src
                     && otherInformation.ip_src == providerInformation.ip_src
                     && otherInformation.transport_src == providerInformation.transport_src
@@ -162,18 +162,18 @@ public: //type definitions and nested classes
                     && otherEndpoint.getPort() == providerEndpoint.getPort();
         }
 
-        bool isMcast() {
+        bool isMcast() const {
             return consumerEndpoint.getType() == SOA4CoRE::SomeIpSDOptionType::IPV4MULTICAST;
         }
 
-        IPv4Address getDstHostIp() {
+        IPv4Address getDstHostIp() const {
             if(isMcast()) {
                 return consumerInformation.ip_src.toIPv4();
             }
             return consumerEndpoint.getIpv4Address();
         }
 
-        IPv4Address getSrcHostIp() {
+        IPv4Address getSrcHostIp() const {
             if(isMcast()) {
                 return providerInformation.ip_src.toIPv4();
             }

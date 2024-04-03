@@ -147,7 +147,7 @@ public:
      * @param sumHigherClassIdleSlope The sum of the idle slopes of higher classes.
      * @return The maximum port queuing delay in seconds.
      */
-    virtual double calculateMaxQueueingDelay(unsigned long idleSlope, int classMaxFrame, int ctMaxFrame, const std::vector<unsigned long>& inputPortIdleSlopes, double portTransmitRate, int sumHigherClassMaxFrames, unsigned long sumHigherClassIdleSlope);
+    virtual double calculateMaxQueueingDelay(unsigned long idleSlope, int classMaxFrame, int ctMaxFrame, const std::vector<unsigned long>& inputPortIdleSlopes, double portTransmitRate, size_t sumHigherClassMaxFrames, unsigned long sumHigherClassIdleSlope);
 
     /**
      * Provides a forwarding information for AVBFrames according to the SRPTable of a

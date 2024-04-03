@@ -145,7 +145,7 @@ private:
 
      void clearCachedLatencyValues();
 
-     unsigned long getPortIdleSlope(SwitchPor& switchPort, uint8_t pcp);
+     unsigned long getPortIdleSlope(SwitchPort& switchPort, uint8_t pcp);
 
      std::vector<unsigned long> findInputIdleSlopes(SwitchPort& switchPort, uint8_t pcp);
 
@@ -153,7 +153,7 @@ private:
 
      void updateClassMaxFrame(SwitchPort& switchPort, uint8_t pcp, size_t frameL2Bytes);
 
-     double findMaxHopInterference(SwitchPort& switchPort, uint8_t pcp);
+     double findMaxHopInterference(SwitchPort& switchPort, uint8_t pcp, double linkRate);
 
 protected:
      /**
@@ -223,22 +223,23 @@ private:
      /**
       * Cached values for the outgoing idle slopes of switchid, portno, pcp
       */
-     map<string, map<int, map<uint8_t, unsigned long>>> portIdleSlopes;
+     std::map<std::string, std::map<int, std::map<uint8_t, unsigned long>>> portIdleSlopes;
 
      /**
       * Cached values for the incoming idle slopes of switchid, portno, pcp
       */
-     map<string, map<uint8_t, map<int, unsigned long>>> inputIdleSlopes;    
+     std::map<std::string, std::map<uint8_t, std::map<int, unsigned long>>> inputIdleSlopes;
 
      /**
       * Cached values for the maximum frame sizes of switchid, pcp in bit including IFG
+      * This will
       */
-     map<string, map<pcp, size_t>> classMaxFrames;
+     std::map<std::string, std::map<uint8_t, size_t>> classMaxFrames;
 
       /**
        * Cached values for the maximum hop interference of switchid, portno, pcp
        */
-     map<string, map<int, map<uint8_t, double>>> maxHopInterference;
+     std::map<std::string, std::map<int, std::map<uint8_t, double>>> maxHopInterference;
 };
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::SwitchPortIdleSlope& config)

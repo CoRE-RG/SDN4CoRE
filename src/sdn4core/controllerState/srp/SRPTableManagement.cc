@@ -25,6 +25,7 @@
 #include "inet/linklayer/common/MACAddress.h"
 //CoRE4INET
 #include "core4inet/base/avb/AVBDefs.h"
+#include "core4inet/utilities/HelperFunctions.h"
 
 using namespace std;
 using namespace openflow;
@@ -140,7 +141,7 @@ unsigned long SRPTableManagement::getIncomingIdleSlopeForSwitchPortAndPcp(std::s
             {
                 if (listener.streamId == talker.streamId && listener.vlan_id == talker.vlan_id)
                 {
-                    inputBandwidth += bandwidthFromSizeAndInterval(tentry->framesize + static_cast<size_t>(SRP_SAFETYBYTE), tentry->intervalFrames, getIntervalForClass(tentry->srClass));
+                    inputBandwidth += bandwidthFromSizeAndInterval(talker.framesize + static_cast<size_t>(SRP_SAFETYBYTE), talker.intervalFrames, getIntervalForClass(talker.srClass));
                     break;
                 }
             }

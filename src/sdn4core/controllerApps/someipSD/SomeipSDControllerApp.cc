@@ -712,15 +712,16 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
             auto instanceId = sInst.first;     
             auto& pubOptions = serviceTable->getServiceInstance(serviceId, instanceId, true)->optionList;       
             auto pcp = pubOptions.getFirstConfigOfType<IEEE8021QConfigurationOption*>()->getPcp();
-            auto& resourceConfig = pubOptions.getFirstConfigOfType<RessourceConfigurationOption*>();
+            auto resourceConfig = pubOptions.getFirstConfigOfType<RessourceConfigurationOption*>();
             auto fullL2FrameSize = calculateL2Framesize(sInst.second.front().consumerEndpoint.getL4Protocol(), resourceConfig->getMaxPayload());
-            auto streamMaxFrame = fullL2FrameSize + PREAMBLE_BYTES + SFD_BYTES
+            auto streamMaxFrame = fullL2FrameSize + PREAMBLE_BYTES + SFD_BYTES;
             double transmissionDelay = streamMaxFrame*8 / linkRate;
             for (auto& sub: sInst.second)
             {// check the deadline for each active subscription with a deadline configuration
                 if(sub.active)
                 {
-                    if ((auto& deadlineConfig = sub.configOptions.getFirstConfigOfType<RealTimeConfigurationOption*>()))
+                    auto deadlineConfig = sub.configOptions.getFirstConfigOfType<RealTimeConfigurationOption*>();
+                    if (deadlineConfig)
                     {
                         auto deadline = deadlineConfig->getDeadline();
                         // get the route 
@@ -734,7 +735,7 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
                         double maxLatency = transmissionDelay; // TODO consider queueing at the source
                         for(auto& hop: route)
                         { 
-                            double hopInterference = findMaxHopInterference(hop, pcp)
+                            double hopInterference = findMaxHopInterference(hop, pcp, linkRate);
                             // add up the max latency from queuing delay, transmission delay and processing delay
                             maxLatency += hopInterference + processingDelay + transmissionDelay;
                         }
@@ -751,6 +752,7 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
             }
         }
     }
+    return true;
 }
 
 bool SomeipSDControllerApp::loadXMLReservationList() {
@@ -840,9 +842,12 @@ inet::EthernetIIFrame* SomeipSDControllerApp::encapSDHeader(
 void SomeipSDControllerApp::clearCachedLatencyValues()
 {
     portIdleSlopes.clear();
+    inputIdleSlopes.clear();
+//    classMaxFrames.clear(); // is now automatically updated when new subscriptions are added
+    maxHopInterference.clear();
 }
 
-unsigned long SomeipSDControllerApp::getPortIdleSlope(SwitchPor& switchPort, uint8_t pcp)
+unsigned long SomeipSDControllerApp::getPortIdleSlope(SwitchPort& switchPort, uint8_t pcp)
 {
     if(portIdleSlopes.find(switchPort.switchId) == portIdleSlopes.end())
     {
@@ -886,12 +891,16 @@ std::vector<unsigned long> SomeipSDControllerApp::findInputIdleSlopes(SwitchPort
             }
         }
     }
-    return inputIdleSlopes[switchPort.switchId][pcp].values();
+    std::vector<unsigned long> result;
+    for (const auto& pair : inputIdleSlopes[switchPort.switchId][pcp]) {
+        result.push_back(pair.second);
+    }
+    return result;
 }
 
 size_t SomeipSDControllerApp::findClassMaxFrameSize(SwitchPort& switchPort, uint8_t pcp) 
 {
-    if(classMaxFrames.find(switchPort.switchId) == inputIdleSlopes.end())
+    if(classMaxFrames.find(switchPort.switchId) == classMaxFrames.end())
     {
         return 0;
     }
@@ -905,7 +914,7 @@ size_t SomeipSDControllerApp::findClassMaxFrameSize(SwitchPort& switchPort, uint
 void SomeipSDControllerApp::updateClassMaxFrame(SwitchPort& switchPort, uint8_t pcp, size_t frameL2Bytes) 
 {
     auto frameBits = frameL2Bytes * 8 + INTERFRAME_GAP_BITS;
-    if(classMaxFrames.find(switchPort.switchId) == inputIdleSlopes.end())
+    if(classMaxFrames.find(switchPort.switchId) == classMaxFrames.end())
     {
         classMaxFrames[switchPort.switchId] = map<uint8_t, size_t>();
     }
@@ -919,7 +928,7 @@ void SomeipSDControllerApp::updateClassMaxFrame(SwitchPort& switchPort, uint8_t 
     }
 }
 
-double SomeipSDControllerApp::findMaxHopInterference(SwitchPort& switchPort, uint8_t pcp) 
+double SomeipSDControllerApp::findMaxHopInterference(SwitchPort& switchPort, uint8_t pcp, double linkRate)
 {
     if (maxHopInterference.find(switchPort.switchId) == maxHopInterference.end())
     {
@@ -944,7 +953,7 @@ double SomeipSDControllerApp::findMaxHopInterference(SwitchPort& switchPort, uin
             sumHigherClassIdleSlope += getPortIdleSlope(switchPort, higherPcp);
         }
         double hopInterference = srpManager->calculateMaxQueueingDelay(
-            portIdleSlope, classMaxFrame, ctMaxFrameBit, inputIdleSlopes, sumHigherClassMaxFrames, sumHigherClassIdleSlope);
+            portIdleSlope, classMaxFrame, ctMaxFrameBit, inputIdleSlopes, linkRate, sumHigherClassMaxFrames, sumHigherClassIdleSlope);
         maxHopInterference[switchPort.switchId][switchPort.port][pcp] = hopInterference;
     }
     return maxHopInterference[switchPort.switchId][switchPort.port][pcp];

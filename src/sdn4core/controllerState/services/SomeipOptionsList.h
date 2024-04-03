@@ -60,7 +60,7 @@ public:
      * @return The matching option, nullptr if none was found
      */
     template<typename T>
-    T getFirstConfigOfType () {
+    T getFirstConfigOfType () const {
         for (auto config : *this) {
             if(T castConfig = dynamic_cast<T>(config)) {
                 return castConfig;
