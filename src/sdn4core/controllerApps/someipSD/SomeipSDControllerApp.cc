@@ -121,6 +121,8 @@ void SomeipSDControllerApp::initialize() {
         WATCH_LISTMAP(resourceReservationTable);
     }
 
+    WATCH_MAPMAPMAP(maxHopInterference);
+
     myLayeredInformation.eth_src.setAddress("C0:C0:C0:C0:C0:C0");
     myLayeredInformation.ip_src = L3Address("10.0.0.2");
     myLayeredInformation.transport_src = SOMEIPSD_PORT;
@@ -699,7 +701,7 @@ OFP_TSN_Port_Mod_CBS* SomeipSDControllerApp::buildPortModCBS(uint32_t portno, ui
 }
 
 bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
-    double linkRate = par("portTransmitRate").doubleValue();
+    double linkRate = par("portTransmitRate").doubleValue(); // TODO consider static (TDMA) higher priority traffic
     double processingDelay = par("switchProcessingDelay").doubleValue();
     const SomeipServiceTable::SubscriptionMap& subscriptions = serviceTable->getSubscriptionTable();
     clearCachedLatencyValues();
@@ -892,6 +894,7 @@ std::vector<unsigned long> SomeipSDControllerApp::findInputIdleSlopes(SwitchPort
     for (const auto& pair : inputIdleSlopes[switchPort.switchId][pcp]) {
         result.push_back(pair.second);
     }
+    std::sort(result.rbegin(), result.rend());
     return result;
 }
 
