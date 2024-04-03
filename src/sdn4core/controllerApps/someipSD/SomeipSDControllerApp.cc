@@ -314,6 +314,7 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
                 } else {
                     throw cRuntimeError("Provider option is no IPv4 endpoint");
                 }
+                iter->active = true;
 
                 if(iter->isMcast()) {
                     installFlowForMulticastSubscription(*iter);
@@ -324,7 +325,6 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
                 // forward subscription ack to subscriber
                 SomeIpSDHeader* header = buildSubscribeEventGroupAck(someIpSDHeader, entry);
                 forwardSOMEIPMessage(header, layeredInformation, &iter->consumerInformation);
-                iter->active = true;
             }
             // consumer handled the sub ack!
             break;
@@ -625,7 +625,7 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
     uint64_t streamId = buildStreamIDForService(serviceId, instanceId, ip_dst);
     for(SwitchPort& switchPort : route)
     {// for each hop
-        updateClassMaxFrame(switchPort, fullL2FrameSize, qOption->getPcp());
+        updateClassMaxFrame(switchPort, qOption->getPcp(), fullL2FrameSize);
         // update talker in sr table
         int inport = topology->findOutportAtSwitch(switchPort.switchId, ip_src);
         if(inport < 0) {
@@ -699,33 +699,31 @@ OFP_TSN_Port_Mod_CBS* SomeipSDControllerApp::buildPortModCBS(uint32_t portno, ui
 }
 
 bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
-    // iterate over established subscriptions
     double linkRate = par("portTransmitRate").doubleValue();
     double processingDelay = par("switchProcessingDelay").doubleValue();
-    auto& subscriptions = serviceTable->getSubscriptionTable();
+    const SomeipServiceTable::SubscriptionMap& subscriptions = serviceTable->getSubscriptionTable();
     clearCachedLatencyValues();
-    for (auto& sId: subscriptions)
+    for (pair<SomeipServiceTable::ServiceID, SomeipServiceTable::IntanceSubscriptionMap> sId: subscriptions)
     {
-        auto serviceId = sId.first;
-        for (auto& sInst: sId.second)
+        SomeipServiceTable::ServiceID serviceId = sId.first;
+        for (pair<SomeipServiceTable::InstanceID, SomeipServiceTable::ServiceInstanceSubscriptionList> sInst: sId.second)
         {
-            auto instanceId = sInst.first;     
-            auto& pubOptions = serviceTable->getServiceInstance(serviceId, instanceId, true)->optionList;       
-            auto pcp = pubOptions.getFirstConfigOfType<IEEE8021QConfigurationOption*>()->getPcp();
-            auto resourceConfig = pubOptions.getFirstConfigOfType<RessourceConfigurationOption*>();
-            auto fullL2FrameSize = calculateL2Framesize(sInst.second.front().consumerEndpoint.getL4Protocol(), resourceConfig->getMaxPayload());
-            auto streamMaxFrame = fullL2FrameSize + PREAMBLE_BYTES + SFD_BYTES;
+            SomeipServiceTable::InstanceID instanceId = sInst.first;
+            SomeipOptionsList& pubOptions = serviceTable->getServiceInstance(serviceId, instanceId, true)->optionList;
+            uint8_t pcp = pubOptions.getFirstConfigOfType<IEEE8021QConfigurationOption*>()->getPcp();
+            RessourceConfigurationOption* resourceConfig = pubOptions.getFirstConfigOfType<RessourceConfigurationOption*>();
+            uint16_t fullL2FrameSize = calculateL2Framesize(sInst.second.front().consumerEndpoint.getL4Protocol(), resourceConfig->getMaxPayload());
+            int streamMaxFrame = fullL2FrameSize + PREAMBLE_BYTES + SFD_BYTES;
             double transmissionDelay = streamMaxFrame*8 / linkRate;
-            for (auto& sub: sInst.second)
+            for (const SomeipServiceTable::Subscription& sub: sInst.second)
             {// check the deadline for each active subscription with a deadline configuration
                 if(sub.active)
                 {
-                    auto deadlineConfig = sub.configOptions.getFirstConfigOfType<RealTimeConfigurationOption*>();
+                    RealTimeConfigurationOption* deadlineConfig = sub.configOptions.getFirstConfigOfType<RealTimeConfigurationOption*>();
                     if (deadlineConfig)
                     {
-                        auto deadline = deadlineConfig->getDeadline();
-                        // get the route 
-                        auto route = topology->findRoute(
+                        double deadline = deadlineConfig->getDeadline();
+                        TopologyManagement::Route route = topology->findRoute(
                             topology->findEdgePort(sub.getSrcHostIp()).switchId, 
                             sub.getDstHostIp());
                         if(route.empty())
@@ -733,13 +731,12 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
                             throw cRuntimeError("Could not find a route for acknowledged subscription");
                         }
                         double maxLatency = transmissionDelay; // TODO consider queueing at the source
-                        for(auto& hop: route)
+                        for(SwitchPort& hop: route)
                         { 
                             double hopInterference = findMaxHopInterference(hop, pcp, linkRate);
-                            // add up the max latency from queuing delay, transmission delay and processing delay
                             maxLatency += hopInterference + processingDelay + transmissionDelay;
                         }
-                        if(maxLatency > deadline)
+                        if(maxLatency > deadlineConfig->getDeadline())
                         {
                             if(errorOnFailure)
                             {
@@ -913,7 +910,7 @@ size_t SomeipSDControllerApp::findClassMaxFrameSize(SwitchPort& switchPort, uint
 
 void SomeipSDControllerApp::updateClassMaxFrame(SwitchPort& switchPort, uint8_t pcp, size_t frameL2Bytes) 
 {
-    auto frameBits = frameL2Bytes * 8 + INTERFRAME_GAP_BITS;
+    auto frameBits = (frameL2Bytes + PREAMBLE_BYTES + SFD_BYTES) * 8 + INTERFRAME_GAP_BITS;
     if(classMaxFrames.find(switchPort.switchId) == classMaxFrames.end())
     {
         classMaxFrames[switchPort.switchId] = map<uint8_t, size_t>();
