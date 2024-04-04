@@ -48,6 +48,7 @@ simple OF_RelayUnit like IOF_RelayUnit
 		bool highlightActivePorts = default(false);
 		//Path of the switch configuration xml file
     	xml configXML = default(xml("<root/>"));
+    	bool dumpFlowTable = default(false);
     	
     	
     gates:        

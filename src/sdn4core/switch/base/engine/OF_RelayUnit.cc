@@ -323,16 +323,19 @@ void OF_RelayUnit::finish()
     recordScalar("flowTableMiss", flowTableMiss);
     //print flow table
     //xml head
-    std::ostringstream oss;
-    oss << "<config>" << endl;
-    oss << "<switch id=\"" << getParentModule()->getSubmodule("eth", 0)->getSubmodule("mac")->par("address").stringValue() << "\">" << endl;
-    for (size_t i = 0; i < _flowTables.size() ; i++)
+    if(par("dumpFlowTable").boolValue())
     {
-        oss << _flowTables[i]->exportToXML();
+        std::ostringstream oss;
+        oss << "<config>" << endl;
+        oss << "<switch id=\"" << getParentModule()->getSubmodule("eth", 0)->getSubmodule("mac")->par("address").stringValue() << "\">" << endl;
+        for (size_t i = 0; i < _flowTables.size() ; i++)
+        {
+            oss << _flowTables[i]->exportToXML();
+        }
+        oss << "</switch>" << endl;
+        oss << "</config>" << endl;
+        cout << oss.str();
     }
-    oss << "</switch>" << endl;
-    oss << "</config>" << endl;
-    cout << oss.str();
 }
 
 }
