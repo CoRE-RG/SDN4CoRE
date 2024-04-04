@@ -133,6 +133,7 @@ protected:
     SomeipOptionsList getEntryOptions(SOA4CoRE::SomeIpSDEntry* xEntry, SOA4CoRE::SomeIpSDHeader* header);
     void updateServiceTable(SomeipServiceTable::ServiceInstance& newInfo);
 
+    virtual void finish() override;
 private:
      inet::EthernetIIFrame * encapSDHeader(SOA4CoRE::SomeIpSDHeader* header,
              inet::MACAddress eth_src, inet::MACAddress eth_dst,
@@ -154,6 +155,15 @@ private:
      void updateClassMaxFrame(SwitchPort& switchPort, uint8_t pcp, size_t frameL2Bytes);
 
      double findMaxHopInterference(SwitchPort& switchPort, uint8_t pcp, double linkRate);
+
+     void prepareFlowUpdateDump(const SomeipServiceTable::Subscription& sub, bool isMcast);
+     void concludeFlowUpdateDump();
+     void dumpFlowUpdateRoute(const TopologyManagement::Route& route);
+     void dumpFlowUpdateIdleSlopes(const std::map<SwitchPort, unsigned long>& portIdleSlopes, int pcp);
+     void dumpFlowUpdateHopInterference();
+     void dumpFlowUpdateMaxLatencyInitialize();
+     void dumpFlowUpdateMaxLatency(const SomeipServiceTable::Subscription& sub, double maxLatency, double deadline, bool isFirst);
+     void dumpFlowUpdateMaxLatencyFinalize();
 
 protected:
      /**
@@ -236,10 +246,21 @@ private:
       */
      std::map<std::string, std::map<uint8_t, size_t>> classMaxFrames;
 
-      /**
-       * Cached values for the maximum hop interference of switchid, portno, pcp
-       */
+     /**
+      * Cached values for the maximum hop interference of switchid, portno, pcp
+      */
      std::map<std::string, std::map<int, std::map<uint8_t, double>>> maxHopInterference;
+
+     /**
+      * Temporary file for dumping the a flow update to prevent constantly opening and closing the file.
+      */
+     std::ofstream tmpDumpFile;
+
+     /**
+      * Flag if the flow update should be dumped to a file.
+      * Set to false during first dump if dumpFile is not set.
+      */
+     bool dumpToFile = true;
 };
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::SwitchPortIdleSlope& config)

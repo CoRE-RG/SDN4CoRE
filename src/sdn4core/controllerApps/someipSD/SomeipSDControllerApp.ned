@@ -58,4 +58,5 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         bool verifyMaxLatencies = default(false);
         double portTransmitRate @unit(bps) = default(1Gbps);
         double switchProcessingDelay @unit(s) = default(8us); // default of TSN switches from CoRE4INET
+        string dumpFlowUpdatesToFile = default(""); // set to a filename to dump flow updates to a file
 }

@@ -20,6 +20,7 @@
 //STD
 #include <sstream>
 #include <stdlib.h>
+#include <fstream>
 //inet
 #include "inet/transportlayer/contract/tcp/TCPSocket.h"
 #include "inet/networklayer/ipv4/IPv4Datagram.h"
@@ -45,6 +46,12 @@ using namespace std;
 using namespace openflow;
 using namespace CoRE4INET;
 using namespace SOA4CoRE;
+
+bool fileExists(string filename)
+{
+    ifstream file(filename);
+    return file.is_open();
+}
 
 namespace SDN4CoRE {
 
@@ -317,13 +324,13 @@ void SomeipSDControllerApp::processSubscribeEventGroupAckEntry(SomeIpSDEntry* en
                     throw cRuntimeError("Provider option is no IPv4 endpoint");
                 }
                 iter->active = true;
-
+                prepareFlowUpdateDump(*iter, iter->isMcast());
                 if(iter->isMcast()) {
                     installFlowForMulticastSubscription(*iter);
                 } else {
                     installFlowForUnicastSubscription(*iter);
                 }
-
+                concludeFlowUpdateDump();
                 // forward subscription ack to subscriber
                 SomeIpSDHeader* header = buildSubscribeEventGroupAck(someIpSDHeader, entry);
                 forwardSOMEIPMessage(header, layeredInformation, &iter->consumerInformation);
@@ -451,6 +458,7 @@ void SomeipSDControllerApp::installFlowForUnicastSubscription(SomeipServiceTable
     {
         throw cRuntimeError("Could not find a route for acknowledged subscription");
     }
+    dumpFlowUpdateRoute(route);
     // reserve switch ressources if needed
     if(reserveResources && requiresResourceReservation(sub))
     {
@@ -522,6 +530,10 @@ void SomeipSDControllerApp::installFlowForMulticastSubscription(SomeipServiceTab
                     topology->findEdgePort(ip_host_src).switchId, ip_host_dst);
             if(route.empty()) {
                 throw cRuntimeError("Could not find a route for acknowledged subscription");
+            }
+            if(isNewSub)
+            {
+                dumpFlowUpdateRoute(route);
             }
             mcastRoute.mergeRoute(route);
             // reserve switch ressources if needed
@@ -625,6 +637,7 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
     // -- not unique if multiple instances of a service exist and are subscribed by the same destination
     // uint64_t streamId = buildStreamIDForService(serviceId, mac_dest)
     uint64_t streamId = buildStreamIDForService(serviceId, instanceId, ip_dst);
+    map<SwitchPort, unsigned long> portIdleSlopes;
     for(SwitchPort& switchPort : route)
     {// for each hop
         updateClassMaxFrame(switchPort, qOption->getPcp(), fullL2FrameSize);
@@ -642,11 +655,11 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
         // get new port + pcp bandwidth for the new listener
         unsigned long portIdleSlope = srpManager->getReservedBandwidthForSwitchPortAndPcp(
                 switchPort.switchId, switchPort.port, qOption->getPcp());
-
+        portIdleSlopes[switchPort] = portIdleSlope;
         // configure the device port accordingly
         sendPortModCBS(switchPort, qOption->getPcp(), portIdleSlope);
     }
-
+    dumpFlowUpdateIdleSlopes(portIdleSlopes, qOption->getPcp());
     if(par("verifyMaxLatencies").boolValue())
     {
         verifyNetworkMaxLatencies(true);
@@ -705,6 +718,8 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
     double processingDelay = par("switchProcessingDelay").doubleValue();
     const SomeipServiceTable::SubscriptionMap& subscriptions = serviceTable->getSubscriptionTable();
     clearCachedLatencyValues();
+    dumpFlowUpdateMaxLatencyInitialize();
+    bool isFirst = true;
     for (pair<SomeipServiceTable::ServiceID, SomeipServiceTable::IntanceSubscriptionMap> sId: subscriptions)
     {
         SomeipServiceTable::ServiceID serviceId = sId.first;
@@ -738,6 +753,8 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
                             double hopInterference = findMaxHopInterference(hop, pcp, linkRate);
                             maxLatency += hopInterference + processingDelay + transmissionDelay;
                         }
+                        dumpFlowUpdateMaxLatency(sub, maxLatency, deadline, isFirst);
+                        isFirst = false;
                         if(maxLatency > deadlineConfig->getDeadline())
                         {
                             if(errorOnFailure)
@@ -751,6 +768,8 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
             }
         }
     }
+    dumpFlowUpdateMaxLatencyFinalize();
+    dumpFlowUpdateHopInterference();
     return true;
 }
 
@@ -957,6 +976,193 @@ double SomeipSDControllerApp::findMaxHopInterference(SwitchPort& switchPort, uin
         maxHopInterference[switchPort.switchId][switchPort.port][pcp] = hopInterference;
     }
     return maxHopInterference[switchPort.switchId][switchPort.port][pcp];
+}
+
+void SomeipSDControllerApp::prepareFlowUpdateDump(const SomeipServiceTable::Subscription& sub, bool isMcast)
+{
+    if (!dumpToFile) return;
+    static bool fileInitialized = false;
+    string filename = par("dumpFlowUpdatesToFile").stringValue();
+    if (filename.empty())
+    {
+        dumpToFile = false;
+        return;
+    }
+    if(fileInitialized)
+    {
+        tmpDumpFile.open(filename, ios::app);
+    } 
+    else 
+    {
+        tmpDumpFile.open(filename);
+    }
+    if (tmpDumpFile.is_open()) 
+    {
+        if(!fileInitialized)
+        {
+            tmpDumpFile << " {";
+            tmpDumpFile << "\"flowUpdates\": [";
+        }
+        else 
+        {
+            tmpDumpFile << ",";
+        }
+        tmpDumpFile << " {";
+        tmpDumpFile << " \"simTime\": " << simTime().dbl();
+        tmpDumpFile << ", \"serviceId\": " << sub.service.getServiceId();
+        tmpDumpFile << ", \"instanceId\": " << sub.service.getInstanceId();
+        tmpDumpFile << ", \"isMcast\": " << isMcast;
+        tmpDumpFile << ", \"srcHost\": \"" << sub.getSrcHostIp().str() << "\"";
+        tmpDumpFile << ", \"dstHost\": \"" << sub.getDstHostIp().str() << "\"";
+        if (isMcast)
+        {
+            tmpDumpFile << ", \"mcastDst\": \"" << sub.consumerEndpoint.getIpv4Address().str() << "\"";
+        }
+        fileInitialized = true;
+    } else {
+        cout << "Unable to open " << filename << " to dump the flow update." << endl;
+    }
+}
+
+void SomeipSDControllerApp::concludeFlowUpdateDump()
+{
+    if (!dumpToFile) return;
+    if (tmpDumpFile.is_open()) 
+    {
+        tmpDumpFile << " }";
+        tmpDumpFile.close();
+    } 
+}
+
+void SomeipSDControllerApp::dumpFlowUpdateRoute(const TopologyManagement::Route& route)
+{
+    if (!dumpToFile) return;
+    if (tmpDumpFile.is_open()) 
+    {
+        tmpDumpFile << ", " << "\"route\": [ ";
+        bool first = true;
+        for (auto& hop : route) 
+        {
+            if(!first)
+            {
+                tmpDumpFile << ",";
+            }
+            tmpDumpFile << " {";
+            tmpDumpFile << " \"switch\": \"" << hop.switchId << "\"";
+            tmpDumpFile << ", \"port\":" << hop.port;
+            tmpDumpFile << " }";
+            first = false;
+        }
+        tmpDumpFile << " ]";
+    }
+}
+
+void SomeipSDControllerApp::dumpFlowUpdateIdleSlopes(const std::map<SwitchPort, unsigned long>& portIdleSlopes, int pcp)
+{
+    if (!dumpToFile) return;
+    if (tmpDumpFile.is_open()) 
+    {
+        tmpDumpFile << ", " << "\"idleSlopes\": [ ";
+        bool first = true;
+        for (auto& portIdleSlope: portIdleSlopes)
+        {
+            if(!first)
+            {
+                tmpDumpFile << ",";
+            }
+            tmpDumpFile << " {";
+            tmpDumpFile << " \"switch\": \"" << portIdleSlope.first.switchId << "\"";
+            tmpDumpFile << ", \"port\":" << portIdleSlope.first.port;
+            tmpDumpFile << ", \"pcp\":" << pcp;
+            tmpDumpFile << ", \"idleSlope\":" << portIdleSlope.second;
+            tmpDumpFile << " }";
+            first = false;
+        }
+        tmpDumpFile << " ]";
+    }
+}
+
+void SomeipSDControllerApp::dumpFlowUpdateHopInterference()
+{
+    if (!dumpToFile) return;
+    if (tmpDumpFile.is_open()) 
+    {
+        tmpDumpFile << ", " << "\"hopInterference\": [ ";
+        bool first = true;
+        for (auto& switchPort: maxHopInterference)
+        {
+            for (auto& portPcp: switchPort.second)
+            {
+                for (auto& pcpInterference: portPcp.second)
+                {
+                    if(!first)
+                    {
+                        tmpDumpFile << ",";
+                    }
+                    tmpDumpFile << " {";
+                    tmpDumpFile << " \"switch\": \"" << switchPort.first << "\"";
+                    tmpDumpFile << ", \"port\":" << portPcp.first;
+                    tmpDumpFile << ", \"pcp\":" << (int) pcpInterference.first;
+                    tmpDumpFile << ", \"interference\":" << pcpInterference.second;
+                    tmpDumpFile << " }";
+                    first = false;
+                }
+            }
+        }
+        tmpDumpFile << " ]";
+    }
+}
+
+void SomeipSDControllerApp::dumpFlowUpdateMaxLatencyInitialize()
+{
+    if (!dumpToFile) return;
+    if (tmpDumpFile.is_open()) 
+    {
+        tmpDumpFile << ", " << "\"maxLatencies\": [ ";
+    }
+}
+
+void SomeipSDControllerApp::dumpFlowUpdateMaxLatency(const SomeipServiceTable::Subscription& sub, double maxLatency, double deadline, bool isFirst)
+{
+    if (!dumpToFile) return;
+    if (tmpDumpFile.is_open()) 
+    {
+        if(!isFirst)
+        {
+            tmpDumpFile << ",";
+        }
+        tmpDumpFile << " {";
+        tmpDumpFile << " \"serviceId\": " << sub.service.getServiceId();
+        tmpDumpFile << ", \"instanceId\": " << sub.service.getInstanceId();
+        tmpDumpFile << ", \"srcHost\": \"" << sub.getSrcHostIp().str() << "\"";
+        tmpDumpFile << ", \"dstHost\": \"" << sub.getDstHostIp().str() << "\"";
+        tmpDumpFile << ", \"maxLatency\": " << maxLatency;
+        tmpDumpFile << ", \"deadline\": " << deadline;
+        tmpDumpFile << " }";
+    }
+}
+
+void SomeipSDControllerApp::dumpFlowUpdateMaxLatencyFinalize()
+{
+    if (!dumpToFile) return;
+    if (tmpDumpFile.is_open()) 
+    {
+        tmpDumpFile << " ]";
+    }
+}
+
+void SomeipSDControllerApp::finish() {
+    PacketProcessorBase::finish();
+    string filename = par("dumpFlowUpdatesToFile").stringValue();
+    if (!filename.empty() && fileExists(filename)) 
+    {
+        ofstream dump(filename, ios::app);
+        if (dump.is_open()) 
+        {
+            dump << " ] }";
+            dump.close();
+        }
+    }
 }
 
 } /*end namespace SDN4CoRE*/
