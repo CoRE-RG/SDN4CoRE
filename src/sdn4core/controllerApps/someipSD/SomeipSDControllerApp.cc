@@ -1104,6 +1104,8 @@ void SomeipSDControllerApp::dumpFlowUpdateHopInterference()
                     tmpDumpFile << " \"switch\": \"" << switchPort.first << "\"";
                     tmpDumpFile << ", \"port\":" << portPcp.first;
                     tmpDumpFile << ", \"pcp\":" << (int) pcpInterference.first;
+                    SwitchPort switchPortTmp (switchPort.first, portPcp.first);
+                    tmpDumpFile << ", \"idleSlope\":" << getPortIdleSlope(switchPortTmp, pcpInterference.first);
                     tmpDumpFile << ", \"interference\":" << pcpInterference.second;
                     tmpDumpFile << " }";
                     first = false;
