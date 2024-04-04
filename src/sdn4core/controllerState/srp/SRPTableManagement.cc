@@ -80,7 +80,7 @@ bool SRPTableManagement::registerListener(string swMacAddr, int listenerPort,
         uint64_t streamId, uint16_t vlanId) {
     Enter_Method ("registerListener");
     //check if there is a table for this switch
-    SRPTable* srpTable = getManagedState(swMacAddr);
+    SRPTable* srpTable = getOrCreateManagedState(swMacAddr);
     if (!srpTable) {
         return false;
     }
@@ -106,7 +106,7 @@ bool SRPTableManagement::registerListener(string swMacAddr, int listenerPort,
 unsigned long SRPTableManagement::getReservedBandwidthForSwitchPortAndPcp(
         string swMacAddr, int port, uint8_t pcp) {
     Enter_Method("getReservedBandwidthForSwitchPortAndPcp()");
-    SRPTable* srpTable = getManagedState(swMacAddr);
+    SRPTable* srpTable = getOrCreateManagedState(swMacAddr);
     if (!srpTable) {
        throw cRuntimeError("There is no srp table for this switch!");
     }
@@ -117,7 +117,7 @@ unsigned long SRPTableManagement::getReservedBandwidthForSwitchPortAndPcp(
 unsigned long SRPTableManagement::getIncomingIdleSlopeForSwitchPortAndPcp(std::string swMacAddr, int port, uint8_t pcp)
 {
     Enter_Method("getIncomingHostIdleSlopeForSwitchPortAndPcp()");
-    SRPTable* srpTable = getManagedState(swMacAddr);
+    SRPTable* srpTable = getOrCreateManagedState(swMacAddr);
     if (!srpTable) {
         throw cRuntimeError("There is no srp table for this switch!");
     }
@@ -152,7 +152,7 @@ unsigned long SRPTableManagement::getIncomingIdleSlopeForSwitchPortAndPcp(std::s
 
 int SRPTableManagement::getTalkerPort(openflow::Switch_Info* switchInfo, uint64_t streamId, uint16_t vid) {
     Enter_Method("getTalkerPort");
-    SRPTable* srpTable = getManagedState(switchInfo->getMacAddress());
+    SRPTable* srpTable = getOrCreateManagedState(switchInfo->getMacAddress());
     if (!srpTable) {
        throw cRuntimeError("There is no srp table for this switch!");
     }
@@ -162,7 +162,7 @@ int SRPTableManagement::getTalkerPort(openflow::Switch_Info* switchInfo, uint64_
     return -1;
 }
 
-double SRPTableManagement::calculateMaxQueueingDelay(unsigned long idleSlope, int classMaxFrame, int ctMaxFrame, const std::vector<unsigned long>& inputPortIdleSlopes, double portTransmitRate, size_t sumHigherClassMaxFrames, unsigned long sumHigherClassIdleSlope)
+double SRPTableManagement::calculateMaxQueueingDelay(double idleSlope, double classMaxFrame, double ctMaxFrame, const std::vector<unsigned long>& inputPortIdleSlopes, double portTransmitRate, double sumHigherClassMaxFrames, double sumHigherClassIdleSlope)
 {
     // we use the formulas from the 802.1Q-2022 standard (see annex L 3.1)
     // L.3.1.1 Queuing delay
@@ -205,7 +205,7 @@ SRPTableManagement::SRPForwardingInfo_t* SRPTableManagement::getForwardingInfoFo
         Switch_Info* swinfo, uint64_t streamID, uint16_t vlan_id) {
     Enter_Method ("getForwardingInfoForStreamID");
     SRPForwardingInfo_t* fwd = new SRPForwardingInfo_t();
-    SRPTable* srpTable = getManagedState(swinfo->getMacAddress());
+    SRPTable* srpTable = getOrCreateManagedState(swinfo->getMacAddress());
     if (!srpTable) {
         throw cRuntimeError(
                 "Forwarding info for switch requested, but there is no srp table for it.");

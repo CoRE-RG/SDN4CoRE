@@ -736,25 +736,24 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
             {// check the deadline for each active subscription with a deadline configuration
                 if(sub.active)
                 {
+                    TopologyManagement::Route route = topology->findRoute(
+                        topology->findEdgePort(sub.getSrcHostIp()).switchId,
+                        sub.getDstHostIp());
+                    if(route.empty())
+                    {
+                        throw cRuntimeError("Could not find a route for acknowledged subscription");
+                    }
+                    double maxLatency = transmissionDelay; // TODO consider queueing at the source
+                    for(SwitchPort& hop: route)
+                    {
+                        double hopInterference = findMaxHopInterference(hop, pcp, linkRate);
+                        maxLatency += hopInterference + processingDelay + transmissionDelay;
+                    }
+                    double deadline = 0;
                     RealTimeConfigurationOption* deadlineConfig = sub.configOptions.getFirstConfigOfType<RealTimeConfigurationOption*>();
                     if (deadlineConfig)
                     {
-                        double deadline = deadlineConfig->getDeadline();
-                        TopologyManagement::Route route = topology->findRoute(
-                            topology->findEdgePort(sub.getSrcHostIp()).switchId, 
-                            sub.getDstHostIp());
-                        if(route.empty())
-                        {
-                            throw cRuntimeError("Could not find a route for acknowledged subscription");
-                        }
-                        double maxLatency = transmissionDelay; // TODO consider queueing at the source
-                        for(SwitchPort& hop: route)
-                        { 
-                            double hopInterference = findMaxHopInterference(hop, pcp, linkRate);
-                            maxLatency += hopInterference + processingDelay + transmissionDelay;
-                        }
-                        dumpFlowUpdateMaxLatency(sub, maxLatency, deadline, isFirst);
-                        isFirst = false;
+                        deadline = deadlineConfig->getDeadline();
                         if(maxLatency > deadlineConfig->getDeadline())
                         {
                             if(errorOnFailure)
@@ -764,6 +763,8 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
                             return false;
                         }
                     }
+                    dumpFlowUpdateMaxLatency(sub, maxLatency, deadline, isFirst);
+                    isFirst = false;
                 }
             }
         }
