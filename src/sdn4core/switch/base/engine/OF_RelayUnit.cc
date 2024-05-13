@@ -1,5 +1,6 @@
 //STD
 #include <sstream>
+#include <fstream>
 #include <string>
 //inet
 #include "inet/linklayer/ethernet/EtherMACBase.h"
@@ -323,18 +324,26 @@ void OF_RelayUnit::finish()
     recordScalar("flowTableMiss", flowTableMiss);
     //print flow table
     //xml head
-    if(par("dumpFlowTable").boolValue())
+    string file = par("dumpFlowTableFile").stringValue();
+    if(file != "")
     {
-        std::ostringstream oss;
-        oss << "<config>" << endl;
-        oss << "<switch id=\"" << getParentModule()->getSubmodule("eth", 0)->getSubmodule("mac")->par("address").stringValue() << "\">" << endl;
-        for (size_t i = 0; i < _flowTables.size() ; i++)
+        ofstream ofs(file, std::ios_base::app);
+        if (ofs.is_open())
         {
-            oss << _flowTables[i]->exportToXML();
+            ofs << "<config>" << std::endl;
+            ofs << "<switch id=\"" << getParentModule()->getSubmodule("eth", 0)->getSubmodule("mac")->par("address").stringValue() << "\">" << std::endl;
+            for (size_t i = 0; i < _flowTables.size(); i++)
+            {
+                ofs << _flowTables[i]->exportToXML();
+            }
+            ofs << "</switch>" << std::endl;
+            ofs << "</config>" << std::endl;
+            ofs.close();
         }
-        oss << "</switch>" << endl;
-        oss << "</config>" << endl;
-        cout << oss.str();
+        else
+        {
+            throw std::runtime_error("Failed to open file for writing.");
+        }
     }
 }
 
