@@ -164,6 +164,9 @@ private:
      void dumpFlowUpdateMaxLatencyInitialize();
      void dumpFlowUpdateMaxLatency(const SomeipServiceTable::Subscription& sub, double maxLatency, double deadline, bool isFirst);
      void dumpFlowUpdateMaxLatencyFinalize();
+     std::string dumpFinalConfig();
+     std::string dumpAllServices();
+     std::string dumpAllIdleSlopes();
 
 protected:
      /**

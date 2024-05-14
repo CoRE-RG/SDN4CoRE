@@ -226,7 +226,7 @@ bool SomeipServiceTable::hasSubscriptions(ServiceID serviceId, InstanceID instan
 SomeipServiceTable::ServiceInstanceSubscriptionList SomeipServiceTable::getSubscriptions(
         ServiceID serviceId, InstanceID instanceId, bool required)
 {
-    Enter_Method("getSubscriptions()");
+//    Enter_Method("getSubscriptions()");
     if(!hasSubscriptions(serviceId, instanceId))
     {
         if(required)
