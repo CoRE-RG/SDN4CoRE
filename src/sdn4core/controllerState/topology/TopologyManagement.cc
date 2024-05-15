@@ -206,5 +206,47 @@ void TopologyManagement::initialize() {
     WATCH_MAPMAP(cachedHops);
 }
 
+string TopologyManagement::dumpTopologyToJson()
+{
+    stringstream dump;
+    dump << "\"topology\": [";
+    bool first = true;
+    auto switchPorts = getAllSwitchPorts();
+    for (auto& switchPort : switchPorts)
+    {
+        string swMac = switchPort.first.switchId;
+        int port = switchPort.first.port;
+        if (!first)
+        {
+            dump << ",";
+        }
+        first = false;
+        dump << " {";
+        dump << "\"switch\": \"" << swMac << "\",";
+        dump << "\"port\": " << port;
+        if (deviceTable->isLinkedToNetworkDevice(swMac, port))
+        {
+            auto linkedSwitchPort = deviceTable->getLinkedSwitchPort(swMac, port);
+            dump << ", \"deviceLink\": true";
+            dump << ", \"device\": {";
+            dump << "\"switch\": \"" << linkedSwitchPort.switchId << "\",";
+            dump << "\"port\": " << linkedSwitchPort.port;
+            dump << "}";
+        }
+        else 
+        {
+            dump << ", \"deviceLink\": false";
+            auto host = hostTable->getHostForSwitchPort(swMac, port);
+            if (host)
+            {
+                dump << ", " << host->dumpHostToJson();
+            }
+        }
+        dump << " }";
+    }
+    dump << " ]";
+    return dump.str();
+}
+
 } /*end namespace SDN4CoRE*/
 

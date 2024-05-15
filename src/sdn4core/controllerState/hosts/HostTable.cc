@@ -329,6 +329,19 @@ HostTable::HostList HostTable::getHostsForSwitch(const string& switch_id,
     return iter->second;
 }
 
+HostTable::HostEntry* HostTable::getHostForSwitchPort(const string& switch_id,
+        int portno, bool doAging) {
+    Enter_Method
+    ("HostTable::getHostForSwitchPort()");
+    auto hosts = getHostsForSwitch(switch_id, doAging);
+    for (auto host : hosts) {
+        if (host->portno == portno) {
+            return host;
+        }
+    }
+    return nullptr;
+}
+
 int HostTable::getHostCount() const {
     return hostsByMac.size();
 }

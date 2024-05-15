@@ -167,6 +167,12 @@ public:
     virtual Route findRoute(std::string fromSwitch,
             HostTable::HostEntry* host);
 
+    /**
+     * Helper function to dump the topology to a json string.
+     * @return the json string
+     */
+    std::string dumpTopologyToJson();
+
 protected:
     /**
      * Calculate a route recursively from the switch to the host.

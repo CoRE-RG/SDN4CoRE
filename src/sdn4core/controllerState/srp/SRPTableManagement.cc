@@ -390,4 +390,35 @@ string SRPTableManagement::exportSRPTableToXML (SRPTable* table, const string& s
     return oss.str();
 }
 
+string SRPTableManagement::dumpAllIdleSlopesToJson() 
+{
+    stringstream dump;
+    dump << "\"switchIdleSlopes\": [ ";
+    bool first = true;
+    auto switchPorts = getAllSwitchPorts();
+    for (auto& switchPort : switchPorts)
+    {
+        string swMac = switchPort.first.switchId;
+        int port = switchPort.first.port;
+        for (int pcp = 0; pcp < 8; pcp++)
+        {
+            auto idleSlope = getReservedBandwidthForSwitchPortAndPcp(swMac, port, pcp);
+            if (idleSlope > 0) {
+                if (!first)
+                {
+                    dump << ", ";
+                }
+                first = false;
+                dump << "{ \"switch\": \"" << swMac << "\"";
+                dump << ", \"port\": " << port;
+                dump << ", \"pcp\": " << pcp;
+                dump << ", \"idleSlope\": " << idleSlope;
+                dump << " }";
+            }
+        }
+    }
+    dump << " ]";
+    return dump.str();
+}
+
 } /*end namespace SDN4CoRE*/

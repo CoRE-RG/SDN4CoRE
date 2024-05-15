@@ -168,6 +168,12 @@ public:
     virtual void dumpConfigToStream(std::ostream& stream, int indentTabs = 0)
             override;
 
+    /**
+     * Helper function to dump all idle slopes to json.
+     * @return the json string
+     */
+    std::string dumpAllIdleSlopesToJson();
+
 protected:
 
     /**

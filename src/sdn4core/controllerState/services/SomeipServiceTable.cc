@@ -384,4 +384,44 @@ void SomeipServiceTable::dropRequest(FindRequest* request) {
     }
 }
 
+string SomeipServiceTable::dumpAllServicesToJson() {
+    stringstream dump;
+    dump << "\"services\": [ ";
+    bool first = true;
+    for (auto& service : serviceTable) {
+        for (auto& instance : service.second) {
+            if (!first) {
+                dump << ", ";
+            }
+            dump << "{ \"serviceId\": " << service.first;
+            dump << ", \"instanceId\": " << instance.first;
+            first = false;
+            bool firstSubscription = true;
+            if (hasSubscriptions(service.first, instance.first))
+            {
+                for (auto sub: subscriptionTable[service.first][instance.first]) {
+                    if(firstSubscription)
+                    {
+                        dump << ", \"srcHost\": \"" << sub.getSrcHostIp().str() << "\"";
+                        dump << ", \"isMcast\": " << sub.isMcast();
+                        dump << ", \"dstHosts\": [";
+                        firstSubscription = false;
+                    }
+                    else
+                    {
+                        dump << ",";
+                    }
+                    dump << " \"" << sub.getDstHostIp().str() << "\"";
+                }
+                if (!firstSubscription) {
+                    dump << " ]";
+                }
+            }
+            dump << " }";
+        }
+    }
+    dump << " ]";
+    return dump.str();
+}
+
 } /*end namespace SDN4CoRE*/

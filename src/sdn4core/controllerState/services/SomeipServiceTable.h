@@ -317,6 +317,12 @@ public:
         return subscriptionTable;
     }
 
+    /**
+     * Helper function to dump all known services to json.
+     * @return the JSON string
+     */
+    std::string dumpAllServicesToJson();
+
 protected:
 
     virtual void initialize() override;

@@ -60,6 +60,23 @@ public:
         HostEntry() :
                 insertionTime(simTime()), lastUpdated(simTime()) {
         }
+
+        std::string dumpHostToJson() 
+        {
+            std::stringstream dump;
+            dump << "\"host\": {";
+            dump << " \"name\": \"" << nodeName << "\"";
+            if (! macAddress.isUnspecified()) 
+            {
+                dump << ", \"mac\": \"" << macAddress.str() << "\"";
+            }
+            if (! ipAddresses.empty()) 
+            {
+                dump << ", \"ip\": \"" << ipAddresses[0].str() << "\"";
+            }
+            dump << "}";
+            return dump.str();
+        }
     };
     friend std::ostream& operator<<(std::ostream& os, const HostEntry& entry);
     struct MAC_compare {
@@ -126,6 +143,15 @@ public:
      * @return A list of host entries connected to the host
      */
     virtual HostList getHostsForSwitch(const std::string& switch_id, bool doAging=true);
+
+    /**
+     * Look up a host connected to a switch port.
+     * @param switch_id The switch id to look up
+     * @param portno The port number to look up
+     * @param doAging Check if the found entry is outdated
+     * @return A host entry connected to the switch port if found, else nullptr
+     */
+    virtual HostEntry* getHostForSwitchPort(const std::string& switch_id, int portno, bool doAging=true);
 
     /**
      * Get the number of known hosts.
