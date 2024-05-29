@@ -582,6 +582,8 @@ bool SomeipSDControllerApp::requiresResourceReservation(SomeipServiceTable::Subs
             }
             else if (streamIntervalAsCMI)
             {// interval can be used for reservation
+                if(qOption->getPcp() == 2)
+                    return false;
                 return true;
             }
         }
@@ -606,33 +608,50 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
         mac_dest = hostTable->getHostForIpAddress(ip_dst)->macAddress;
     }
     auto publisher = serviceTable->getServiceInstance(serviceId, instanceId, true);
-
     auto qOption = publisher->optionList.getFirstConfigOfType<IEEE8021QConfigurationOption*>();
     auto ressourceConfig = publisher->optionList.getFirstConfigOfType<RessourceConfigurationOption*>();
     //calculate framesize used per class measurement interval.
-    uint16_t fullL2FrameSize = calculateL2Framesize(sub.consumerEndpoint.getL4Protocol(), ressourceConfig->getMaxPayload());
-    int normalizedFramesize = fullL2FrameSize;
-    SR_CLASS srclass = SR_CLASS::A;
-    double interval;
-    if (streamIntervalAsCMI)
+    int numFrames = 1;
+    size_t payload = ressourceConfig->getMaxPayload();
+    size_t maxPayload = MAX_ETHERNET_FRAME_BYTES - getAllHeaderBytes(sub.consumerEndpoint.getL4Protocol());
+    size_t avgPayload = payload;
+    if(payload > maxPayload)
     {
-        interval = ressourceConfig->getMinInterval();
+        numFrames = int(ceil(double(payload) / (maxPayload)));
+        avgPayload = payload / numFrames;
+        // TODO add parameter to control whether avg or max payload should be used
+        payload = maxPayload;
+    } 
+    else 
+    {
+        maxPayload = payload;
     }
-    else {
+    uint16_t fullL2FrameSize = calculateL2Framesize(sub.consumerEndpoint.getL4Protocol(), avgPayload);
+    double interval = ressourceConfig->getMinInterval();
+    // SR_CLASS srclass = SR_CLASS::A;
+    // int normalizedFramesize = fullL2FrameSize;
+    if (!streamIntervalAsCMI)
+    {
         auto cmiIt = pcpCMIs.find(qOption->getPcp());
         if(cmiIt == pcpCMIs.end())
         {
             throw cRuntimeError("CMI for PCP %d unknown", qOption->getPcp());
         }
-        interval = cmiIt->second;
-    }
-    normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, interval, srclass, false);
-    if(normalizedFramesize < 0) {
-        srclass = SR_CLASS::B;
-        normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, interval, srclass, true);
-        if(normalizedFramesize < 0) {
-            throw cRuntimeError("Normalized framesize negativ for Class A and B CMI");
+        if (interval < cmiIt->second)
+        {
+            // find how many stream intervals are in the cmi rounding up
+            int intervalCMIRatio = ceil(cmiIt->second / interval);
+            numFrames = numFrames * intervalCMIRatio;
         }
+        interval = cmiIt->second;
+        // normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, cmiIt->second, srclass, false);
+        // if(normalizedFramesize < 0) {
+        //     srclass = SR_CLASS::B;
+        //     normalizedFramesize = normalizeFramesizeForCMI(fullL2FrameSize, cmiIt->second, srclass, true);
+        //     if(normalizedFramesize < 0) {
+        //         throw cRuntimeError("Normalized framesize negative for Class A and B CMI");
+        //     }
+        // }
     }
     // -- not unique if multiple instances of a service exist and are subscribed by the same destination
     // uint64_t streamId = buildStreamIDForService(serviceId, mac_dest)
@@ -640,15 +659,15 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
     map<SwitchPort, unsigned long> portIdleSlopes;
     for(SwitchPort& switchPort : route)
     {// for each hop
-        updateClassMaxFrame(switchPort, qOption->getPcp(), fullL2FrameSize);
+        updateClassMaxFrame(switchPort, qOption->getPcp(), maxPayload + getAllHeaderBytes(sub.consumerEndpoint.getL4Protocol()));
         // update talker in sr table
         int inport = topology->findOutportAtSwitch(switchPort.switchId, ip_src);
         if(inport < 0) {
             throw cRuntimeError("Could not determine talker port for switch %s and talker IP %s", switchPort.switchId.c_str(), ip_src.str().c_str());
         }
         srpManager->registerTalker(switchPort.switchId, inport,
-                streamId, mac_dest, qOption->getVlan_id(), qOption->getPcp(), srclass,
-                normalizedFramesize, 1);
+                streamId, mac_dest, qOption->getVlan_id(), qOption->getPcp(), SR_CLASS::A,
+                fullL2FrameSize, 1, interval);
         // register new subscriber as listener
         srpManager->registerListener(switchPort.switchId, switchPort.port,
                 streamId, qOption->getVlan_id());
@@ -679,8 +698,12 @@ void SomeipSDControllerApp::reserverResourcesForNextConfig() {
 
 uint16_t SomeipSDControllerApp::calculateL2Framesize(uint8_t ip_proto,
         uint16_t payload) {
+    return payload + getAllHeaderBytes(ip_proto);
+}
+
+size_t SomeipSDControllerApp::getAllHeaderBytes(uint8_t ip_proto) {
     uint16_t transportBytes;
-    switch (ip_proto){
+    switch (ip_proto) {
     case IP_PROT_TCP:
         transportBytes = TCP_HEADER_OCTETS;
         break;
@@ -689,9 +712,8 @@ uint16_t SomeipSDControllerApp::calculateL2Framesize(uint8_t ip_proto,
         break;
     default:
         throw cRuntimeError("SOME/IP Transport must be either UDP or TCP.");
-        break;
     }
-    return payload + ETHER_MAC_FRAME_BYTES + ETHER_8021Q_TAG_BYTES
+    return ETHER_MAC_FRAME_BYTES + ETHER_8021Q_TAG_BYTES
             + IP_HEADER_BYTES + transportBytes + SOMEIP_HEADER_BYTES;
 }
 

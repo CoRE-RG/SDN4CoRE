@@ -54,7 +54,7 @@ bool SRPTableManagement::registerTalker(Switch_Info* swinfo, int arrivalPort,
 
 bool SRPTableManagement::registerTalker(string swMacAddr, int talkerPort,
         uint64_t streamId, inet::MACAddress destination, uint16_t vlanId, uint8_t pcp, SR_CLASS srClass,
-        uint16_t maxFrameSize, uint16_t maxIntervalFrames) {
+        uint16_t maxFrameSize, uint16_t maxIntervalFrames, double customStreamIntervalSecs) {
     Enter_Method ("registerTalker");
     //check if we need to create a table for this switch.
     SRPTable* srpTable = getOrCreateManagedState(swMacAddr);
@@ -67,7 +67,7 @@ bool SRPTableManagement::registerTalker(string swMacAddr, int talkerPort,
         module = getOrCreateSwitchPort(swMacAddr, talkerPort);
     }
     return srpTable->updateTalkerWithStreamId(streamId, module, destination, srClass,
-            maxFrameSize, maxIntervalFrames, vlanId, pcp, false);
+            maxFrameSize, maxIntervalFrames, vlanId, pcp, false, customStreamIntervalSecs);
 }
 
 bool SRPTableManagement::registerListener(openflow::Switch_Info* swinfo,
@@ -323,13 +323,17 @@ bool SRPTableManagement::readSRPTableFromXML(cXMLElement* srp, const string& swM
                                 size_t framesize = atoi(value);
                                 if(const char* value = talkerEntry->getAttribute("intervalFrames")){
                                     uint16_t intervalFrames = atoi(value);
-                                        if(const char* value = talkerEntry->getAttribute("pcp")){
+                                    if(const char* value = talkerEntry->getAttribute("pcp")){
                                         uint8_t pcp = atoi(value);
+                                        double customStreamIntervalSecs = -1;
+                                        if (const char* value = talkerEntry->getAttribute("customStreamIntervalSecs")){
+                                            customStreamIntervalSecs = atof(value);
+                                        }
                                         if(const char* value = talkerEntry->getAttribute("port")){
                                             int port = atoi(value);
                                             PortModule* module = getOrCreateSwitchPort(swMac, port);
                                             //all values are set correctly --> insert talker.
-                                            changed |= srpTable->updateTalkerWithStreamId(stream_id, module, address, srClass, framesize, intervalFrames, vlan_id, pcp, true);
+                                            changed |= srpTable->updateTalkerWithStreamId(stream_id, module, address, srClass, framesize, intervalFrames, vlan_id, pcp, true, customStreamIntervalSecs);
                                         }
                                     }
                                 }
@@ -374,6 +378,9 @@ string SRPTableManagement::exportSRPTableToXML (SRPTable* table, const string& s
         oss << " framesize=\"" << talkerEntry.framesize << "\"";
         oss << " intervalFrames=\"" << talkerEntry.intervalFrames << "\"";
         oss << " pcp=\"" << static_cast<int>(talkerEntry.pcp) << "\"";
+        if(talkerEntry.customStreamInterval >= 0) {
+            oss << " customStreamIntervalSecs=\"" << talkerEntry.customStreamInterval << "\"";
+        }
         oss << " />" << endl;
     }
     oss << string(indentTabs+1, '\t') << "</talkerTable>" << endl;

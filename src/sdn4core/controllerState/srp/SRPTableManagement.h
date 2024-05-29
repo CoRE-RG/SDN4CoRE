@@ -64,7 +64,7 @@ public:
      * Register a talker for a switch and inport.
      * @param swinfo            The switch recieving the talker advertise.
      * @param arrivalPort       The ingress port at the receiving switch.
-     * @param talkerAdvertise   The original talker advertise message recieved in the switch.
+     * @param talkerAdvertise   The original talker advertise message received in the switch.
      * @return                  true if the talker table has been updated.
      */
     virtual bool registerTalker(openflow::Switch_Info* swinfo, int arrivalPort,
@@ -81,11 +81,12 @@ public:
      * @param srClass the srClass of the stream
      * @param maxFrameSize the maximum frame size the stream sends
      * @param maxIntervalFrames the maximum frames per interval send by the stream
+     * @param customStreamIntervalSecs Custom stream interval in seconds, if <= 0 srClass intervals are used
      * @return true if the talker table has been updated.
      */
     virtual bool registerTalker(std::string swMacAddr, int talkerPort,
             uint64_t streamId, inet::MACAddress destination, uint16_t vlanId, uint8_t pcp, CoRE4INET::SR_CLASS srClass,
-            uint16_t maxFrameSize, uint16_t maxIntervalFrames);
+            uint16_t maxFrameSize, uint16_t maxIntervalFrames, double customStreamIntervalSecs = -1);
 
     /**
      * Register a listener for a switch and inport.

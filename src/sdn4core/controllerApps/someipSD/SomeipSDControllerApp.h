@@ -123,6 +123,7 @@ protected:
      * @return the framesize including all headers and the payload
      */
     uint16_t calculateL2Framesize(uint8_t ip_proto, uint16_t payload);
+    size_t getAllHeaderBytes(uint8_t ip_proto);
     void sendPortModCBS(SwitchPort& switchPort, uint8_t pcp, unsigned long idleSlope);
     OFP_TSN_Port_Mod_CBS* buildPortModCBS(uint32_t portno, uint8_t pcp, unsigned long idleSlope);
 

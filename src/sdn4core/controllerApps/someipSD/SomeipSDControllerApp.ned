@@ -48,7 +48,6 @@ simple SomeipSDControllerApp extends PacketProcessorBase
         flowModIdleTimeOut = default(0);
         bool reserveResources = default(false);
         bool streamIntervalAsCMI = default(false);  // calculate IdleSlope based on stream interval instead of CMI
-        											// the framesize will be "normalized" for the ratio of the interval / CMI of the priority 
         // the class measurement interval for the 802.1Q priorities
         // the key must be the pcp index (usually 0 - 7), see example below.  
         // A CMI <= 0 will not allow stream reservation in this priority.
