@@ -659,7 +659,7 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
     map<SwitchPort, unsigned long> portIdleSlopes;
     for(SwitchPort& switchPort : route)
     {// for each hop
-        updateClassMaxFrame(switchPort, qOption->getPcp(), maxPayload + getAllHeaderBytes(sub.consumerEndpoint.getL4Protocol()));
+        updateClassMaxFrame(switchPort, qOption->getPcp(), calculateL2Framesize(sub.consumerEndpoint.getL4Protocol(), maxPayload));
         // update talker in sr table
         int inport = topology->findOutportAtSwitch(switchPort.switchId, ip_src);
         if(inport < 0) {
@@ -667,7 +667,7 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
         }
         srpManager->registerTalker(switchPort.switchId, inport,
                 streamId, mac_dest, qOption->getVlan_id(), qOption->getPcp(), SR_CLASS::A,
-                fullL2FrameSize, 1, interval);
+                fullL2FrameSize, numFrames, interval);
         // register new subscriber as listener
         srpManager->registerListener(switchPort.switchId, switchPort.port,
                 streamId, qOption->getVlan_id());
