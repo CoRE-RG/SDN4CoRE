@@ -678,6 +678,7 @@ void SomeipSDControllerApp::reserveResourcesForSubscription(
         // configure the device port accordingly
         sendPortModCBS(switchPort, qOption->getPcp(), portIdleSlope);
     }
+    dumpFlowResourceReservation(streamId, qOption->getVlan_id(), qOption->getPcp(), interval, fullL2FrameSize, numFrames);
     dumpFlowUpdateIdleSlopes(portIdleSlopes, qOption->getPcp());
     if(par("verifyMaxLatencies").boolValue())
     {
@@ -1055,6 +1056,22 @@ void SomeipSDControllerApp::concludeFlowUpdateDump()
         tmpDumpFile << " }";
         tmpDumpFile.close();
     } 
+}
+
+void SomeipSDControllerApp::dumpFlowResourceReservation(uint64_t streamId, uint16_t vlanId, uint8_t pcp, double interval, uint16_t frameSize, int numFrames)
+{
+    if (!dumpToFile) return;
+    if (tmpDumpFile.is_open()) 
+    {
+        tmpDumpFile << ", " << "\"resourceReservation\": {";
+        tmpDumpFile << " \"streamId\": " << streamId;
+        tmpDumpFile << ", \"vlanId\": " << vlanId;
+        tmpDumpFile << ", \"pcp\": " << (int) pcp;
+        tmpDumpFile << ", \"measurementInterval\": " << interval;
+        tmpDumpFile << ", \"l2FrameSize\": " << frameSize;
+        tmpDumpFile << ", \"numFrames\": " << numFrames;
+        tmpDumpFile << " }";
+    }
 }
 
 void SomeipSDControllerApp::dumpFlowUpdateRoute(const TopologyManagement::Route& route)

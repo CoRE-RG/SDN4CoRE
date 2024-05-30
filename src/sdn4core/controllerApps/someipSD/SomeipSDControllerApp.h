@@ -159,6 +159,7 @@ private:
 
      void prepareFlowUpdateDump(const SomeipServiceTable::Subscription& sub, bool isMcast);
      void concludeFlowUpdateDump();
+     void dumpFlowResourceReservation(uint64_t streamId, uint16_t vlanId, uint8_t pcp, double interval, uint16_t frameSize, int numFrames);
      void dumpFlowUpdateRoute(const TopologyManagement::Route& route);
      void dumpFlowUpdateIdleSlopes(const std::map<SwitchPort, unsigned long>& portIdleSlopes, int pcp);
      void dumpFlowUpdateHopInterference();
