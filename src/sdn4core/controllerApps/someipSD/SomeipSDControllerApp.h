@@ -266,6 +266,8 @@ private:
       * Set to false during first dump if dumpFile is not set.
       */
      bool dumpToFile = true;
+
+     bool _dumpFileInitialized = false;
 };
 
 std::ostream& operator<<(std::ostream& os, const SomeipSDControllerApp::SwitchPortIdleSlope& config)

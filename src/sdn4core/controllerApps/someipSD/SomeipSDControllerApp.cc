@@ -1005,14 +1005,13 @@ double SomeipSDControllerApp::findMaxHopInterference(SwitchPort& switchPort, uin
 void SomeipSDControllerApp::prepareFlowUpdateDump(const SomeipServiceTable::Subscription& sub, bool isMcast)
 {
     if (!dumpToFile) return;
-    static bool fileInitialized = false;
     string filename = par("dumpFlowUpdatesToFile").stringValue();
     if (filename.empty())
     {
         dumpToFile = false;
         return;
     }
-    if(fileInitialized)
+    if(_dumpFileInitialized)
     {
         tmpDumpFile.open(filename, ios::app);
     } 
@@ -1022,7 +1021,7 @@ void SomeipSDControllerApp::prepareFlowUpdateDump(const SomeipServiceTable::Subs
     }
     if (tmpDumpFile.is_open()) 
     {
-        if(!fileInitialized)
+        if(!_dumpFileInitialized)
         {
             tmpDumpFile << " {";
             tmpDumpFile << "\"flowUpdates\": [";
@@ -1042,7 +1041,7 @@ void SomeipSDControllerApp::prepareFlowUpdateDump(const SomeipServiceTable::Subs
         {
             tmpDumpFile << ", \"mcastDst\": \"" << sub.consumerEndpoint.getIpv4Address().str() << "\"";
         }
-        fileInitialized = true;
+        _dumpFileInitialized = true;
     } else {
         cout << "Unable to open " << filename << " to dump the flow update." << endl;
     }
