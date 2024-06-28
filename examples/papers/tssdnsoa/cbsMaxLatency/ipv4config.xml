@@ -1,0 +1,8 @@
+<config>
+    <!-- data plane -->
+    <interface hosts="**Src* sink" names="eth0" address="192.168.x.x" /> 
+    <route hosts="**Src* sink" destination="*" interface="eth0" metric="50"/>
+    <!-- control plane -->
+    <interface hosts="**Switch* controller*" names="eth*" address="10.x.x.x"/>
+    
+</config>
