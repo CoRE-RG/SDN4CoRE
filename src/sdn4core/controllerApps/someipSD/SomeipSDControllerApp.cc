@@ -750,6 +750,10 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
         {
             SomeipServiceTable::InstanceID instanceId = sInst.first;
             SomeipOptionsList& pubOptions = serviceTable->getServiceInstance(serviceId, instanceId, true)->optionList;
+            if (!pubOptions.hasConfigType<RessourceConfigurationOption*>())
+            {
+                continue;
+            }
             uint8_t pcp = pubOptions.getFirstConfigOfType<IEEE8021QConfigurationOption*>()->getPcp();
             RessourceConfigurationOption* resourceConfig = pubOptions.getFirstConfigOfType<RessourceConfigurationOption*>();
             uint16_t fullL2FrameSize = calculateL2Framesize(sInst.second.front().consumerEndpoint.getL4Protocol(), resourceConfig->getMaxPayload());
