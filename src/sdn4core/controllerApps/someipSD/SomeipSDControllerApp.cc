@@ -750,7 +750,8 @@ bool SomeipSDControllerApp::verifyNetworkMaxLatencies(bool errorOnFailure) {
         {
             SomeipServiceTable::InstanceID instanceId = sInst.first;
             SomeipOptionsList& pubOptions = serviceTable->getServiceInstance(serviceId, instanceId, true)->optionList;
-            if (!pubOptions.hasConfigType<RessourceConfigurationOption*>())
+            if (!pubOptions.hasConfigType<RessourceConfigurationOption*>()
+                    or !pubOptions.hasConfigType<IEEE8021QConfigurationOption*>())
             {
                 continue;
             }
