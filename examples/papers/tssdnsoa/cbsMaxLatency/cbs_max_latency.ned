@@ -37,7 +37,7 @@ network CBS_Max_Latency
             ber = 0.0;
             per = 0.0;
         }
-            
+
     submodules:
         configurator: IPv4NetworkConfigurator {
             parameters:
@@ -53,18 +53,24 @@ network CBS_Max_Latency
 
         stage[numInputLinks]: Stages {
             parameters:
-            	@display("i=block/network;p=350,150,c,100");
-            	numStages = parent.numStages;
+                @display("i=block/network;p=350,150,c,100");
+                numStages = parent.numStages;
         }
-        
+
         aggregateSwitch: Switch {
             @display("p=500,150");
         }
-        
+
         sink: Node {
             parameters:
-            	@display("p=650,150");
+                @display("p=650,150");
                 localAddress = "sink";
+        }
+
+        aggregateCTSrc: Node {
+            parameters:
+                @display("p=500,50");
+                localAddress = "aggregateCTSrc";
         }
 
         controller: Controller {
@@ -77,10 +83,11 @@ network CBS_Max_Latency
         for i=0..numInputLinks-1, for j=0..numStages-1 {
             stage[i].controlplane[j] <--> controller.ethg++;
         }
-    	// Dataplane
-    	aggregateSwitch.gateDataPlane++ <--> EthLink <--> sink.ethg++;
-    	for i=0..numInputLinks-1 {
-    		talkerSrc[i].ethg++ <--> stage[i].left;
-    		stage[i].right <--> aggregateSwitch.gateDataPlane++;
-    	}
+        // Dataplane
+        aggregateSwitch.gateDataPlane++ <--> EthLink <--> sink.ethg++;
+        for i=0..numInputLinks-1 {
+            talkerSrc[i].ethg++ <--> stage[i].left;
+            stage[i].right <--> aggregateSwitch.gateDataPlane++;
+        }
+        aggregateSwitch.gateDataPlane++ <--> EthLink <--> aggregateCTSrc.ethg++;
 }
