@@ -106,13 +106,14 @@ export_stats_for_scenario() {
 }
 
 base_dir=$(pwd)
-results_dir="savedResults"
+results_dir="resultsFix"
 outdir="analysis/simScave"
-
 # list with is schemes: 'Static', 'CMI', 'SI', 'NC'
-isSchmes=("Static" "CMI" "SI" "NC")
+# isSchmes=("Static" "CMI" "SI" "NC")
+isSchmes=("CMI" "SI" "NC")
 # list with ct schemes: 'NoCT', 'BECT', 'PCT', 'NoCT_NoPCTRes', 'BECT_NoPCTRes'
-ctSchemes=("NoCT" "BECT" "PCT" "NoCT_NoPCTRes" "BECT_NoPCTRes")
+# ctSchemes=("NoCT" "BECT" "PCT" "NoCT_NoPCTRes" "BECT_NoPCTRes")
+ctSchemes=("NoCT" "BECT" "PCT")
 
 # iterate over is schemes
 for isScheme in "${isSchmes[@]}" ; do

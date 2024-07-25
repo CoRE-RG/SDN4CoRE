@@ -9,25 +9,31 @@ libs="-l ../../../../src/SDN4CoRE -l ../../../../../CoRE4INET/src/CoRE4INET -l .
 inifile="omnetpp.ini"
 length="--sim-time-limit=0.4s"
 
-configbase="Study_NC_"
+configbase="Study_"
 # array of config extensions
-configexts=("NoCT" "BECT" "PCT") # "NoCT_NoPCTRes" "BECT_NoPCTRes")
+isSchmes=("CMI" "SI" "NC")
+ctSchemes=("NoCT" "BECT" "PCT")
 
-# for loop over config extensions
-for configext in "${configexts[@]}" ; do
-    # for loop over IL from 2 to 13
-    for IL in {2..13} ; do
-        for S in {11..15} ; do
-            config=$configbase$configext"_IL-"$IL"_S-"$S
-            run="\$IL=$IL && \$S=$S"
-            $opp_cmd -n $nedpath -x $excludes --image-path=$imagepath $libs $inifile $length -c $config -r "$run" &
+for IL in {2..13} ; do
+    for S in {1..20} ; do
+        for isScheme in "${isSchmes[@]}" ; do
+            # iterate over ct schemes
+            for ctScheme in "${ctSchemes[@]}" ; do
+                config=$configbase$isScheme"_"$ctScheme
+                # check if isScheme is "NC"
+                if [ "$isScheme" == "NC" ]; then
+                    config=$configbase$isScheme"_"$ctScheme"_IL-"$IL"_S-"$S
+                fi
+                run="\$IL=$IL && \$S=$S"
+                $opp_cmd -n $nedpath -x $excludes --image-path=$imagepath $libs $inifile $length -c $config -r "$run" &
+            done
+            wait
         done
-        wait
-        for S in {16..20} ; do
-            config=$configbase$configext"_IL-"$IL"_S-"$S
-            run="\$IL=$IL && \$S=$S"
-            $opp_cmd -n $nedpath -x $excludes --image-path=$imagepath $libs $inifile $length -c $config -r "$run" &
-        done
-        wait
-    done
+    done    
 done
+
+# execute a dedicated study
+# opp_cmd="opp_run -m -u Qtenv"
+# config=$configbase"Static_BECT"
+# run="\$IL=10 && \$S=1"
+# $opp_cmd -n $nedpath -x $excludes --image-path=$imagepath $libs $inifile $length -c $config -r "$run" 

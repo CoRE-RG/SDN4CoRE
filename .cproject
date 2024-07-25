@@ -43,8 +43,24 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="org.omnetpp.cdt.gnu.config.debug.110505064.342677353" name="/" resourcePath="src">
+						<toolChain id="org.omnetpp.cdt.gnu.toolchain.debug.706612531" name="C++ Toolchain for OMNeT++" superClass="org.omnetpp.cdt.gnu.toolchain.debug" unusedChildren="">
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1723516748" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.1561732455"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1335119822" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.1767519315">
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1231786560" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.456399609" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.19514986">
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1180216978" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.452501721" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.318624320"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.105096621" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1701800786"/>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.base.1714055203" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.996924462">
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.123686581" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
 					<sourceEntries>
-						<entry excluding="sdn4core/controllerApps/someipSD" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -92,8 +108,24 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="org.omnetpp.cdt.gnu.config.release.230635049.1440471115" name="/" resourcePath="src">
+						<toolChain id="org.omnetpp.cdt.gnu.toolchain.release.125136184" name="C++ Toolchain for OMNeT++" superClass="org.omnetpp.cdt.gnu.toolchain.release" unusedChildren="">
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1781125838" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.1522560236"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.984807999" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.994680016">
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.471965562" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.826032431" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.153954602">
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.15241186" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1275302260" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1777153405"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.182460757" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.998066162"/>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.base.1441709267" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.238970275">
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1933478551" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
 					<sourceEntries>
-						<entry excluding="sdn4core/controllerApps/someipSD" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
