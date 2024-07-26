@@ -25,7 +25,7 @@ module Node extends MiddlewareTSNHost
         middleware.sm.typename = "SomeIpManager";
         middleware.sd.typename = "SomeIpSD";
 		middleware.**.multicastInterface = "eth0";
-		middleware.sm.initialDelay = uniform(0ms,10ms);
+		middleware.sm.initialDelay = default(uniform(0ms,10ms));
 		middleware.sm.repetitionsMax=3;
 		middleware.sm.repetitionBaseDelay = 100ms;
 		middleware.sm.cyclicOfferDelay = 2s;
