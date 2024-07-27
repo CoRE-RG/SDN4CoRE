@@ -22,7 +22,7 @@ export_stat() {
     local outfile="$5"
     local filefilter="$6"
 
-    time="--start-time $MIN_TIME_INIT --end-time $MAX_TIME_INIT"
+    time="--start-time $start_time --end-time $end_time"
     filter='module=~ "'$module'" AND name=~ "'$stat'"'
     run_scavetool "$filter" "$time" "$outfile" "$filefilter"
 }
@@ -45,7 +45,7 @@ export_stats_for_scenario() {
     MIN_TIME_INIT=0
     MAX_TIME_INIT=0.2
     MIN_TIME_SCENARIO=0
-    MAX_TIME_SCENARIO=2
+    MAX_TIME_SCENARIO=10
 
     # Statistic names
     STAT_IDLESLOPE="reservedBandwidth:vector"

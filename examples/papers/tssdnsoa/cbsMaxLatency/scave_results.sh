@@ -22,7 +22,7 @@ export_stat() {
     local outfile="$5"
     local filefilter="$6"
 
-    time="--start-time $MIN_TIME_INIT --end-time $MAX_TIME_INIT"
+    time="--start-time $start_time --end-time $end_time"
     filter='module=~ "'$module'" AND name=~ "'$stat'"'
     run_scavetool "$filter" "$time" "$outfile" "$filefilter"
 }

@@ -17,6 +17,7 @@ package sdn4core.examples.papers.tssdnsoa.car;
 
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 import inet.node.ethernet.Eth1G;
+import inet.node.ethernet.Eth10G;
 
 network Car
 {
@@ -27,6 +28,14 @@ network Car
             length = 2m;
         }
         channel Eth1G_05m extends Eth1G
+        {
+            length = 0.5m;
+        }
+        channel Eth10G_2m extends Eth10G
+        {
+            length = 2m;
+        }
+        channel Eth10G_05m extends Eth10G
         {
             length = 0.5m;
         }
@@ -118,10 +127,10 @@ network Car
         controller.ethg++ <--> Eth1G_2m <--> switchRearLeft.gateControlPlane; 	// 4 - 0
         // data plane
         // backbone (no longer as a ring but as a star topology introducing central switch)
-        switchFrontLeft.gateDataPlane++ <--> Eth1G_2m <--> switchCenter.gateDataPlane++; 				// 0 - 0
-        switchFrontRight.gateDataPlane++ <--> Eth1G_2m <--> switchCenter.gateDataPlane++; 				// 0 - 1
-        switchRearRight.gateDataPlane++ <--> Eth1G_2m <--> switchCenter.gateDataPlane++;   				// 0 - 2
-        switchRearLeft.gateDataPlane++ <--> Eth1G_2m <--> switchCenter.gateDataPlane++;   				// 0 - 3
+        switchFrontLeft.gateDataPlane++ <--> Eth10G_2m <--> switchCenter.gateDataPlane++; 				// 0 - 0
+        switchFrontRight.gateDataPlane++ <--> Eth10G_2m <--> switchCenter.gateDataPlane++; 				// 0 - 1
+        switchRearRight.gateDataPlane++ <--> Eth10G_2m <--> switchCenter.gateDataPlane++;   				// 0 - 2
+        switchRearLeft.gateDataPlane++ <--> Eth10G_2m <--> switchCenter.gateDataPlane++;   				// 0 - 3
         // edge
         switchFrontLeft.gateDataPlane++ <--> Eth1G_05m <--> lidarFrontLeft.ethg++;  				// 1 - 0
         switchFrontLeft.gateDataPlane++ <--> Eth1G_05m <--> connectivityGateway.ethg++;			    // 2 - 0
@@ -130,7 +139,7 @@ network Car
         switchFrontRight.gateDataPlane++ <--> Eth1G_05m <--> cameraFront.ethg++;					// 1 - 0
         switchFrontRight.gateDataPlane++ <--> Eth1G_05m <--> lidarFrontRight.ethg++;				// 2 - 0
         switchFrontRight.gateDataPlane++ <--> Eth1G_05m <--> zonalControllerFrontRight.ethg++;	    // 3 - 0
-        switchRearRight.gateDataPlane++ <--> Eth1G_05m <--> adas.ethg++;							// 1 - 0
+        switchRearRight.gateDataPlane++ <--> Eth10G_05m <--> adas.ethg++;							// 1 - 0
         switchRearRight.gateDataPlane++ <--> Eth1G_05m <--> zonalControllerRearRight.ethg++;		// 2 - 0
         switchRearRight.gateDataPlane++ <--> Eth1G_05m <--> lidarRearRight.ethg++;				    // 3 - 0
         // switchRearRight.gateDataPlane++ <--> Eth1G_05m <--> masterClock.ethg++;                  // 5 - 0
