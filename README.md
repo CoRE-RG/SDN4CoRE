@@ -8,20 +8,68 @@ SDN4CoRE provides programmable network devices and controllers for different Eth
 
 
 ## News
-IMPORTANT: We recently had to perform a rebase for the published NETCONF transactions to clean up the history and change the commit authors.
-We apologize for the inconvenience, but it was important to us that all student contributors are listed.
-If you have trouble pulling changes, try rebasing your changes to the current Github master branch, or open an issue and ask for help.
-
 Release of Netconf transaction model including time synchronous and non time synchronous transactions. As well as chnages to many netconf moudules.
 
 Model release including programmable devices and controllers for IEEE802.1Q, IEEE802.1Qbv, AVB/SRP via OpenFlow and NetConf.
 
 SOME/IP Service Discovery Controller Application added, depends on SOA4CoRE Framework.
 
-## References
-If you would like to reference this project please use the following [publication](https://doi.org/10.29007/w71t):
+More SOME/IP integrations and service added, including QoS negotiation and reservation via TSN.
 
- >Timo Häckel, Philipp Meyer, Franz Korf, and Thomas C. Schmidt. SDN4CoRE: A Simulation Model for Software-Defined Networking for Communication over Real-Time Ethernet. In: Proceedings of the 6th International OMNeT++ Community Summit 2019. Pages 24—31, Dec. 2019, EasyChair
+## References
+To reference this project please use the following [publication](https://doi.org/10.29007/w71t):
+
+ >Timo Häckel, Philipp Meyer, Franz Korf, and Thomas C. Schmidt. SDN4CoRE: A Simulation Model for Software-Defined Networking for Communication over Real-Time Ethernet. In: Proceedings of the 6th International OMNeT++ Community Summit 2019. Pages 24—31, Dec. 2019, EasyChair.
+ ```bibtex
+ @InProceedings{hmks-smsdn-19,
+  author     = {Timo H{\"a}ckel and Philipp Meyer and Franz Korf and Thomas C. Schmidt},
+  booktitle  = {6th International OMNeT++ Community Summit},
+  title      = {{SDN4CoRE: A Simulation Model for Software-Defined Networking for Communication over Real-Time Ethernet}},
+  editor    = {Meyo Zongo and Antonio Virdis and Vladimir Vesely and Zeynep Vatandas and Asanga Udugama and Koojana Kuladinithi and Michael Kirsche and Anna F{\"o}rster},
+  year       = {2019},
+  month      = sep,
+  pages      = {24--31},
+  series    = {EPiC Series in Computing},
+  volume    = {66},
+  publisher = {EasyChair},
+  doi        = {10.29007/w71t}
+}
+```
+
+To reference the TSN and SDN integration / TSSDN) methodology please add the following [reference](https://doi.org/10.1109/TVT.2022.3202368):
+> T. Häckel, P. Meyer, F. Korf and T. C. Schmidt, "Secure Time-Sensitive Software-Defined Networking in Vehicles," in IEEE Transactions on Vehicular Technology, vol. 72, no. 1, pp. 35-51, Jan. 2023, IEEE. 
+```bibtex
+@Article{hmks-stsnv-23,
+  author    = {Timo H{\"a}ckel and Philipp Meyer and Franz Korf and Thomas C. Schmidt},
+  journal   = {IEEE Transactions on Vehicular Technology},
+  title     = {{Secure Time-Sensitive Software-Defined Networking in Vehicles}},
+  year      = {2023},
+  month     = jan,
+  number    = {1},
+  pages     = {35--51},
+  volume    = {72},
+  doi       = {10.1109/TVT.2022.3202368},
+  publisher = {IEEE}
+}
+```
+
+For the TSN and SOA integrations with deterministic latency please add the following [reference](https://doi.org/10.1016/j.vehcom.2025.100985)
+> Timo Salomon, Lisa Maile, Philipp Meyer, Franz Korf, Thomas C. Schmidt, "Negotiating Strict Latency Limits for Dynamic Real-Time Services in Vehicular Time-Sensitive Networks," Vehicular Communications, Elsevier, 2025. (in press)
+```bibtex
+@Article{smmks-nslld-25,
+  author = {Timo Salomon and Lisa Maile and Philipp Meyer and Franz Korf and Thomas C. Schmidt},
+  title  = {{Negotiating Strict Latency Limits for Dynamic Real-Time Services in Vehicular Time-Sensitive Networks}},
+  journal = {Vehicular Communications},
+  pages = {},
+  volume = {},
+  number = {},
+  year = {2025},
+  month = {},
+  nope= "In Press",
+  publisher = {Elsevier},
+  doi   = {10.1016/j.vehcom.2025.100985},
+}
+```
 
 ## Quick Start
 1. Download OMNeT++ 6.0.2
@@ -39,31 +87,7 @@ If you would like to reference this project please use the following [publicatio
 
 
 ## Continuous Integration
-
-The build state of the master branch is monitored:
-* Building: 
-<a><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE"></a>
-* Tests: 
-<a><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests"></a>
-
-
-<table>
-  <tr>
-    <th></th>
-    <th>Ubuntu 22.04</th>
-    <th>Windows 11</th>
-  </tr>
-  <tr>
-    <td>Building</td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Ubuntu_22.04"></td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE/Nodes=Windows_11"></td>
-  </tr>
-  <tr>
-    <td>Tests</td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Ubuntu_22.04"></td>
-    <td><img src="https://jenkins.core-rg.de/buildStatus/icon?job=SDN4CoRE/SDN4CoRE_tests/Nodes=Windows_11"></td>
-  </tr>
-</table>
+The project has been tested on Ubuntu 22.04 (+WSL) and Windows 11.
 
 
 ## Further Information

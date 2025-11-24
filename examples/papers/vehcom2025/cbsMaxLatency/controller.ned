@@ -15,7 +15,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.papers.tssdnsoa.cbsMaxLatency;
+package sdn4core.examples.papers.vehcom2025.cbsMaxLatency;
 
 import sdn4core.controller.tsn.TSN_NC_OF_Controller;
 

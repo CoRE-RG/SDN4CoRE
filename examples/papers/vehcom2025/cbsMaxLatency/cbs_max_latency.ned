@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.papers.tssdnsoa.cbsMaxLatency;
+package sdn4core.examples.papers.vehcom2025.cbsMaxLatency;
 
 import inet.node.ethernet.EtherLink;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
