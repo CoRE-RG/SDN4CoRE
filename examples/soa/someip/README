@@ -3,13 +3,33 @@ After the service discovery publishers send messages to their subscribers.
 
 - The small network contains the three hosts: node1, node2, node3
 
-- Next to that there is one switch that connects every node with each other.
-  So all hosts can communicate with each other over the switch.
+- 2 switches interconnect the 4 hosts, and an SDN controller manages the network
 
-- node1 provides one publisher service.
+- node1 has two publisher services (1, 2)
+- node2 has two subscriber services (1, 2)
+- node3 has 1 subscriber service (1)
+- node4 has no publishers or subscribers
 
-- node2 provides one subscriber that subscribes the publisher service on node1.
+- the someip SDN controller app learns available services and forwards offers and subscriptions
 
-- node3 provides one publisher service and one subscriber.
-  The subscriber on node3 subscribes the publisher service on node3.
-  
+- scenario
+0. control plane connects to the SDN controller
+1. at 1ms the publishers on node1 start first
+	- controller learns two publisher services (see controller.controllerState.serviceTable)
+	- offers are broadcast in the network on every hop through the controller
+2. at 2ms the subscribers on node2 start 
+	- controller directly replies to find requests with the learned offers
+	- subscription messages are forwarded via the controller towards node1
+	- the controller nodes the subscriptions as waiting for acknowledgement
+	- subscription acknowledgements are forwarded via the controller towards node 2
+	- the controller finalizes the subscription and registers the flows at switch1
+3. at 2.125ms (and every 125us) data transmission flows from node1 towards node2 without controller involvement
+4. at 10ms the subscriber on node3 starts
+	- the find request is directly answered by the controller
+	- subscribe is forwarded by the controller through switch1 towards node1 (skipping the switch2-switch1 path)
+	- subscribe ack is intercepted by the controller
+	- controller configures the flow at both data plane devices
+	- subscribeack is forwarded by the controller through switch2 towards node3 (skipping the switch1-switch2 path)
+5. at 10.125ms (and every 125us) data flows from node1 towards node2 and node3 without controller involvement
+	
+	 
