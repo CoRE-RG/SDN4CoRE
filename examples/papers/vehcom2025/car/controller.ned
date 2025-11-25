@@ -15,7 +15,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package sdn4core.examples.papers.tssdnsoa.car;
+package sdn4core.examples.papers.vehcom2025.car;
 
 import sdn4core.controller.tsn.TSN_NC_OF_Controller;
 
