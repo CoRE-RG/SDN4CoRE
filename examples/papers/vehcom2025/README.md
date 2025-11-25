@@ -1,4 +1,5 @@
-# Scenarios used in the Paper 
+# Paper: Negotiating Strict Latency Limits for Dynamic Real-Time Services in Vehicular Time-Sensitive Networks
+## References
 > Timo Salomon, Lisa Maile, Philipp Meyer, Franz Korf, Thomas C. Schmidt, "Negotiating Strict Latency Limits for Dynamic Real-Time Services in Vehicular Time-Sensitive Networks," Vehicular Communications, Elsevier, 2025. (in press)
 ```bibtex
 @Article{smmks-nslld-25,
@@ -16,4 +17,5 @@
 }
 ```
 
-See also additional readmes in scenario folders.
+## Scenarios
+The paper has a CBS max latency study and a realistic in car network. See also additional readmes in scenario folders.
