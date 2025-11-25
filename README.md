@@ -86,8 +86,8 @@ For the TSN and SOA integrations with deterministic latency please add the follo
     * Start the examples in the framework
 
 
-## Continuous Integration
-The project has been tested on Ubuntu 22.04 (+WSL) and Windows 11.
+## Status
+The project has been tested on Ubuntu 22.04 (+WSL) and Windows 11. 
 
 
 ## Further Information
