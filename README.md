@@ -7,14 +7,11 @@ SDN4CoRE provides programmable network devices and controllers for different Eth
 <img src="/doc/images/sdn4core.png" alt="SDN4CoRE Environment" width="75%">
 
 
-## News
-Release of Netconf transaction model including time synchronous and non time synchronous transactions. As well as chnages to many netconf moudules.
-
-Model release including programmable devices and controllers for IEEE802.1Q, IEEE802.1Qbv, AVB/SRP via OpenFlow and NetConf.
-
-SOME/IP Service Discovery Controller Application added, depends on SOA4CoRE Framework.
-
-More SOME/IP integrations and service added, including QoS negotiation and reservation via TSN.
+## Features
+* Programmable devices and controllers for IEEE802.1Q, IEEE802.1Qbv, AVB/SRP via OpenFlow and NetConf
+* Netconf transaction model including time synchronous and non time synchronous transactions
+* SOME/IP Service Discovery Controller Application added (depends on SOA4CoRE Framework)
+* More SOME/IP integrations and service added, including QoS negotiation and reservation via TSN
 
 ## References
 To reference this project please use the following [publication](https://doi.org/10.29007/w71t):
