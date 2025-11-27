@@ -44,3 +44,30 @@ The controller determines bandwidth usage through TSN standard formulas using ea
 
 NC configurations:
 nc_config.ini includes static bandwidth configurations for the full parameter study determined with the DYRECtsn open source framework: https://github.com/Kathess/DYRECTsn
+
+
+## Study Execution and Evaluation
+This was done in Ubuntu 22.04 (WSL).
+
+### Run Studies
+
+```run_all_studies.sh``` will run all "omnet-only" studies, i.e., the TSN standard solutions that will automatically determine idle slopes at runtime.
+  * make sure you set your omnet++ path and run this from this folder. 
+
+```run_nc_studies.sh``` will run all "nc-" configurations to walk through the same parameter set, these are pre-configured with idle slopes calculated in DYRECTsn
+  * to generate a different nc config set use the jupyter notebook in ```NCResultsToConfig.ipynb``` -- it will read the output of the DYRECTsn tool and export a new ```nc_config.ini```
+  * make sure you set your omnet++ path and run this from this folder. 
+
+### Collect Results
+
+```scave_results.sh``` will walk through all results in and generate json data files with aggregated information
+  * make sure you set your omnet++ path and run this from this folder. 
+  * check if you have to change base_dir, results_dir, outdir
+
+### Analyze Results
+
+Check the ```plot.ipynb``` in the analysis folder, which reads the results and compiles various information. 
+
+### Integration with DYRECTsn and TSNLatencyAnalysis
+The analysis folder contains ```plot.ipynd``` and ```NCResultsToConfig.ipynb``` which read the results of the different tools and produce input data for other tools.
+

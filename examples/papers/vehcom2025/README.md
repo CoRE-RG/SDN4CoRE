@@ -19,3 +19,5 @@
 
 ## Scenarios
 The paper has a CBS max latency study and a realistic in car network. See also additional readmes in scenario folders.
+
+Check the full workspace repostiory for the [vehcom 2025 paper](https://github.com/CoRE-RG/vehcom25-soa-strict-cbs-latency).
